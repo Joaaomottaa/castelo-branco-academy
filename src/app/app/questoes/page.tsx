@@ -676,7 +676,7 @@ function QuestoesPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow text-gold-500">Banco de questões</p>
-          <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">
+          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
             Praticar é mais barato que errar no cliente
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">

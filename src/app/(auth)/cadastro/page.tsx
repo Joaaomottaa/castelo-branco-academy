@@ -112,7 +112,7 @@ function CadastroPage() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight text-navy-700">Criar conta</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Criar conta</h1>
       <p className="mt-2 text-sm text-muted">
         Leva menos de um minuto. Comece pelas aulas gratuitas.
       </p>

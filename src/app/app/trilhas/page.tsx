@@ -49,7 +49,7 @@ export default function TrilhasPage() {
     <div className="space-y-8">
       <div>
         <p className="eyebrow text-gold-500">Trilhas de carreira</p>
-        <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
           Escolha o cargo. A gente monta o caminho.
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">

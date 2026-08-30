@@ -132,7 +132,7 @@ export default function PainelEmpresa() {
       )}
 
       {/* Números do ano */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Metrica
           icone={<Users size={18} />}
           rotulo="Pessoas no time"

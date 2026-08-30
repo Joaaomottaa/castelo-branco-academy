@@ -48,7 +48,7 @@ export default function PainelPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow text-gold-500">{saudacao()}</p>
-          <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">
+          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
             Olá, {user?.nome.split(" ")[0]} 👋
           </h1>
           <p className="mt-1.5 text-sm text-muted">
@@ -62,7 +62,7 @@ export default function PainelPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Kpi icon={<Flame size={18} />} valor={`${user?.ofensiva ?? 12} dias`} rotulo="Ofensiva de estudo" tom="gold" />
         <Kpi icon={<Clock size={18} />} valor={`${horasEstudadas.toFixed(1)}h`} rotulo="Horas estudadas" tom="navy" />
         <Kpi icon={<Award size={18} />} valor={`${certificados.length}`} rotulo="Certificados emitidos" tom="teal" />
@@ -74,8 +74,12 @@ export default function PainelPage() {
           {/* Continuar assistindo */}
           {proximo && (
             <Card className="overflow-hidden !p-0">
+              {/* No celular o botão não cabe ao lado do título: flex-wrap não
+                  salvava porque o bloco de texto é flex-1 e encolhia,
+                  empurrando o botão para fora da tela. Empilha, e vira linha
+                  a partir do sm. */}
               <div
-                className="flex flex-wrap items-center gap-5 p-6"
+                className="flex flex-col items-start gap-4 p-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5 sm:p-6"
                 style={{ background: `linear-gradient(120deg, ${proximo.curso.cor} 0%, #001838 100%)` }}
               >
                 <div className="min-w-0 flex-1">
@@ -95,6 +99,7 @@ export default function PainelPage() {
                   href={`/app/cursos/${proximo.curso.slug}/aula/${proximo.ultima}`}
                   variant="gold"
                   size="lg"
+                  className="w-full justify-center sm:w-auto"
                 >
                   <PlayCircle size={17} /> Retomar aula
                 </Button>
@@ -288,13 +293,18 @@ function Kpi({
     green: "bg-emerald-50 text-emerald-600",
   };
   return (
-    <Card className="flex items-center gap-4">
-      <span className={cn("inline-flex h-11 w-11 items-center justify-center rounded-xl", tons[tom])}>
+    <Card className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+      <span
+        className={cn(
+          "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11",
+          tons[tom]
+        )}
+      >
         {icon}
       </span>
-      <div>
-        <p className="text-xl font-bold text-navy-700">{valor}</p>
-        <p className="text-xs text-muted">{rotulo}</p>
+      <div className="min-w-0">
+        <p className="text-lg font-bold leading-tight text-navy-700 sm:text-xl">{valor}</p>
+        <p className="text-[11px] leading-tight text-muted sm:text-xs">{rotulo}</p>
       </div>
     </Card>
   );

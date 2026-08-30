@@ -168,7 +168,7 @@ function CompletarCadastro() {
           <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-navy-700 text-gold-400">
             <Sparkles size={24} />
           </span>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-navy-700">
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
             {primeiroNome ? `Falta pouco, ${primeiroNome}` : "Falta pouco"}
           </h1>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted">

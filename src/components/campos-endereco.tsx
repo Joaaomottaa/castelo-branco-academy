@@ -113,7 +113,7 @@ export function CamposEndereco({
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-[180px_1fr]">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-[180px_1fr] sm:gap-4">
         <Field label="CEP" hint={obrigatorio ? undefined : "Opcional."}>
           <div className="relative">
             <input
@@ -135,7 +135,7 @@ export function CamposEndereco({
           </div>
         </Field>
 
-        <Field label="Rua / avenida">
+        <Field label="Rua / avenida" className="col-span-2 sm:col-span-1">
           <input
             value={valor.logradouro}
             onChange={(e) => aoMudar({ logradouro: e.target.value })}
@@ -146,7 +146,7 @@ export function CamposEndereco({
         </Field>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-[140px_1fr] sm:gap-4">
         <Field label="Número">
           <input
             ref={numeroRef}
@@ -168,8 +168,8 @@ export function CamposEndereco({
         </Field>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-[1fr_1fr_90px]">
-        <Field label="Bairro">
+      <div className="grid grid-cols-[1fr_90px] gap-3 sm:grid-cols-[1fr_1fr_90px] sm:gap-4">
+        <Field label="Bairro" className="col-span-2 sm:col-span-1">
           <input
             value={valor.bairro}
             onChange={(e) => aoMudar({ bairro: e.target.value })}

@@ -204,7 +204,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-navy-100 bg-white p-5",
+        "rounded-2xl border border-navy-100 bg-white p-4 sm:p-5",
         hover && "card-hover",
         className
       )}
@@ -327,14 +327,17 @@ export function Field({
   children,
   hint,
   error,
+  className = "",
 }: {
   label: string;
   children: ReactNode;
   hint?: string;
   error?: string;
+  /** Para o campo ocupar mais de uma coluna da grade que o contém. */
+  className?: string;
 }) {
   return (
-    <label className="block">
+    <label className={cn("block", className)}>
       <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-navy-600">
         {label}
       </span>

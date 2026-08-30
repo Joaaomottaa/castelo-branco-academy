@@ -124,7 +124,7 @@ export default function RelatoriosPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Kpi icone={<TrendingUp size={18} />} rotulo="Pontos do time" valor={totalPontos} nota={`Meta: ${meta} pts`} />
         <Kpi icone={<CheckCircle2 size={18} />} rotulo="Profissionais em dia" valor={`${emDia}/${membros.length}`} nota={`${META_ANUAL} pts por pessoa`} />
         <Kpi icone={<Award size={18} />} rotulo="Certificados no ano" valor={membros.reduce((a, m) => a + m.itens.length, 0)} nota="Com validação pública" />

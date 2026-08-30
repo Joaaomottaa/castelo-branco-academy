@@ -91,7 +91,7 @@ export default function PerfilPage() {
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-navy-700">Meu perfil</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Meu perfil</h1>
         <p className="mt-1.5 text-sm text-muted">
           Este é o perfil que as empresas veem no banco de talentos.
         </p>
@@ -110,11 +110,11 @@ export default function PerfilPage() {
               </div>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Nome completo">
+            <div className="grid grid-cols-2 gap-4 sm:gap-5">
+              <Field label="Nome completo" className="col-span-2 sm:col-span-1">
                 <input value={form.nome} onChange={(e) => set("nome", e.target.value)} className={inputCls} />
               </Field>
-              <Field label="Cargo atual">
+              <Field label="Cargo atual" className="col-span-2 sm:col-span-1">
                 <input
                   value={form.cargo}
                   onChange={(e) => set("cargo", e.target.value)}

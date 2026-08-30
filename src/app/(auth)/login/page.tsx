@@ -51,7 +51,7 @@ function LoginPage() {
 
   return (
     <>
-      <h1 className="text-3xl font-bold tracking-tight text-navy-700">
+      <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
         Bem-vindo de volta
       </h1>
       <p className="mt-2 text-sm text-muted">

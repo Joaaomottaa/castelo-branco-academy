@@ -58,7 +58,7 @@ export default function CertificadosPage() {
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-navy-700">Meus certificados</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Meus certificados</h1>
         <p className="mt-1.5 text-sm text-muted">
           Cada certificado tem código público de validação e pontuação para educação
           profissional continuada.

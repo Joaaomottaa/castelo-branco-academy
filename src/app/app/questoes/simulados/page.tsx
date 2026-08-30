@@ -110,7 +110,7 @@ export default function SimuladosPage() {
           >
             <ArrowLeft size={15} /> Questões
           </Link>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-navy-700">Meus simulados</h1>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Meus simulados</h1>
           <p className="mt-1.5 text-sm text-muted">
             Os simulados que você guardou, com o que caiu e o que errou em cada um.
           </p>
@@ -134,7 +134,7 @@ export default function SimuladosPage() {
       ) : (
         <>
           {resumo && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <Indicador valor={String(resumo.quantos)} rotulo="Simulados guardados" />
               <Indicador valor={`${resumo.media}%`} rotulo="Média geral" destaque />
               <Indicador valor={`${resumo.melhor}%`} rotulo="Melhor resultado" />

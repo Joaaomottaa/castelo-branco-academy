@@ -76,7 +76,7 @@ export default function ConquistasPage() {
     <div className="space-y-8">
       <div>
         <p className="eyebrow text-gold-500">Sua evolução</p>
-        <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
           Conquistas e missões
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
@@ -86,7 +86,7 @@ export default function ConquistasPage() {
       </div>
 
       {/* Resumo */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Card className="!bg-navy-700 !border-navy-700">
           <div className="flex items-start justify-between">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-gold-300">

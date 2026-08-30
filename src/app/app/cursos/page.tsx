@@ -158,7 +158,7 @@ export default function CatalogoPage() {
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-navy-700">Catálogo de cursos</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Catálogo de cursos</h1>
         <p className="mt-1.5 text-sm text-muted">
           {cursos.length} cursos · {cursos.reduce((a, c) => a + c.cargaHoraria, 0)}h de conteúdo ·
           certificação com pontuação para educação continuada

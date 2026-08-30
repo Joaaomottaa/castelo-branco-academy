@@ -64,7 +64,7 @@ export default function CadernosPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow text-gold-500">Organização</p>
-          <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">Meus cadernos</h1>
+          <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Meus cadernos</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
             Separe as questões que você quer revisar depois — por assunto, por prova ou
             simplesmente pelas que você errou.

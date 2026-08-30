@@ -36,7 +36,7 @@ export default function FerramentasPage() {
     <div className="space-y-7">
       <div>
         <p className="eyebrow text-gold-500">Ferramentas</p>
-        <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
           Calculadoras do dia a dia
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">

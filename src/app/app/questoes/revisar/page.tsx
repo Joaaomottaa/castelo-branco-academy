@@ -122,7 +122,7 @@ export default function RevisarPage() {
         >
           <ArrowLeft size={14} /> Banco de questões
         </Link>
-        <h1 className="mt-2 flex items-center gap-2.5 text-3xl font-bold tracking-tight text-navy-700">
+        <h1 className="mt-2 flex items-center gap-2.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
           <RotateCcw size={26} className="text-gold-500" /> Revisar hoje
         </h1>
         <p className="mt-1.5 max-w-xl text-sm text-muted">

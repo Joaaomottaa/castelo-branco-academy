@@ -133,7 +133,7 @@ export default function ComunidadePage() {
     <div className="space-y-7">
       <div>
         <p className="eyebrow text-gold-500">Comunidade</p>
-        <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-navy-700">
+        <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
           O que está acontecendo na contabilidade
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">

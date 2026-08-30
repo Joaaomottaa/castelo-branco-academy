@@ -68,7 +68,7 @@ function Talentos() {
     <div className="space-y-7">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-navy-700">Banco de Talentos</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Banco de Talentos</h1>
           <p className="mt-1.5 text-sm text-muted">
             Profissionais contábeis com histórico de formação verificado na plataforma.
           </p>
