@@ -193,6 +193,7 @@ Em **Authentication › Sign In / Providers**:
 |---|---|---|
 | **Email › Confirm email** | **Ligado** | Em desenvolvimento está desligado. Ligado, o cadastro exige confirmação — a tela já trata esse caso e mostra "Confirme seu e-mail". |
 | **Google** | Ligado, com Client ID e Secret do Google Cloud | Ver 4.2. |
+| **LinkedIn (OIDC)** | Ligado, com Client ID e Secret do LinkedIn Developers | Ver 4.5. O código já chama o provedor `linkedin_oidc`; falta só a credencial. |
 | **Leaked Password Protection** | **Ligado** (Authentication › Policies) | O advisor do Supabase aponta isso como pendência. É um clique. |
 
 Em **Authentication › URL Configuration**:
@@ -219,6 +220,23 @@ do projeto:
 
 Se a tela de consentimento estiver em **Testing**, só os e-mails listados
 conseguem entrar. Publique-a antes de abrir para clientes.
+
+### 4.5 LinkedIn (OIDC)
+
+O botão "LinkedIn" já existe no login e no cadastro, e o certificado tem
+"Adicionar ao LinkedIn". Falta a credencial:
+
+1. **linkedin.com/developers** → Create app (vincular à página da empresa).
+2. Aba **Products** → habilitar **Sign In with LinkedIn using OpenID Connect**.
+3. Aba **Auth** → em *Authorized redirect URLs*, colar a URL do **Supabase**
+   (não a do site):
+   `https://SEU-PROJETO.supabase.co/auth/v1/callback`
+4. Copiar **Client ID** e **Client Secret**.
+5. Supabase → **Authentication › Sign In / Providers › LinkedIn (OIDC)** →
+   ligar e colar as duas chaves.
+
+Enquanto isso não for feito, o botão continua visível e explica o que falta,
+com o caminho do painel — não quebra nem some.
 
 ### 4.3 Buckets
 
@@ -296,26 +314,30 @@ Ela não quebra — só não é o produto.
 
 ## 6. Passo 4 — Vercel
 
-> **Estado em 30/08/2026 — atenção, há um projeto pela metade.**
+> **Estado em 30/08/2026 — no ar.**
 >
-> Existe um projeto chamado `castelo-branco-academy` na conta Vercel, criado
-> pela integração, mas **sem link de Git válido e sem nenhum deployment**
-> (`castelo-branco-academy.vercel.app` responde 404).
+> Produção: **https://castelo-branco-academy.vercel.app** · variáveis de
+> ambiente configuradas · deploy automático a cada push em `main`.
 >
-> A causa é o repositório ser **privado**: o GitHub App da Vercel precisa estar
-> instalado na conta `Joaaomottaa` **e com acesso concedido a este repositório
-> específico**. Sem isso a Vercel não enxerga o repo e o link falha em silêncio.
+> ### Entendendo os endereços da Vercel
 >
-> **Como resolver, no painel da Vercel:**
+> A Vercel dá três tipos de URL ao mesmo projeto, e só a primeira é a que se
+> divulga:
 >
-> 1. Abra o projeto `castelo-branco-academy` → **Settings › Git**.
-> 2. **Connect Git Repository** → GitHub → se pedir, **Install/Configure** o
->    GitHub App e marque `castelo-branco-academy` em *Only select repositories*.
-> 3. Se o projeto estiver em estado inconsistente, apague-o
->    (Settings › Advanced › Delete Project) e refaça por **Add New › Project ›
->    Import**, que é o caminho que instala o App na hora.
+> | Endereço | Quando muda | Para quê |
+> |---|---|---|
+> | `castelo-branco-academy.vercel.app` | nunca | **é esta que se usa** |
+> | `castelo-branco-academy-git-main-fitlevel.vercel.app` | a cada branch | acompanhar um branch |
+> | `castelo-branco-academy-h1dwy7yby-fitlevel.vercel.app` | a cada commit | abrir um deploy específico |
 >
-> Não crie um segundo projeto com o mesmo nome antes de apagar o primeiro.
+> O sufixo `-fitlevel` é o *slug do time* na Vercel e só aparece nos dois
+> últimos formatos — são endereços internos, imutáveis, feitos para depurar
+> um deploy específico. A URL de produção não tem sufixo nenhum.
+>
+> Se quiser tirar o `fitlevel` também dos endereços de preview, o caminho é
+> renomear o time: **Vercel › Settings › General › Team slug**. Renomear o time
+> muda o sufixo de todos os projetos daquele time, então vale conferir se não
+> há outro projeto dependendo do nome atual.
 
 1. **vercel.com/new** → Import Git Repository → escolha o repositório.
 2. A Vercel detecta Next.js sozinha. Não mude nada:

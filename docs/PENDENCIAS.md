@@ -1113,6 +1113,39 @@ seção do ar é preferível a mantê-la: `<Depoimentos />` sai de uma linha em
 
 ---
 
+### 🟡 9.9 — LinkedIn: falta a credencial, não o código
+
+`entrarComProvedor("linkedin_oidc")` está implementado, o botão está no login
+e no cadastro, e o certificado tem "Adicionar ao LinkedIn" — que abre o
+formulário de licença e certificado do perfil, preenchido, com o link de
+validação junto.
+
+**O que falta:** criar o app em linkedin.com/developers, habilitar *Sign In
+with LinkedIn using OpenID Connect* e colar Client ID/Secret no Supabase. O
+passo a passo está em [`DEPLOY.md`](./DEPLOY.md#45-linkedin-oidc).
+
+**Enquanto não fizer:** o botão explica o que falta e aponta o caminho do
+painel, em vez de jogar a pessoa num JSON de erro do GoTrue.
+
+---
+
+### 🔴 9.10 — URL de produção não está autorizada no Supabase
+
+O site está em `https://castelo-branco-academy.vercel.app`, mas o **Site URL**
+e as **Redirect URLs** do Supabase precisam apontar para lá.
+
+**Impacto:** o login pelo Google volta para `localhost` em produção. É o erro
+mais comum deste tipo de deploy e ele só aparece quando alguém tenta entrar.
+
+**O que fazer** — Supabase › Authentication › URL Configuration:
+
+- Site URL: `https://castelo-branco-academy.vercel.app`
+- Redirect URLs: `…/auth/callback`, `…/**`,
+  `https://castelo-branco-academy-*.vercel.app/**` (o curinga cobre os
+  previews de cada commit) e `http://localhost:3000/auth/callback`.
+
+---
+
 ### 🟢 9.7 — Sem logotipo da empresa
 
 O selo da empresa usa cor da marca + iniciais. `empresas.logo_url` existe e
