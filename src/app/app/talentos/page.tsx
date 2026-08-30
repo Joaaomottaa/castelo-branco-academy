@@ -7,12 +7,21 @@ import {
   Sparkles, Users, X,
 } from "lucide-react";
 import { Avatar, Badge, Button, Card, EmptyState, cn, inputCls } from "@/components/ui";
+import { TravaBancoDeTalentos } from "@/components/trava-talentos";
 import { useDados } from "@/lib/dados";
 import { useSession } from "@/lib/session";
 
 const senioridades = ["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista"];
 
 export default function TalentosPage() {
+  return (
+    <TravaBancoDeTalentos>
+      <Talentos />
+    </TravaBancoDeTalentos>
+  );
+}
+
+function Talentos() {
   const { favoritos, alternarFavorito } = useSession();
   const { talentos, habilidades: habilidadesDisponiveis } = useDados();
 

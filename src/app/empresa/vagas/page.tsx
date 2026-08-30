@@ -29,6 +29,7 @@ import { useEmpresa } from "../contexto";
 const MODELOS = ["Presencial", "Híbrido", "Remoto"];
 const CONTRATOS = ["CLT", "PJ", "Estágio", "Freelance"];
 const SENIORIDADES = ["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista"];
+const AREAS = ["Fiscal", "Tributário", "Contábil", "Pessoal", "Comex", "Gestão"];
 
 const STATUS = [
   { v: "enviada", rotulo: "Enviada", tom: "muted" as const },
@@ -118,6 +119,7 @@ export default function VagasDaEmpresa() {
                 <div className="min-w-[200px] flex-1">
                   <p className="flex flex-wrap items-center gap-2 font-bold text-navy-700">
                     {v.titulo}
+                    {v.area && <Badge tone="navy">{v.area}</Badge>}
                     {v.ativa
                       ? <Badge tone="green">Aberta</Badge>
                       : <Badge tone="muted">Pausada</Badge>}
@@ -245,6 +247,7 @@ function ModalVaga({
     contrato: vaga?.contrato ?? CONTRATOS[0],
     faixa: vaga?.faixa ?? "",
     senioridade: vaga?.senioridade ?? SENIORIDADES[2],
+    area: vaga?.area ?? "",
     requisitos: (vaga?.requisitos ?? []).join("\n"),
     ativa: vaga?.ativa ?? true,
   });
@@ -267,6 +270,7 @@ function ModalVaga({
       contrato: f.contrato,
       faixa: f.faixa,
       senioridade: f.senioridade,
+      area: f.area,
       requisitos: f.requisitos.split("\n").map((x) => x.trim()).filter(Boolean),
       // As exigências por curso/trilha continuam com o administrador da
       // Academy: é ele que conhece o catálogo inteiro e evita a vaga que pede
@@ -351,6 +355,16 @@ function ModalVaga({
             </select>
           </Field>
         </div>
+
+        <Field
+          label="Área"
+          hint="É por aqui que a maioria filtra o mural. Em branco, a plataforma deduz do título."
+        >
+          <select value={f.area} onChange={(e) => set({ area: e.target.value })} className={inputCls}>
+            <option value="">Deduzir do título</option>
+            {AREAS.map((x) => <option key={x}>{x}</option>)}
+          </select>
+        </Field>
 
         <Field label="Faixa salarial" hint="Opcional, mas vaga com faixa recebe mais candidatura qualificada.">
           <input

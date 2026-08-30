@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ArrowRight } from "lucide-react";
-import { Logo, Button, cn } from "./ui";
+import { ArrowRight, LayoutDashboard, Menu, X } from "lucide-react";
+import { Avatar, Button, Logo, cn } from "./ui";
+import { useSession } from "@/lib/session";
 import { brand } from "@/lib/brand";
 
 const nav = [
@@ -14,8 +15,17 @@ const nav = [
   { label: "Planos", href: "/#planos" },
 ];
 
+/* ==========================================================================
+   O cabeçalho do site público precisa saber quem está logado.
+
+   Antes ele mostrava "Entrar / Começar agora" para todo mundo, inclusive para
+   quem tinha acabado de sair do painel — enquanto o Tino, no canto, continuava
+   chamando a pessoa pelo nome. Duas partes da mesma tela discordando sobre se
+   havia sessão.
+   ========================================================================== */
 export function SiteHeader() {
   const [aberto, setAberto] = useState(false);
+  const { user, loading } = useSession();
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-navy-700/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
@@ -36,15 +46,40 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link
-            href="/login"
-            className="text-[13px] font-semibold text-white transition hover:text-gold-300"
-          >
-            Entrar
-          </Link>
-          <Button href="/cadastro" variant="gold" size="sm">
-            Começar agora <ArrowRight size={14} />
-          </Button>
+          {/* Enquanto a sessão carrega não se mostra nem um nem outro: piscar
+              "Entrar" e trocar por um nome meio segundo depois é pior do que
+              esperar. */}
+          {loading ? (
+            <span className="h-9 w-32" aria-hidden="true" />
+          ) : user ? (
+            <>
+              <Link
+                href="/app"
+                className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 transition hover:bg-white/10"
+                title="Ir para o meu painel"
+              >
+                <Avatar nome={user.nome} url={user.avatar} size={30} />
+                <span className="text-[13px] font-semibold text-white">
+                  {user.nome.split(" ")[0]}
+                </span>
+              </Link>
+              <Button href={user.role === "admin" ? "/admin" : "/app"} variant="gold" size="sm">
+                <LayoutDashboard size={14} /> Meu painel
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-[13px] font-semibold text-white transition hover:text-gold-300"
+              >
+                Entrar
+              </Link>
+              <Button href="/cadastro" variant="gold" size="sm">
+                Começar agora <ArrowRight size={14} />
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -73,14 +108,34 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
-          <div className="flex gap-2 pt-3">
-            <Button href="/login" variant="outline" size="sm" full>
-              Entrar
-            </Button>
-            <Button href="/cadastro" variant="gold" size="sm" full>
-              Criar conta
-            </Button>
-          </div>
+          {user ? (
+            <div className="pt-3">
+              <Link
+                href="/app"
+                onClick={() => setAberto(false)}
+                className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5"
+              >
+                <Avatar nome={user.nome} url={user.avatar} size={34} />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-white">
+                    {user.nome}
+                  </span>
+                  <span className="block text-[11px] text-navy-100/70">
+                    Ir para o meu painel
+                  </span>
+                </span>
+              </Link>
+            </div>
+          ) : (
+            <div className="flex gap-2 pt-3">
+              <Button href="/login" variant="outline" size="sm" full>
+                Entrar
+              </Button>
+              <Button href="/cadastro" variant="gold" size="sm" full>
+                Criar conta
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -102,6 +102,9 @@ export interface Vaga {
   uf: string;
   modelo: "Presencial" | "Híbrido" | "Remoto";
   contrato: "CLT" | "PJ" | "Estágio" | "Freelance";
+  /** Fiscal | Tributário | Contábil | Pessoal | Comex | Gestão. Mesmo
+      vocabulário do banco de questões — ver 19_vagas_area_e_filtros.sql. */
+  area?: string;
   faixa: string;
   senioridade: string;
   publicadaEm: string;

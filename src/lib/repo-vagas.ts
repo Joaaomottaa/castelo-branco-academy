@@ -48,6 +48,7 @@ export interface VagaAdmin {
   contrato: string;
   faixa: string;
   senioridade: string;
+  area: string;
   requisitos: string[];
   cursosDesejados: string[];
   trilhasDesejadas: string[];
@@ -70,7 +71,8 @@ export interface Candidato {
 type LinhaVaga = {
   id: string; empresa_id: string; titulo: string; descricao: string | null;
   cidade: string | null; uf: string | null; modelo: string; contrato: string;
-  faixa: string | null; senioridade: string | null; requisitos: string[] | null;
+  faixa: string | null; senioridade: string | null; area: string | null;
+  requisitos: string[] | null;
   cursos_desejados: string[] | null; trilhas_desejadas: string[] | null;
   ativa: boolean; publicada_em: string;
   empresas: { nome: string; cor: string | null } | null;
@@ -85,7 +87,7 @@ export async function carregarVagasAdmin(): Promise<{ vagas: VagaAdmin[]; erro?:
     .from("vagas")
     .select(
       `id, empresa_id, titulo, descricao, cidade, uf, modelo, contrato, faixa,
-       senioridade, requisitos, cursos_desejados, trilhas_desejadas, ativa,
+       senioridade, area, requisitos, cursos_desejados, trilhas_desejadas, ativa,
        publicada_em, empresas ( nome, cor ), candidaturas ( count )`
     )
     .order("publicada_em", { ascending: false });
@@ -106,6 +108,7 @@ export async function carregarVagasAdmin(): Promise<{ vagas: VagaAdmin[]; erro?:
       contrato: v.contrato,
       faixa: v.faixa ?? "",
       senioridade: v.senioridade ?? "",
+      area: v.area ?? "",
       requisitos: v.requisitos ?? [],
       cursosDesejados: v.cursos_desejados ?? [],
       trilhasDesejadas: v.trilhas_desejadas ?? [],
@@ -127,6 +130,8 @@ export interface DadosVaga {
   contrato: string;
   faixa: string;
   senioridade: string;
+  /** Vazio deixa o banco decidir por `area_provavel_da_vaga`. */
+  area?: string;
   requisitos: string[];
   cursosDesejados: string[];
   trilhasDesejadas: string[];
@@ -149,6 +154,7 @@ export async function salvarVaga(d: DadosVaga): Promise<{ ok: boolean; erro?: st
     contrato: d.contrato,
     faixa: d.faixa.trim() || null,
     senioridade: d.senioridade || null,
+    area: d.area?.trim() || null,
     // Arrays vazios são válidos: vaga sem certificação exigida é o caso comum.
     requisitos: d.requisitos,
     cursos_desejados: d.cursosDesejados,

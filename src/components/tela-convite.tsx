@@ -10,7 +10,7 @@ import {
 import { Button, Card, Logo, cn } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { aceitarConvite, lerConvite, type ConvitePublico } from "@/lib/repo-empresa";
-import { esquecerEmpresaEmCache } from "@/components/app-shell";
+import { esquecerEmpresaEmCache } from "@/lib/empresa-sessao";
 
 /* ==========================================================================
    A TELA DO CONVITE

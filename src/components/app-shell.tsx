@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { useDados } from "@/lib/dados";
-import { carregarEmpresa, type Empresa } from "@/lib/repo-empresa";
+import { type Empresa } from "@/lib/repo-empresa";
+import { useEmpresaDaSessao } from "@/lib/empresa-sessao";
 import { Avatar, Logo, cn } from "./ui";
 import { SeletorDeModo } from "./seletor-modo";
 import { SinoDeNotificacoes } from "./notificacoes";
@@ -104,17 +105,6 @@ const navAdmin = [
   },
 ];
 
-/**
- * A empresa da sessão, buscada uma vez por carregamento de página.
- *
- * Fica em módulo porque o dado não muda entre navegações e a barra lateral
- * precisa dele em toda tela — sem o cache seria um RPC por clique de menu.
- */
-let empresaCache: Promise<Empresa | null> | null = null;
-export function esquecerEmpresaEmCache() {
-  empresaCache = null;
-}
-
 export function AppShell({
   children,
   area = "aluno",
@@ -128,15 +118,7 @@ export function AppShell({
   const pathname = usePathname();
   const [menuAberto, setMenuAberto] = useState(false);
   const [perfilAberto, setPerfilAberto] = useState(false);
-  const [empresa, setEmpresa] = useState<Empresa | null>(null);
-
-  useEffect(() => {
-    if (loading || !user || modoDemo) return;
-    if (!empresaCache) empresaCache = carregarEmpresa();
-    let ativo = true;
-    void empresaCache.then((e) => { if (ativo) setEmpresa(e); });
-    return () => { ativo = false; };
-  }, [loading, user, modoDemo]);
+  const { empresa, podeVerTalentos } = useEmpresaDaSessao();
 
   useEffect(() => {
     if (loading) return;
@@ -173,7 +155,19 @@ export function AppShell({
     );
   }
 
-  const nav = area === "admin" ? navAdmin : area === "empresa" ? navEmpresa : navAluno;
+  // O banco de talentos é benefício da conta empresarial: quem estuda é
+  // procurado, não procura. Some do menu de quem não recruta — a página em si
+  // tem a própria guarda, esta parte é só não oferecer o que não abre.
+  const nav = (
+    area === "admin" ? navAdmin
+    : area === "empresa" ? navEmpresa
+    : navAluno
+  ).map((g) => ({
+    ...g,
+    itens: g.itens.filter(
+      (i) => i.href !== "/app/talentos" || podeVerTalentos
+    ),
+  })).filter((g) => g.itens.length > 0);
   const pontosPEPC = meusCertificados.reduce((a, c) => a + c.pontosPEPC, 0);
 
   return (

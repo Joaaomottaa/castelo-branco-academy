@@ -169,7 +169,7 @@ function CadastroPage() {
           setOcupado={setSocial}
           rotulo="Criar com Google"
         />
-        <BotaoLinkedIn />
+        <BotaoLinkedIn aoErro={setErro} ocupado={social} setOcupado={setSocial} rotulo="Criar com LinkedIn" />
       </div>
 
       <div className="my-7 flex items-center gap-4">

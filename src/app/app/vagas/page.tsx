@@ -5,35 +5,64 @@ import {
   Briefcase, Building2, CheckCircle2, Clock, MapPin, Search, Sparkles, Wallet,
 } from "lucide-react";
 import { Badge, Button, Card, EmptyState, cn, inputCls } from "@/components/ui";
+import {
+  BarraDeFiltros, contarFiltros, filtrosVazios, type EstadoFiltros,
+} from "@/components/filtros-vagas";
 import { useDados } from "@/lib/dados";
 import type { Vaga } from "@/lib/types";
 import { useSession } from "@/lib/session";
-
-const modelos = ["Presencial", "Híbrido", "Remoto"];
-const contratos = ["CLT", "PJ", "Estágio", "Freelance"];
 
 export default function VagasPage() {
   const { candidaturas, candidatar } = useSession();
   const { vagas, cursos } = useDados();
 
-  const [busca, setBusca] = useState("");
-  const [modelo, setModelo] = useState<string | null>(null);
-  const [contrato, setContrato] = useState<string | null>(null);
+  const [f, setF] = useState<EstadoFiltros>(filtrosVazios);
   const [selecionada, setSelecionada] = useState<string>("");
 
+  const mudar = (patch: Partial<EstadoFiltros>) => setF((v) => ({ ...v, ...patch }));
+
+  // As opções de empresa e localidade saem das próprias vagas: oferecer um
+  // filtro que não casa com nada é gaveta vazia.
+  const empresas = useMemo(
+    () => [...new Set(vagas.map((v) => v.empresa))].sort(),
+    [vagas]
+  );
+  const locais = useMemo(
+    () => [...new Set(vagas.map((v) => `${v.cidade}/${v.uf}`))].filter((x) => x !== "/").sort(),
+    [vagas]
+  );
+
   const lista = useMemo(() => {
-    const q = busca.trim().toLowerCase();
-    return vagas
-      .filter((v) => {
-        const bateBusca =
-          !q ||
-          v.titulo.toLowerCase().includes(q) ||
-          v.empresa.toLowerCase().includes(q) ||
-          v.requisitos.some((r) => r.toLowerCase().includes(q));
-        return bateBusca && (!modelo || v.modelo === modelo) && (!contrato || v.contrato === contrato);
-      })
-      .sort((a, b) => (b.match ?? 0) - (a.match ?? 0));
-  }, [vagas, busca, modelo, contrato]);
+    const q = f.busca.trim().toLowerCase();
+    const limite = f.dias ? Date.now() - f.dias * 86400000 : 0;
+
+    const filtradas = vagas.filter((v) => {
+      if (q) {
+        const bate =
+          v.titulo.toLowerCase().includes(q)
+          || v.empresa.toLowerCase().includes(q)
+          || (v.area ?? "").toLowerCase().includes(q)
+          || v.requisitos.some((r) => r.toLowerCase().includes(q));
+        if (!bate) return false;
+      }
+      if (f.areas.length && !f.areas.includes(v.area ?? "")) return false;
+      if (f.modelos.length && !f.modelos.includes(v.modelo)) return false;
+      if (f.contratos.length && !f.contratos.includes(v.contrato)) return false;
+      if (f.senioridades.length && !f.senioridades.includes(v.senioridade)) return false;
+      if (f.empresas.length && !f.empresas.includes(v.empresa)) return false;
+      if (f.locais.length && !f.locais.includes(`${v.cidade}/${v.uf}`)) return false;
+      if (limite && new Date(v.publicadaEm).getTime() < limite) return false;
+      if (f.soAltoMatch && (v.match ?? 0) < 70) return false;
+      if (f.soNaoCandidatadas && candidaturas.includes(v.id)) return false;
+      return true;
+    });
+
+    return filtradas.sort((a, b) =>
+      f.ordem === "recentes"
+        ? new Date(b.publicadaEm).getTime() - new Date(a.publicadaEm).getTime()
+        : (b.match ?? 0) - (a.match ?? 0)
+    );
+  }, [vagas, f, candidaturas]);
 
   const vaga = lista.find((v) => v.id === selecionada) ?? lista[0];
 
@@ -47,42 +76,51 @@ export default function VagasPage() {
             habilidades e localização.
           </p>
         </div>
-        <Button href="/app/talentos" variant="outline">
+        <Button href="/empresa/vagas" variant="outline">
           <Building2 size={15} /> Sou empresa: publicar vaga
         </Button>
       </div>
 
       {/* Filtros */}
-      <Card className="flex flex-wrap items-center gap-3">
-        <div className="relative min-w-[240px] flex-1">
+      <Card className="space-y-3.5">
+        <div className="relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Cargo, empresa ou requisito"
+            value={f.busca}
+            onChange={(e) => mudar({ busca: e.target.value })}
+            placeholder="Cargo, empresa, área ou requisito"
             className={inputCls + " pl-10"}
           />
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {modelos.map((m) => (
-            <Chip key={m} ativo={modelo === m} onClick={() => setModelo(modelo === m ? null : m)}>
-              {m}
-            </Chip>
-          ))}
-          <span className="mx-1 h-6 w-px self-center bg-navy-100" />
-          {contratos.map((c) => (
-            <Chip key={c} ativo={contrato === c} onClick={() => setContrato(contrato === c ? null : c)}>
-              {c}
-            </Chip>
-          ))}
-        </div>
+        <BarraDeFiltros
+          f={f}
+          aoMudar={mudar}
+          empresas={empresas}
+          locais={locais}
+          total={lista.length}
+        />
       </Card>
+
+      {contarFiltros(f) > 0 && (
+        <p className="-mt-2 text-xs text-muted">
+          {lista.length === 0
+            ? "Nenhuma vaga com esses filtros."
+            : `${lista.length} vaga(s) de ${vagas.length} no mural.`}
+        </p>
+      )}
 
       {lista.length === 0 ? (
         <EmptyState
           icon={<Briefcase size={34} />}
           title="Nenhuma vaga encontrada"
           description="Ajuste os filtros ou volte em alguns dias — novas vagas são publicadas toda semana."
+          action={
+            contarFiltros(f) > 0 ? (
+              <Button variant="outline" onClick={() => setF(filtrosVazios)}>
+                Limpar filtros
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
@@ -120,6 +158,7 @@ export default function VagasPage() {
                     <span className="inline-flex items-center gap-1"><Wallet size={11} /> {v.faixa}</span>
                   </div>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {v.area && <Badge tone="navy">{v.area}</Badge>}
                     <Badge tone="muted">{v.modelo}</Badge>
                     <Badge tone="muted">{v.contrato}</Badge>
                     {aplicada && <Badge tone="green">Candidatura enviada</Badge>}
@@ -170,7 +209,9 @@ function DetalheVaga({
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {[vaga.modelo, vaga.contrato, vaga.senioridade, vaga.faixa].map((t) => (
+          {[vaga.area, vaga.modelo, vaga.contrato, vaga.senioridade, vaga.faixa]
+            .filter(Boolean)
+            .map((t) => (
             <span
               key={t}
               className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white"
@@ -242,22 +283,4 @@ function DetalheVaga({
   );
 }
 
-function Chip({
-  children, ativo, onClick,
-}: {
-  children: React.ReactNode; ativo?: boolean; onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-        ativo
-          ? "border-gold-400 bg-gold-50 text-gold-600"
-          : "border-navy-100 bg-white text-muted hover:border-navy-200"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+

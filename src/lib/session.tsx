@@ -78,6 +78,10 @@ interface SessionValue {
   entrar: (email: string, senha: string) => Promise<{ error?: string; user?: Perfil }>;
   /** Login social. `null` de retorno = redirecionou para o Google. */
   entrarComGoogle: (destino?: string) => Promise<{ error?: string }>;
+  entrarComProvedor: (
+    provedor: ProvedorSocial,
+    destino?: string
+  ) => Promise<{ error?: string }>;
   cadastrar: (
     dados: { nome: string; email: string; senha: string; role: Role }
   ) => Promise<{
@@ -100,6 +104,25 @@ interface SessionValue {
   candidaturas: string[];
   candidatar: (vagaId: string) => void;
 }
+
+/**
+ * Provedores sociais ligados no Supabase.
+ *
+ * `linkedin_oidc` é o nome atual do provedor do LinkedIn no GoTrue — o antigo
+ * `linkedin` foi descontinuado quando a LinkedIn migrou para OpenID Connect.
+ * Escrever a chave errada dá "Unsupported provider" na cara do usuário.
+ */
+export type ProvedorSocial = "google" | "linkedin_oidc";
+
+const NOME_PROVEDOR: Record<ProvedorSocial, string> = {
+  google: "Google",
+  linkedin_oidc: "LinkedIn",
+};
+
+const avisoProvedorDesligado = (nome: string) =>
+  `O login com ${nome} ainda não foi habilitado neste projeto `
+  + `(Supabase › Authentication › Sign In / Providers › ${nome}). `
+  + "Entre com e-mail e senha por enquanto.";
 
 const SessionContext = createContext<SessionValue | null>(null);
 
@@ -398,60 +421,71 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [carregarDadosDoUsuario]);
 
   /* ------------------------------------------------------ login social -- */
-  const entrarComGoogle = useCallback(async (destino = "/app") => {
-    const sb = getSupabase();
-    if (!sb) {
-      return {
-        error:
-          "O login com Google precisa do Supabase conectado. No modo demonstração, use uma das contas de teste.",
-      };
-    }
+  /**
+   * Entrar por provedor social.
+   *
+   * Google e LinkedIn são o mesmo fluxo com outro nome — o que muda é a chave
+   * do provedor e o `prompt`, que só o Google entende. Uma função para os dois
+   * evita a segunda cópia divergir da primeira na próxima correção.
+   */
+  const entrarComProvedor = useCallback(
+    async (provedor: ProvedorSocial, destino = "/app") => {
+      const nome = NOME_PROVEDOR[provedor];
+      const sb = getSupabase();
+      if (!sb) {
+        return {
+          error:
+            `O login com ${nome} precisa do Supabase conectado. `
+            + "No modo demonstração, use uma das contas de teste.",
+        };
+      }
 
-    // Pergunta antes de sair da página.
-    //
-    // `signInWithOAuth` não devolve erro quando o provedor está desligado: ele
-    // redireciona, e o Supabase responde um JSON cru de 400 na tela. Conferir
-    // /auth/v1/settings custa uma requisição e evita jogar a pessoa numa página
-    // de erro em inglês.
-    try {
-      const r = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
-        headers: { apikey: SUPABASE_ANON_KEY },
+      // Pergunta antes de sair da página.
+      //
+      // `signInWithOAuth` não devolve erro quando o provedor está desligado:
+      // ele redireciona, e o Supabase responde um JSON cru de 400 na tela.
+      // Conferir /auth/v1/settings custa uma requisição e evita jogar a pessoa
+      // numa página de erro em inglês.
+      try {
+        const r = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+          headers: { apikey: SUPABASE_ANON_KEY },
+        });
+        const cfg = (await r.json()) as { external?: Record<string, boolean> };
+        if (cfg?.external && cfg.external[provedor] !== true) {
+          return { error: avisoProvedorDesligado(nome) };
+        }
+      } catch {
+        /* sem resposta do Supabase: segue e deixa o fluxo normal falhar */
+      }
+
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: provedor,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?destino=${encodeURIComponent(destino)}`,
+          // Só o Google aceita `prompt`; mandar para o LinkedIn devolve 400.
+          ...(provedor === "google"
+            ? { queryParams: { prompt: "select_account" } }
+            : {}),
+        },
       });
-      const cfg = (await r.json()) as { external?: Record<string, boolean> };
-      if (cfg?.external && cfg.external.google !== true) {
-        return {
-          error:
-            "O login com Google ainda não foi habilitado neste projeto " +
-            "(Supabase › Authentication › Sign In / Providers › Google). " +
-            "Entre com e-mail e senha por enquanto.",
-        };
-      }
-    } catch {
-      /* sem resposta do Supabase: segue e deixa o fluxo normal falhar */
-    }
 
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?destino=${encodeURIComponent(destino)}`,
-        queryParams: { prompt: "select_account" },
-      },
-    });
-
-    if (error) {
-      // O erro mais comum é o provedor desligado no painel do Supabase.
-      // Dizer isso é mais útil que repetir a mensagem crua da API.
-      if (/provider is not enabled|unsupported provider/i.test(error.message)) {
-        return {
-          error:
-            "O login com Google ainda não foi habilitado no Supabase " +
-            "(Authentication › Sign In / Providers › Google). Use e-mail e senha por enquanto.",
-        };
+      if (error) {
+        // O erro mais comum é o provedor desligado no painel do Supabase.
+        // Dizer isso é mais útil que repetir a mensagem crua da API.
+        if (/provider is not enabled|unsupported provider/i.test(error.message)) {
+          return { error: avisoProvedorDesligado(nome) };
+        }
+        return { error: traduzErro(error.message) };
       }
-      return { error: traduzErro(error.message) };
-    }
-    return {};
-  }, []);
+      return {};
+    },
+    []
+  );
+
+  const entrarComGoogle = useCallback(
+    (destino = "/app") => entrarComProvedor("google", destino),
+    [entrarComProvedor]
+  );
 
   /* ------------------------------------------------------------- entrar -- */
   const entrar = useCallback(
@@ -727,6 +761,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       aviso,
       entrar,
       entrarComGoogle,
+      entrarComProvedor,
       cadastrar,
       sair,
       atualizarPerfil,

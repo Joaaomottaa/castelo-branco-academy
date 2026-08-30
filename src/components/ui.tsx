@@ -277,11 +277,28 @@ export function Avatar({
   nome,
   size = 40,
   cor = "#00204D",
+  url,
 }: {
   nome: string;
   size?: number;
   cor?: string;
+  /** Foto de perfil, quando existe — conta criada pelo Google traz uma. */
+  url?: string;
 }) {
+  // A foto some quando o provedor expira o link; as iniciais nunca somem.
+  // Por isso o fallback não é um alt quebrado, é o avatar de sempre.
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={nome}
+        width={size}
+        height={size}
+        style={{ width: size, height: size }}
+        className="shrink-0 rounded-full object-cover"
+      />
+    );
+  }
   const iniciais = nome
     .split(" ")
     .filter(Boolean)

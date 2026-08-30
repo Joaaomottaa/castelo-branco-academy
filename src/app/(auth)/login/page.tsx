@@ -158,7 +158,7 @@ function LoginPage() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <BotaoGoogle aoErro={setErro} ocupado={social} setOcupado={setSocial} />
-        <BotaoLinkedIn />
+        <BotaoLinkedIn aoErro={setErro} ocupado={social} setOcupado={setSocial} />
       </div>
 
       <p className="mt-8 text-center text-sm text-muted">

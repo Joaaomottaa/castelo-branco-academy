@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
-import { AppShell, esquecerEmpresaEmCache } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
+import { esquecerEmpresaEmCache } from "@/lib/empresa-sessao";
 import { Button, Card, Carregando } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { carregarEmpresa, type Empresa } from "@/lib/repo-empresa";

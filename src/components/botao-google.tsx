@@ -60,16 +60,56 @@ export function BotaoGoogle({
   );
 }
 
-/** LinkedIn ainda não tem provedor configurado — fica visível e desligado. */
-export function BotaoLinkedIn() {
+function IconeLinkedIn() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="#0A66C2" aria-hidden="true">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zm1.78 13.02H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
+    </svg>
+  );
+}
+
+/**
+ * Entrar com LinkedIn.
+ *
+ * Faz sentido especial aqui: o LinkedIn é onde o certificado desta plataforma
+ * vai parar (ver "Adicionar ao perfil" em /app/certificados), e é de lá que
+ * vem o perfil profissional que alimenta o banco de talentos.
+ */
+export function BotaoLinkedIn({
+  aoErro, ocupado, setOcupado, rotulo = "LinkedIn",
+}: {
+  aoErro: (m: string) => void;
+  ocupado: boolean;
+  setOcupado: (v: boolean) => void;
+  rotulo?: string;
+}) {
+  const { entrarComProvedor, modoDemo } = useSession();
+
+  async function entrar() {
+    aoErro("");
+    setOcupado(true);
+    const r = await entrarComProvedor("linkedin_oidc");
+    // Deu certo: o navegador já está saindo para o LinkedIn. Desligar o
+    // "ocupado" aqui faria o botão piscar de volta antes do redirecionamento.
+    if (r.error) {
+      setOcupado(false);
+      aoErro(r.error);
+    }
+  }
+
   return (
     <button
       type="button"
-      disabled
-      title="Login com LinkedIn ainda não foi habilitado"
-      className="flex items-center justify-center gap-2 rounded-xl border border-navy-200 bg-white px-4 py-2.5 text-sm font-semibold text-navy-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+      onClick={entrar}
+      disabled={ocupado || modoDemo}
+      title={
+        modoDemo
+          ? "No modo demonstração, use uma das contas de teste"
+          : "Continuar com a sua conta LinkedIn"
+      }
+      className="flex items-center justify-center gap-2 rounded-xl border border-navy-200 bg-white px-4 py-2.5 text-sm font-semibold text-navy-700 transition hover:border-gold-400 hover:text-gold-600 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      LinkedIn
+      <IconeLinkedIn /> {ocupado ? "Abrindo…" : rotulo}
     </button>
   );
 }

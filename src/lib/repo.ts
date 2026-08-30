@@ -206,7 +206,8 @@ function mapPerfil(r: LinhaPerfil): Perfil {
 type LinhaVaga = {
   id: string; titulo: string; descricao: string | null; cidade: string | null;
   uf: string | null; modelo: string; contrato: string; faixa: string | null;
-  senioridade: string | null; requisitos: string[]; cursos_desejados: string[];
+  senioridade: string | null; area: string | null;
+  requisitos: string[]; cursos_desejados: string[];
   trilhas_desejadas: string[]; publicada_em: string;
   empresas: { nome: string; cor: string | null } | null;
   candidaturas: Array<{ count: number }>;
@@ -228,6 +229,7 @@ function mapVaga(
     contrato: r.contrato as Vaga["contrato"],
     faixa: r.faixa ?? "A combinar",
     senioridade: r.senioridade ?? "",
+    area: r.area ?? undefined,
     publicadaEm: r.publicada_em,
     requisitos: r.requisitos ?? [],
     certificacoesDesejadas: (r.cursos_desejados ?? [])
@@ -307,7 +309,7 @@ async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
         .from("vagas")
         .select(
           `id, titulo, descricao, cidade, uf, modelo, contrato, faixa, senioridade,
-           requisitos, cursos_desejados, trilhas_desejadas, publicada_em,
+           area, requisitos, cursos_desejados, trilhas_desejadas, publicada_em,
            empresas ( nome, cor ),
            candidaturas ( count )`
         )

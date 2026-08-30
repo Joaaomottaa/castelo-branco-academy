@@ -19,6 +19,7 @@ import type { Vaga } from "@/lib/types";
 const MODELOS = ["Presencial", "Híbrido", "Remoto"];
 const CONTRATOS = ["CLT", "PJ", "Estágio", "Freelance"];
 const SENIORIDADES = ["Estagiário", "Júnior", "Pleno", "Sênior", "Especialista"];
+const AREAS = ["Fiscal", "Tributário", "Contábil", "Pessoal", "Comex", "Gestão"];
 const CORES = ["#00204D", "#B88A45", "#2F6E75", "#1F4A7A", "#7A3E2F", "#3D5A3C"];
 
 const STATUS_CANDIDATURA = [
@@ -369,6 +370,7 @@ function ModalVaga({
     contrato: vaga?.contrato ?? CONTRATOS[0],
     faixa: vaga?.faixa ?? "",
     senioridade: vaga?.senioridade ?? SENIORIDADES[2],
+    area: vaga?.area ?? "",
     requisitos: vaga?.requisitos ?? [],
     cursosDesejados: vaga?.cursosDesejados ?? [],
     trilhasDesejadas: vaga?.trilhasDesejadas ?? [],
@@ -495,6 +497,16 @@ function ModalVaga({
               className={inputCls}
             >
               {SENIORIDADES.map((x) => <option key={x}>{x}</option>)}
+            </select>
+          </Field>
+          <Field label="Área" hint="Em branco, a plataforma deduz do título.">
+            <select
+              value={f.area ?? ""}
+              onChange={(e) => setF((v) => ({ ...v, area: e.target.value }))}
+              className={inputCls}
+            >
+              <option value="">Deduzir do título</option>
+              {AREAS.map((x) => <option key={x}>{x}</option>)}
             </select>
           </Field>
         </div>

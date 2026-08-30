@@ -109,7 +109,8 @@ export default function CertificadosPage() {
               <Card key={d.codigo} hover className="!p-0 overflow-hidden">
                 <Diploma dados={d} tipo="trilha" />
                 <Acoes
-                  codigo={d.codigo}
+                  dados={d}
+                  tipo="trilha"
                   aoAbrir={() => setAberto({ dados: d, tipo: "trilha" })}
                 />
               </Card>
@@ -142,7 +143,8 @@ export default function CertificadosPage() {
                   </div>
                 </div>
                 <Acoes
-                  codigo={d.codigo}
+                  dados={d}
+                  tipo="curso"
                   aoAbrir={() => setAberto({ dados: d, tipo: "curso" })}
                 />
               </Card>
@@ -178,7 +180,13 @@ export default function CertificadosPage() {
 
 /* -------------------------------------------------------------------------- */
 
-function Acoes({ codigo, aoAbrir }: { codigo: string; aoAbrir: () => void }) {
+function Acoes({
+  dados, tipo, aoAbrir,
+}: {
+  dados: DadosDiploma;
+  tipo: "curso" | "trilha";
+  aoAbrir: () => void;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-navy-100 p-4">
       <Button variant="primary" size="sm" onClick={aoAbrir}>
@@ -187,14 +195,61 @@ function Acoes({ codigo, aoAbrir }: { codigo: string; aoAbrir: () => void }) {
       <Button variant="outline" size="sm">
         <Download size={14} /> PDF
       </Button>
-      <Button variant="outline" size="sm">
-        <Linkedin size={14} /> LinkedIn
-      </Button>
-      <CopiarLink codigo={codigo} />
-      <Button href={`/validar/${codigo}`} variant="ghost" size="sm" target="_blank">
+      <BotaoLinkedInCertificado dados={dados} tipo={tipo} />
+      <CopiarLink codigo={dados.codigo} />
+      <Button href={`/validar/${dados.codigo}`} variant="ghost" size="sm" target="_blank">
         <ExternalLink size={14} /> Validar
       </Button>
     </div>
+  );
+}
+
+/**
+ * "Adicionar ao perfil" do LinkedIn.
+ *
+ * O botão não compartilha um post: abre o formulário de **licença e
+ * certificado** do perfil, já preenchido. É a diferença entre um post que some
+ * do feed em dois dias e uma linha permanente no currículo de quem estudou —
+ * com o link de validação junto, que é o que dá valor ao nosso certificado.
+ *
+ * O contrato dos parâmetros é do LinkedIn (`startTask=CERTIFICATION_NAME`) e
+ * exige mês e ano separados. `certUrl` precisa ser absoluto e público: por
+ * isso sai de `window.location.origin`, e não de um domínio fixo no código —
+ * em localhost o botão abre igual, só com um link que só o dono alcança.
+ */
+function BotaoLinkedInCertificado({
+  dados, tipo,
+}: {
+  dados: DadosDiploma;
+  tipo: "curso" | "trilha";
+}) {
+  function abrir() {
+    const emitido = new Date(dados.emitidoEm);
+    const p = new URLSearchParams({
+      startTask: "CERTIFICATION_NAME",
+      name: `${tipo === "trilha" ? "Trilha" : "Curso"}: ${dados.titulo}`,
+      organizationName: "Castelo Branco Academy",
+      issueYear: String(emitido.getFullYear()),
+      issueMonth: String(emitido.getMonth() + 1),
+      certUrl: `${window.location.origin}/validar/${dados.codigo}`,
+      certId: dados.codigo,
+    });
+    window.open(
+      `https://www.linkedin.com/profile/add?${p.toString()}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={abrir}
+      title="Adicionar este certificado ao seu perfil do LinkedIn"
+    >
+      <Linkedin size={14} /> Adicionar ao LinkedIn
+    </Button>
   );
 }
 
