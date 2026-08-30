@@ -64,10 +64,14 @@ Tenha em mãos:
 
 ---
 
-## 3. Passo 1 — Git
+## 3. Passo 1 — Git — **feito**
 
-O projeto ainda **não é um repositório**. Estes comandos criam o repositório,
-o primeiro commit e a conexão com o GitHub.
+> **Estado em 30/08/2026:** o repositório existe e está sincronizado em
+> **https://github.com/Joaaomottaa/castelo-branco-academy** (branch `main`,
+> privado). O `push` desta máquina funciona pelo Git Credential Manager. Os
+> comandos abaixo ficam como referência para recriar o repositório do zero.
+
+O restante desta seção descreve a criação inicial.
 
 ### 3.1 Inicializar
 
@@ -292,6 +296,27 @@ Ela não quebra — só não é o produto.
 
 ## 6. Passo 4 — Vercel
 
+> **Estado em 30/08/2026 — atenção, há um projeto pela metade.**
+>
+> Existe um projeto chamado `castelo-branco-academy` na conta Vercel, criado
+> pela integração, mas **sem link de Git válido e sem nenhum deployment**
+> (`castelo-branco-academy.vercel.app` responde 404).
+>
+> A causa é o repositório ser **privado**: o GitHub App da Vercel precisa estar
+> instalado na conta `Joaaomottaa` **e com acesso concedido a este repositório
+> específico**. Sem isso a Vercel não enxerga o repo e o link falha em silêncio.
+>
+> **Como resolver, no painel da Vercel:**
+>
+> 1. Abra o projeto `castelo-branco-academy` → **Settings › Git**.
+> 2. **Connect Git Repository** → GitHub → se pedir, **Install/Configure** o
+>    GitHub App e marque `castelo-branco-academy` em *Only select repositories*.
+> 3. Se o projeto estiver em estado inconsistente, apague-o
+>    (Settings › Advanced › Delete Project) e refaça por **Add New › Project ›
+>    Import**, que é o caminho que instala o App na hora.
+>
+> Não crie um segundo projeto com o mesmo nome antes de apagar o primeiro.
+
 1. **vercel.com/new** → Import Git Repository → escolha o repositório.
 2. A Vercel detecta Next.js sozinha. Não mude nada:
    - Framework Preset: **Next.js**
@@ -299,6 +324,14 @@ Ela não quebra — só não é o produto.
    - Output Directory: padrão
    - Install Command: `npm install`
 3. **Antes de clicar em Deploy**, cole as variáveis do Passo 3.
+
+   O jeito rápido e sem digitar segredo à mão: em **Settings › Environment
+   Variables** a Vercel aceita colar um bloco `.env` inteiro de uma vez —
+   abra o seu `.env.local`, copie o conteúdo e cole ali. Marque
+   **Production**, **Preview** e **Development**.
+
+   Confira só uma coisa depois de colar: que `SUPABASE_SERVICE_ROLE_KEY`
+   **não** ganhou o prefixo `NEXT_PUBLIC_`.
 4. Deploy.
 
 O build leva ~2 minutos. Se falhar, o log da Vercel aponta o arquivo; o erro
@@ -320,7 +353,17 @@ o Next 15. Se quiser travar, acrescente ao `package.json`:
 Com a URL de produção em mãos, volte e ajuste **nesta ordem**:
 
 1. **Supabase › Authentication › URL Configuration**
-   Site URL e Redirect URLs com o domínio real (item 4.1).
+   Site URL e Redirect URLs com o domínio real (item 4.1). Para o projeto
+   atual, os valores são:
+
+   - **Site URL:** `https://castelo-branco-academy.vercel.app`
+   - **Redirect URLs:**
+     - `https://castelo-branco-academy.vercel.app/auth/callback`
+     - `https://castelo-branco-academy.vercel.app/**`
+     - `https://castelo-branco-academy-*.vercel.app/**` (os previews de cada
+       commit têm hash no nome; sem o curinga, o login pelo Google só funciona
+       na URL de produção)
+     - `http://localhost:3000/auth/callback`
 
 2. **Google Cloud › Credentials**
    Origins e redirect URI (item 4.2).
