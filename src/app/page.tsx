@@ -7,6 +7,7 @@ import {
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Badge, Button, Card, SectionTitle } from "@/components/ui";
 import { carregarPublico } from "@/lib/repo";
+import { depoimentos } from "@/lib/depoimentos";
 import type { Curso, Perfil } from "@/lib/types";
 
 export const revalidate = 300;
@@ -15,6 +16,15 @@ export default async function Home() {
   const { cursos, vagas, talentos } = await carregarPublico();
   const destaques = cursos.filter((c) => c.destaque).slice(0, 3);
   const totalHoras = cursos.reduce((a, c) => a + c.cargaHoraria, 0);
+
+  // A nota exibida junto aos depoimentos sai do catálogo real, não do arquivo
+  // de vitrine: os textos são de composição, mas o número agregado não precisa
+  // ser — e inventar média é o tipo de mentira que dá para evitar de graça.
+  const comNota = cursos.filter((c) => c.nota > 0);
+  const media = comNota.length
+    ? comNota.reduce((a, c) => a + c.nota, 0) / comNota.length
+    : 0;
+  const totalAlunos = cursos.reduce((a, c) => a + c.alunos, 0);
 
   return (
     <>
@@ -28,6 +38,7 @@ export default async function Home() {
         <Talentos talentos={talentos} totalVagas={vagas.length} />
         <ParaEmpresas />
         <IA />
+        <Depoimentos media={media} alunos={totalAlunos} />
         <Planos />
         <CTAFinal />
       </main>
@@ -465,6 +476,125 @@ function IA() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ------------------------------ Depoimentos -------------------------------
+   Prova social vem logo antes do preço: é a última pergunta que a pessoa faz
+   antes de olhar quanto custa.
+
+   Os textos são de vitrine (ver src/lib/depoimentos.ts). A média e a contagem
+   ao lado, não — vêm do catálogo.
+   -------------------------------------------------------------------------- */
+function Depoimentos({ media, alunos }: { media: number; alunos: number }) {
+  return (
+    <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
+      <div className="mx-auto max-w-3xl text-center">
+        <p className="eyebrow mb-3 text-gold-500">Depoimentos</p>
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-navy-700 sm:text-4xl">
+          Quem estudou aqui voltou para o escritório{" "}
+          <span className="text-gold-500">sabendo fazer</span>
+        </h2>
+        <p className="mx-auto mt-4 text-[15px] leading-relaxed text-muted">
+          Não é curso para colecionar certificado. É o método que a Castelo Branco usa
+          nos próprios clientes de transporte, logística e comércio exterior — virado
+          em aula.
+        </p>
+      </div>
+
+      {/* Selo agregado */}
+      {media > 0 && (
+        <div className="mt-8 flex justify-center">
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-3 rounded-full border border-navy-100 bg-white px-6 py-3 shadow-sm">
+            <span className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold tabular-nums text-navy-700">
+                {media.toFixed(1).replace(".", ",")}
+              </span>
+              <Estrelas nota={Math.round(media)} />
+            </span>
+            <span className="hidden h-6 w-px bg-navy-100 sm:block" />
+            <span className="flex items-center">
+              <span className="flex -space-x-2.5">
+                {depoimentos.slice(0, 4).map((d) => (
+                  <img
+                    key={d.nome}
+                    src={d.foto}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-8 w-8 rounded-full border-2 border-white object-cover"
+                  />
+                ))}
+              </span>
+              <span className="ml-3 text-sm text-muted">
+                média dos {alunos.toLocaleString("pt-BR")} alunos do catálogo
+              </span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {depoimentos.map((d) => (
+          <Card key={d.nome} hover className="flex flex-col">
+            <div className="flex items-center gap-3">
+              <img
+                src={d.foto}
+                alt={`Foto de ${d.nome}`}
+                className="h-11 w-11 shrink-0 rounded-full object-cover"
+              />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-navy-700">{d.nome}</p>
+                <p className="truncate text-xs text-muted">
+                  {d.cargo} · {d.cidade}
+                </p>
+              </div>
+            </div>
+
+            <Estrelas nota={d.nota} className="mt-3.5" />
+
+            <p className="mt-3 flex-1 text-sm leading-relaxed text-ink">“{d.texto}”</p>
+
+            <p className="mt-4 flex items-center gap-1.5 border-t border-navy-100 pt-3 text-[11px] font-semibold text-gold-600">
+              <BadgeCheck size={13} /> Concluiu {d.formacao}
+            </p>
+          </Card>
+        ))}
+
+        {/* O último cartão é o convite, não um depoimento: a grade fecha com
+            ação em vez de ficar com um buraco em telas de três colunas. */}
+        <Card className="flex flex-col items-start justify-center !bg-navy-700">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-gold-300">
+            <GraduationCap size={20} />
+          </span>
+          <p className="mt-4 text-lg font-bold leading-snug text-white">
+            O próximo depoimento pode ser o seu
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-navy-100/75">
+            Comece pelas aulas gratuitas de todos os cursos. Sem cartão, sem
+            compromisso.
+          </p>
+          <div className="mt-5">
+            <Button href="/cadastro" variant="gold">
+              Criar conta gratuita <ArrowRight size={15} />
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </section>
+  );
+}
+
+function Estrelas({ nota, className = "" }: { nota: number; className?: string }) {
+  return (
+    <span className={`flex gap-0.5 ${className}`} aria-label={`${nota} de 5 estrelas`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          size={14}
+          className={i <= nota ? "fill-gold-400 text-gold-400" : "text-navy-200"}
+        />
+      ))}
+    </span>
   );
 }
 

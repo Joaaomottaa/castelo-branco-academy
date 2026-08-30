@@ -1089,6 +1089,30 @@ segue valendo para sempre.
 
 ---
 
+### 🔴 9.8 — Os depoimentos da página inicial são inventados
+
+A seção "Quem estudou aqui voltou para o escritório sabendo fazer" usa nomes,
+textos e fotos de composição ([`depoimentos.ts`](../src/lib/depoimentos.ts)).
+As fotos vêm do randomuser.me, conjunto livre para prototipagem.
+
+**Impacto:** publicar avaliação inventada como se fosse de aluno é propaganda
+enganosa. Num produto que vende **certificado com validação pública**, é
+exatamente a credibilidade que está à venda — e é ela que se perde quando
+alguém descobre. Enquanto o site não for divulgado, é material de composição
+como o resto do seed; no dia em que a URL for para um cliente, vira problema.
+
+**O que fazer:** trocar por depoimento real com autorização de uso de nome e
+imagem — três bastam. Enquanto não houver aluno formado para depor, tirar a
+seção do ar é preferível a mantê-la: `<Depoimentos />` sai de uma linha em
+[`page.tsx`](../src/app/page.tsx).
+
+> A **média e a contagem** ao lado dos depoimentos não têm esse problema: são
+> calculadas do catálogo real em `page.tsx`, não do arquivo de vitrine. Número
+> agregado inventado seria mentira de outra natureza, e essa dava para evitar
+> de graça.
+
+---
+
 ### 🟢 9.7 — Sem logotipo da empresa
 
 O selo da empresa usa cor da marca + iniciais. `empresas.logo_url` existe e
