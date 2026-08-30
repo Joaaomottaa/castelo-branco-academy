@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+*.tsbuildinfo
+next-env.d.ts
+
+# Variáveis de ambiente — só o modelo vazio pode ser versionado
+.env
+.env.*
+!.env.local.example
+
+# Rascunhos de desenvolvimento — scripts de conferência que não fazem parte
+# da aplicação.
+.scratch

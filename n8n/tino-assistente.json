@@ -1,0 +1,209 @@
+{
+  "name": "Tino — Assistente Castelo Branco Academy",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tino",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-tino",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-720, 300],
+      "webhookId": "tino-castelo-branco"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normaliza a entrada vinda da plataforma.\n// A rota /api/assistente do Next envia sempre um destes formatos:\n//   { tipo: 'chat', mensagem, usuario, historico }\n//   { tipo: 'explicar_questao', questao, alternativas, correta, marcada, explicacao, assunto }\n\nconst e = $input.first().json.body ?? $input.first().json;\n\nconst tipo = e.tipo || 'chat';\nconst usuario = e.usuario || null;\n\nconst historico = Array.isArray(e.historico)\n  ? e.historico\n      .filter((m) => m && m.texto)\n      .slice(-6)\n      .map((m) => ({\n        role: m.autor === 'voce' ? 'user' : 'assistant',\n        content: String(m.texto).slice(0, 2000),\n      }))\n  : [];\n\nreturn [{\n  json: {\n    tipo,\n    mensagem: String(e.mensagem || '').slice(0, 2000),\n    usuario,\n    historico,\n    // campos do modo explicar_questao\n    questao: e.questao || '',\n    alternativas: e.alternativas || [],\n    correta: e.correta || '',\n    marcada: e.marcada || '',\n    explicacao: e.explicacao || '',\n    assunto: e.assunto || '',\n  },\n}];"
+      },
+      "id": "preparar",
+      "name": "Preparar entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-500, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "version": 2 },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "explicar_questao",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "questao"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra", "renameFallbackOutput": "chat" }
+      },
+      "id": "rotear",
+      "name": "Qual pedido?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [-280, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://SEU-PROJETO.supabase.co/rest/v1/cursos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "slug,titulo,subtitulo,categoria,nivel,carga_horaria,pontos_pepc,tags" },
+            { "name": "publicado", "value": "eq.true" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "SUA_CHAVE_ANON" },
+            { "name": "Authorization", "value": "Bearer SUA_CHAVE_ANON" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "buscar-cursos",
+      "name": "Buscar cursos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-60, 400]
+    },
+    {
+      "parameters": {
+        "url": "=https://SEU-PROJETO.supabase.co/rest/v1/trilhas",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "slug,nome,subtitulo,cargo_alvo,area,faixa_salarial,nivel_entrada,nivel_saida" },
+            { "name": "publicada", "value": "eq.true" },
+            { "name": "order", "value": "ordem" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "SUA_CHAVE_ANON" },
+            { "name": "Authorization", "value": "Bearer SUA_CHAVE_ANON" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "buscar-trilhas",
+      "name": "Buscar trilhas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [160, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Junta o catálogo real do banco com a persona do Tino.\n// O catálogo entra no prompt para o modelo NUNCA inventar curso que não existe.\n\nconst entrada = $('Preparar entrada').first().json;\nconst cursos  = $('Buscar cursos').all().map((i) => i.json);\nconst trilhas = $input.all().map((i) => i.json);\n\nconst listaCursos = cursos\n  .map((c) => `- ${c.titulo} (${c.slug}) — ${c.subtitulo || ''} | ${c.categoria}, ${c.nivel}, ${c.carga_horaria}h, ${c.pontos_pepc} pts PEPC | temas: ${(c.tags || []).join(', ')}`)\n  .join('\\n');\n\nconst listaTrilhas = trilhas\n  .map((t) => `- ${t.nome} (${t.slug}) — cargo-alvo: ${t.cargo_alvo} | área: ${t.area} | ${t.nivel_entrada} → ${t.nivel_saida} | faixa: ${t.faixa_salarial || 'a combinar'}`)\n  .join('\\n');\n\nconst u = entrada.usuario;\nconst contextoUsuario = u\n  ? `Você está falando com ${u.nome}${u.cargo ? `, ${u.cargo}` : ''}. Plano atual: ${u.plano || 'Free'}.`\n  : 'A pessoa ainda não está identificada (visitante ou não logada).';\n\nconst system = `Você é o **Tino**, assistente da Castelo Branco Academy.\n\n# QUEM É A CASTELO BRANCO\nA Castelo Branco Contabilidade Avançada é um escritório de contabilidade consultiva com mais de 20 anos de experiência, sediado em Feira de Santana (BA). Atende empresas de **transporte, logística, armazenagem e comércio exterior**, com foco em reduzir risco tributário, organizar passivo fiscal e proteger o caixa.\n\nO método da casa tem quatro fases: **Diagnóstico** (leitura de documentos, débitos, créditos e riscos), **Estratégia** (plano tributário e aduaneiro com cenários), **Organização** (rotina fiscal, documentos e indicadores) e **Gestão** (reuniões e acompanhamento para transformar número fiscal em decisão).\n\nA empresa classifica o trabalho tributário em camadas: C1 visíveis, C2 interpretativas, C3 estratégicas e C4 vedadas. **A Castelo Branco não atua na camada C4** — crédito inexistente, passivo oculto ou decisão sem sustentação legal. Nunca sugira nada dessa natureza.\n\n# O QUE É A ACADEMY\nA Castelo Branco Academy é a plataforma de educação da casa. Tem cursos, trilhas de carreira, certificados com código público de validação, pontuação para educação profissional continuada (PEPC — a meta anual do CFC é 40 pontos), banco de questões, comunidade e um banco de talentos que conecta alunos formados a empresas do setor.\n\n## Cursos disponíveis agora\n${listaCursos}\n\n## Trilhas de carreira\n${listaTrilhas}\n\n## Planos\n- **Gratuito** — aulas abertas de todos os cursos, perfil no banco de talentos, candidatura a vagas, feed da comunidade, 3 questões por dia, 1 caderno.\n- **Pro — R$ 89/mês** (ou R$ 71/mês no plano anual, cobrado R$ 852) — todos os cursos e trilhas, certificados com validação, pontos PEPC, questões ilimitadas, cadernos ilimitados, simulados, explicação de erro por IA, mentorias ao vivo e selo verificado no perfil.\n- **Empresarial — sob consulta** — licenças por colaborador, trilhas obrigatórias por cargo, relatórios de evolução, publicação ilimitada de vagas e busca avançada no banco de talentos.\n\n# COMO VOCÊ CONVERSA\n- Escreva como uma pessoa real escreve: frases diretas, sem formalidade artificial e sem parecer folheto de vendas.\n- Português brasileiro. Trate por você.\n- Seja breve. Duas a quatro frases resolvem a maioria das perguntas. Só use lista quando estiver realmente enumerando coisas.\n- Faça UMA pergunta de volta quando precisar entender o contexto antes de recomendar. Nunca faça três perguntas seguidas.\n- Nunca diga que é uma IA a menos que perguntem diretamente. Se perguntarem, responda com naturalidade e siga a conversa.\n- Não use emoji, a não ser que a pessoa use primeiro.\n\n# REGRAS FIRMES\n1. **Só recomende cursos e trilhas das listas acima.** Se não existir curso para o que a pessoa pediu, diga com honestidade e ofereça o mais próximo.\n2. **Não dê parecer tributário definitivo.** Você pode explicar conceito, apontar caminho e citar o que a legislação diz em termos gerais. Para o caso concreto da empresa dela, encaminhe para a equipe.\n3. Se pedirem contato, atendimento humano, orçamento ou falarem de um caso específico, passe o WhatsApp: https://api.whatsapp.com/send?phone=557531990707\n4. Se perguntarem preço, use exatamente os valores dos planos acima.\n5. Nunca invente prazo, desconto, promoção ou funcionalidade que não esteja descrita aqui.\n6. Se não souber, diga que não sabe e ofereça o contato da equipe. É melhor que inventar.\n\n# CONTEXTO DESTA CONVERSA\n${contextoUsuario}`;\n\nreturn [{\n  json: {\n    system,\n    mensagens: [...entrada.historico, { role: 'user', content: entrada.mensagem }],\n  },\n}];"
+      },
+      "id": "montar-prompt-chat",
+      "name": "Montar prompt do Tino",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [380, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prompt do modo \"explicar por que errei\" — só chega aqui em plano pago.\nconst e = $input.first().json;\n\nconst alternativas = (e.alternativas || [])\n  .map((a) => `${String(a.id).toUpperCase()}) ${a.texto}`)\n  .join('\\n');\n\nconst system = `Você é o **Tino**, tutor da Castelo Branco Academy. Sua função aqui é explicar a um estudante de contabilidade por que a resposta dele está errada.\n\nEscreva como um professor experiente explicando para um aluno ao lado, não como um gabarito. Português brasileiro, direto, sem formalidade artificial.\n\nEstrutura da resposta, sem títulos nem numeração:\n1. Comece dizendo em uma frase qual foi o raciocínio provável que levou à alternativa errada. Seja específico sobre a confusão conceitual, não genérico.\n2. Explique o conceito correto de forma que a pessoa entenda o princípio, não só a resposta.\n3. Termine com uma dica prática de como não cair nessa de novo.\n\nNo máximo 180 palavras. Sem emoji. Não repita o enunciado.`;\n\nconst user = `Assunto: ${e.assunto}\n\nQuestão:\n${e.questao}\n\nAlternativas:\n${alternativas}\n\nO aluno marcou: ${String(e.marcada).toUpperCase()}\nAlternativa correta: ${String(e.correta).toUpperCase()}\n\nComentário oficial da questão (use como base, mas escreva com suas palavras):\n${e.explicacao || '(sem comentário cadastrado)'}`;\n\nreturn [{ json: { system, mensagens: [{ role: 'user', content: user }] } }];"
+      },
+      "id": "montar-prompt-questao",
+      "name": "Montar prompt da questão",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-60, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 900, system: $json.system, messages: $json.mensagens }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "anthropic",
+      "name": "Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrai o texto da resposta da Messages API.\n// Se algo vier fora do formato, devolve uma mensagem útil em vez de quebrar.\nconst r = $input.first().json;\n\nlet resposta = '';\ntry {\n  if (Array.isArray(r.content)) {\n    resposta = r.content\n      .filter((b) => b.type === 'text')\n      .map((b) => b.text)\n      .join('\\n')\n      .trim();\n  }\n} catch (e) {\n  resposta = '';\n}\n\nif (!resposta) {\n  resposta =\n    'Não consegui montar a resposta agora. Se for urgente, fale direto com a equipe: https://api.whatsapp.com/send?phone=557531990707';\n}\n\nreturn [{ json: { resposta } }];"
+      },
+      "id": "extrair",
+      "name": "Extrair resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [820, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ resposta: $json.resposta }) }}",
+        "options": {}
+      },
+      "id": "responder",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1040, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Preparar entrada", "type": "main", "index": 0 }]]
+    },
+    "Preparar entrada": {
+      "main": [[{ "node": "Qual pedido?", "type": "main", "index": 0 }]]
+    },
+    "Qual pedido?": {
+      "main": [
+        [{ "node": "Montar prompt da questão", "type": "main", "index": 0 }],
+        [{ "node": "Buscar cursos", "type": "main", "index": 0 }]
+      ]
+    },
+    "Montar prompt da questão": {
+      "main": [[{ "node": "Claude", "type": "main", "index": 0 }]]
+    },
+    "Buscar cursos": {
+      "main": [[{ "node": "Buscar trilhas", "type": "main", "index": 0 }]]
+    },
+    "Buscar trilhas": {
+      "main": [[{ "node": "Montar prompt do Tino", "type": "main", "index": 0 }]]
+    },
+    "Montar prompt do Tino": {
+      "main": [[{ "node": "Claude", "type": "main", "index": 0 }]]
+    },
+    "Claude": {
+      "main": [[{ "node": "Extrair resposta", "type": "main", "index": 0 }]]
+    },
+    "Extrair resposta": {
+      "main": [[{ "node": "Responder", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

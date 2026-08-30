@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens — extraídos do site oficial castelobrancocontabilidade.com.br
+   Navy  #00204D  | Dourado #C89F50 / #D2AD73 | Creme #F3F1EB | Montserrat
+   ========================================================================== */
+@theme {
+  --color-navy-50: #eef3fa;
+  --color-navy-100: #dce5ec;
+  --color-navy-200: #b5c5d9;
+  --color-navy-300: #7f9bbb;
+  --color-navy-400: #47709c;
+  --color-navy-500: #1f4a7a;
+  --color-navy-600: #0d3563;
+  --color-navy-700: #00204d;
+  --color-navy-800: #001838;
+  --color-navy-900: #001028;
+
+  --color-gold-50: #fff8e9;
+  --color-gold-100: #f7ecd4;
+  --color-gold-200: #e8c98e;
+  --color-gold-300: #d2ad73;
+  --color-gold-400: #c89f50;
+  --color-gold-500: #b88a45;
+  --color-gold-600: #a66b12;
+
+  --color-cream: #f3f1eb;
+  --color-ink: #1f2d3d;
+  --color-muted: #66788a;
+  --color-teal: #2f6e75;
+
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+
+  --radius-xl2: 1.25rem;
+}
+
+:root {
+  --bg: #ffffff;
+  --fg: #1f2d3d;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilitários de marca ---------------------------------------------------- */
+.brand-gradient {
+  background: linear-gradient(135deg, #00204d 0%, #0d3563 55%, #001838 100%);
+}
+.gold-gradient {
+  background: linear-gradient(135deg, #d2ad73 0%, #c89f50 50%, #b88a45 100%);
+}
+.gold-text {
+  background: linear-gradient(135deg, #e8c98e 0%, #c89f50 60%, #b88a45 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.eyebrow {
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px -20px rgba(0, 32, 77, 0.45);
+  border-color: rgba(200, 159, 80, 0.55);
+}
+.grid-lines {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+::selection {
+  background: #c89f50;
+  color: #00204d;
+}
+
+/* Scrollbar discreta */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #f3f1eb; }
+::-webkit-scrollbar-thumb { background: #b5c5d9; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #7f9bbb; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fade-up { animation: fade-up 0.6s ease both; }

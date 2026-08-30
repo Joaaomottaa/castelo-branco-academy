@@ -1,0 +1,148 @@
+{
+  "name": "Tino — gerador de questões do banco",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tino-questoes-banco",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-questoes-banco",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        300
+      ],
+      "webhookId": "tino-questoes-banco"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------------------------------------------------------------------------\n// Monta o prompt do gerador de questões do BANCO.\n//\n// Diferente de `tino-questoes`, aqui não existe aula: o recorte é área,\n// assunto e nível. Era exatamente por isso que o fluxo antigo respondia\n// \"O título da aula é obrigatório\" para esta chamada.\n// ---------------------------------------------------------------------------\nconst entrada = $input.first().json;\nconst b = entrada.body || entrada;\n\nconst area = String(b.area || '').trim();\nconst assunto = String(b.assunto || '').trim();\n\nif (!area || !assunto) {\n  throw new Error('Informe a área e o assunto para gerar as questões do banco.');\n}\n\nconst nivel = String(b.nivel || 'Intermediário').trim();\nconst modo = b.modo === 'prova' ? 'prova' : 'ia';\nconst banca = String(b.banca || 'CFC (Exame de Suficiência) e concursos fiscais brasileiros').trim();\nconst observacoes = String(b.observacoes || '').trim();\nconst qtd = Math.min(Math.max(parseInt(b.quantidade, 10) || 5, 1), 15);\nconst anoAtual = new Date().getFullYear();\n\nconst calibragem = {\n  'Iniciante':\n    'Cobre definição, finalidade e o passo básico da rotina. O distrator deve ser um engano comum de quem está começando, nunca pegadinha de redação.',\n  'Intermediário':\n    'Cobre aplicação em situação concreta do escritório. Peça o porquê da decisão, não só o nome do conceito. O distrator deve ser plausível para quem sabe a teoria mas nunca executou.',\n  'Avançado':\n    'Cobre exceção, conflito de regra e consequência de escolher errado. O distrator deve ser a resposta certa em outro contexto — o que separa quem domina de quem decorou.',\n};\n\nconst blocoProva = modo === 'prova'\n  ? [\n      '',\n      'MODO PROVA ANTERIOR',\n      'Escreva questões NO ESTILO das provas de ' + banca + '.',\n      '',\n      'Isto significa imitar o recorte, o vocabulário e o nível de cobrança dessas',\n      'bancas — NÃO copiar enunciado de prova real. Escreva questão nova.',\n      '',\n      'Para cada questão preencha também:',\n      '  \"banca\": nome da banca de referência (ex.: \"CFC\", \"FGV\", \"CESPE/Cebraspe\")',\n      '  \"ano\":   ano de referência plausível, entre 2019 e ' + anoAtual,\n      '  \"prova\": identificação da prova de referência (ex.: \"Exame de Suficiência 2023.1\")',\n      '',\n      'Não afirme que a questão caiu na prova: ela é inspirada no estilo dela.',\n    ].join('\\n')\n  : [\n      '',\n      'MODO AUTORAL',\n      'Questão nova, escrita para a realidade contábil brasileira de ' + anoAtual + ',',\n      'incluindo a transição da Reforma Tributária quando o assunto pedir.',\n    ].join('\\n');\n\nconst system = [\n  'Você monta o banco de questões da Castelo Branco Academy, escola de',\n  'contabilidade da Castelo Branco Contabilidade Avançada (Feira de Santana/BA),',\n  'especializada em tributário, transporte, logística e comércio exterior.',\n  '',\n  'Você responde SEMPRE com JSON válido, sem cerca de código e sem comentário.',\n].join('\\n');\n\nconst user = [\n  'Gere exatamente ' + qtd + ' questões de múltipla escolha.',\n  '',\n  'ESCOPO',\n  'Área: ' + area,\n  'Assunto: ' + assunto,\n  'Nível: ' + nivel,\n  observacoes ? 'Instruções do administrador: ' + observacoes : null,\n  '',\n  'CALIBRAGEM PARA O NÍVEL ' + nivel.toUpperCase(),\n  calibragem[nivel] || calibragem['Intermediário'],\n  blocoProva,\n  '',\n  'REGRAS',\n  '1. Quatro alternativas por questão, com ids \"a\", \"b\", \"c\" e \"d\".',\n  '2. Uma única correta. Varie qual letra é a certa entre as questões.',\n  '3. Alternativas de comprimento parecido. A mais longa não pode ser sempre a',\n  '   correta — é o vício que ensina o aluno a chutar por formato.',\n  '4. Nada de \"todas as anteriores\", \"nenhuma das anteriores\" ou negativa dupla.',\n  '5. Enunciado direto, no máximo quatro linhas, em português brasileiro.',\n  '6. A explicação diz por que a correta está certa E por que o erro mais provável',\n  '   está errado. Duas a quatro linhas.',\n  '7. Não invente número, prazo, alíquota ou artigo de lei de que não tenha',\n  '   certeza. Prefira a formulação conceitual à numérica quando houver dúvida.',\n  '8. As ' + qtd + ' questões precisam ser diferentes entre si — não reformule a',\n  '   mesma ideia com outras palavras.',\n  '',\n  'Responda APENAS com este formato:',\n  '{\"questoes\":[{\"enunciado\":\"...\",\"alternativas\":[{\"id\":\"a\",\"texto\":\"...\"},{\"id\":\"b\",\"texto\":\"...\"},{\"id\":\"c\",\"texto\":\"...\"},{\"id\":\"d\",\"texto\":\"...\"}],\"correta\":\"b\",\"explicacao\":\"...\",\"banca\":\"CFC\",\"ano\":2023,\"prova\":\"Exame de Suficiência 2023.1\"}]}',\n].filter(function (l) { return l !== null; }).join('\\n');\n\nreturn [{ json: { system: system, user: user, qtd: qtd, area: area, assunto: assunto, nivel: nivel, modo: modo, banca: banca } }];\n"
+      },
+      "id": "montar-prompt-banco",
+      "name": "Montar prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "claude-banco",
+      "name": "Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------------------------------------------------------------------------\n// Aceita só o que dá para publicar.\n//\n// Questão sem gabarito válido é pior que questão nenhuma: o administrador não\n// perceberia, e o aluno estudaria a resposta errada.\n// ---------------------------------------------------------------------------\nconst bruto = $input.first().json;\nconst meta = $('Montar prompt').first().json;\n\nlet texto = '';\nif (bruto && Array.isArray(bruto.content)) {\n  texto = bruto.content.map(function (c) { return c.text || ''; }).join('\\n');\n} else if (typeof bruto === 'string') {\n  texto = bruto;\n} else if (bruto && typeof bruto.resposta === 'string') {\n  texto = bruto.resposta;\n} else {\n  texto = JSON.stringify(bruto);\n}\n\nfunction extrairJSON(t) {\n  const limpo = String(t).replace(/```(?:json)?/gi, '').trim();\n  try {\n    return JSON.parse(limpo);\n  } catch (e) {\n    const i = limpo.indexOf('{');\n    const f = limpo.lastIndexOf('}');\n    if (i === -1 || f <= i) return null;\n    try {\n      return JSON.parse(limpo.slice(i, f + 1));\n    } catch (e2) {\n      return null;\n    }\n  }\n}\n\nconst dados = extrairJSON(texto);\nconst lista = Array.isArray(dados) ? dados : (dados && dados.questoes) || [];\nconst LETRAS = ['a', 'b', 'c', 'd'];\nconst ok = [];\n\nfor (const item of lista) {\n  if (!item || typeof item.enunciado !== 'string') continue;\n  const enunciado = item.enunciado.trim();\n  if (!enunciado) continue;\n\n  const brutas = Array.isArray(item.alternativas) ? item.alternativas : [];\n  const alternativas = [];\n  brutas.slice(0, 4).forEach(function (a, i) {\n    const t = typeof a === 'string' ? a : (a && typeof a.texto === 'string' ? a.texto : '');\n    const idBruto = a && typeof a.id === 'string' ? a.id.toLowerCase() : '';\n    const id = LETRAS.indexOf(idBruto) >= 0 ? idBruto : LETRAS[i];\n    if (t && t.trim()) alternativas.push({ id: id, texto: t.trim() });\n  });\n  if (alternativas.length < 2) continue;\n\n  const correta = typeof item.correta === 'string' ? item.correta.trim().toLowerCase() : '';\n  if (!alternativas.some(function (a) { return a.id === correta; })) continue;\n\n  const ano = parseInt(item.ano, 10);\n  ok.push({\n    enunciado: enunciado,\n    alternativas: alternativas,\n    correta: correta,\n    explicacao: typeof item.explicacao === 'string' ? item.explicacao.trim() : undefined,\n    banca: meta.modo === 'prova' && typeof item.banca === 'string' ? item.banca.trim() : undefined,\n    ano: meta.modo === 'prova' && ano > 1990 && ano < 2100 ? ano : undefined,\n    prova: meta.modo === 'prova' && typeof item.prova === 'string' ? item.prova.trim() : undefined,\n  });\n}\n\nif (ok.length === 0) {\n  throw new Error('O modelo não devolveu nenhuma questão válida. Confira a chave da Anthropic e tente de novo.');\n}\n\nreturn [{\n  json: {\n    questoes: ok.slice(0, meta.qtd),\n    fonte: 'n8n',\n    area: meta.area,\n    assunto: meta.assunto,\n    nivel: meta.nivel,\n    modo: meta.modo,\n  },\n}];\n"
+      },
+      "id": "validar-questoes-banco",
+      "name": "Validar questões",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "responder-banco",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Montar prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "main": [
+        [
+          {
+            "node": "Validar questões",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar questões": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

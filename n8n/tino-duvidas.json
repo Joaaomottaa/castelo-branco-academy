@@ -1,0 +1,158 @@
+{
+  "name": "Tino — dúvidas da aula",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tino-duvidas",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-duvidas",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        300
+      ],
+      "webhookId": "tino-duvidas"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Monta o prompt com o contexto da aula em que o aluno está.\n// A diferença entre uma resposta útil e uma resposta genérica de chatbot é\n// exatamente esse contexto: curso, módulo, título, descrição e nível.\n\nconst e = $input.first().json.body || $input.first().json;\n\nconst pergunta      = (e.pergunta      || '').toString().trim();\nconst aulaTitulo    = (e.aulaTitulo    || '').toString().trim();\nconst aulaDescricao = (e.aulaDescricao || '').toString().trim();\nconst cursoTitulo   = (e.cursoTitulo   || '').toString().trim();\nconst moduloTitulo  = (e.moduloTitulo  || '').toString().trim();\nconst nivel         = (e.nivel         || 'Iniciante').toString().trim();\nconst categoria     = (e.categoria     || 'Contabilidade').toString().trim();\n\nif (!pergunta) {\n  throw new Error('A pergunta é obrigatória.');\n}\n\nconst WHATSAPP = 'https://api.whatsapp.com/send?phone=557531990707&text=Ol%C3%A1!%20Vim%20pela%20Castelo%20Branco%20Academy.';\n\nconst system = `Você é o Tino, assistente de estudos da Castelo Branco Academy — escola da Castelo Branco Contabilidade Avançada, mais de 20 anos em Feira de Santana/BA, contabilidade consultiva com foco em transporte, logística, armazenagem e comércio exterior.\n\nNeste momento você está respondendo uma dúvida DENTRO de uma aula. A pessoa acabou de assistir e travou em alguma coisa.\n\nA AULA\nCurso: ${cursoTitulo || 'não informado'}\nMódulo: ${moduloTitulo || 'não informado'}\nAula: ${aulaTitulo || 'não informada'}\nDescrição: ${aulaDescricao || 'não informada'}\nÁrea: ${categoria}\nNível da turma: ${nivel}\n\nCOMO RESPONDER\n1. Responda como um instrutor bom responderia depois da aula: direto ao ponto, com exemplo concreto do dia a dia de escritório contábil.\n2. Comece pela resposta. Contexto vem depois, se ajudar. Nada de \"ótima pergunta\".\n3. Calibre pelo nível da turma. Para Iniciante, explique o termo antes de usar. Para Avançado, vá direto à exceção e ao risco.\n4. Se a pergunta fugir do tema da aula, responda mesmo assim quando for contábil — mas diga em uma linha em que aula ou curso o assunto é tratado a fundo.\n5. Se for caso específico da empresa da pessoa (números, contrato, autuação em andamento), responda o que é geral e diga com todas as letras que caso concreto precisa de análise. Passe o WhatsApp: ${WHATSAPP}\n6. Nunca invente número, prazo, alíquota ou artigo de lei. Sem certeza do valor exato, explique o raciocínio e diga onde conferir.\n7. Nunca dê parecer tributário definitivo. Você ajuda a entender, não assina.\n8. Português brasileiro, natural, sem jargão de vendas e sem emoji.\n9. Entre 3 e 8 linhas na maioria das vezes. Lista só quando a resposta for mesmo uma sequência de passos.\n\nO MÉTODO DA CASA\nA Castelo Branco trabalha por camadas de segurança, da C1 (pacífico e documentado) à C4 (crédito inexistente, passivo oculto, decisão sem sustentação legal). Nunca sugira nada da C4. Se o que a pessoa pensa em fazer estiver nessa faixa, diga o risco com clareza e aponte o caminho seguro.`;\n\nreturn [{ json: { system, pergunta, aulaTitulo, cursoTitulo, nivel } }];"
+      },
+      "id": "preparar",
+      "name": "Montar prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 1200, system: $json.system, messages: [{ role: 'user', content: $json.pergunta }] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      },
+      "id": "claude",
+      "name": "Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Extrai o texto. Se vier vazio ou torto, devolve uma resposta honesta em vez\n// de string vazia — a tela mostra o que voltar, e vazio é pior que \"não sei\".\n\nconst WHATSAPP = 'https://api.whatsapp.com/send?phone=557531990707&text=Ol%C3%A1!%20Vim%20pela%20Castelo%20Branco%20Academy.';\nconst bruto = $input.first().json;\nlet texto = bruto?.content?.[0]?.text ?? '';\n\nif (typeof texto !== 'string' || !texto.trim()) {\n  texto = 'Não consegui formular uma resposta segura para esta pergunta agora. Publique no fórum da aula — o instrutor responde — ou fale direto com a equipe: ' + WHATSAPP;\n}\n\nreturn [{ json: { resposta: texto.trim() } }];"
+      },
+      "id": "extrair",
+      "name": "Extrair resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "responder",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Montar prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "main": [
+        [
+          {
+            "node": "Extrair resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "castelo-branco-academy"
+  },
+  "tags": [
+    {
+      "name": "Castelo Branco Academy"
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "name": "Tino — gerador de questões da aula",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tino-questoes",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-questoes",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        300
+      ],
+      "webhookId": "tino-questoes"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Normaliza o que chega de /api/gerar-questoes e monta o prompt.\n// O prompt vive aqui, e não no código do site, justamente para a coordenação\n// pedagógica poder ajustar sem depender de deploy.\n\nconst e = $input.first().json.body || $input.first().json;\n\nconst titulo     = (e.titulo     || '').toString().trim();\nconst descricao  = (e.descricao  || '').toString().trim();\nconst nivel      = (e.nivel      || 'Iniciante').toString().trim();\nconst curso      = (e.curso      || '').toString().trim();\nconst modulo     = (e.modulo     || '').toString().trim();\nconst categoria  = (e.categoria  || 'Contabilidade').toString().trim();\nconst quantidade = Math.min(Math.max(parseInt(e.quantidade || 5, 10) || 5, 1), 10);\n\nif (!titulo) {\n  throw new Error('O título da aula é obrigatório.');\n}\n\nconst calibragem = {\n  'Iniciante':     'Cobre definição, finalidade e o passo básico da rotina. O distrator deve ser um engano comum de quem está começando, nunca uma pegadinha de redação.',\n  'Intermediário': 'Cobre aplicação em situação concreta do escritório. Peça o porquê da decisão, não só o nome do conceito. O distrator deve ser plausível para quem sabe a teoria mas nunca executou.',\n  'Avançado':      'Cobre exceção, conflito de regra e consequência de escolher errado. O distrator deve ser a resposta certa em outro contexto — o que separa quem domina de quem decorou.'\n};\n\nconst system = `Você monta avaliações para a Castelo Branco Academy, escola de contabilidade da Castelo Branco Contabilidade Avançada — mais de 20 anos em Feira de Santana/BA, contabilidade consultiva com foco em transporte, logística, armazenagem e comércio exterior.\n\nCOMO A ESCOLA PENSA\nA Castelo Branco trabalha por camadas de segurança: da C1 (o que é pacífico e documentado) até a C4 (crédito inexistente, passivo oculto, decisão sem sustentação legal). Nada da C4 entra em material de ensino. Se um tema tem controvérsia real, a questão trata a controvérsia como controvérsia — não escolhe lado como se fosse consenso.\n\nO QUE FAZ UMA BOA QUESTÃO AQUI\nO aluno é profissional de escritório contábil, não candidato a concurso. A questão vale quando ele erra por não saber executar, e não por não ter lido com atenção. Prefira sempre a decisão prática à definição decorada.\n\nREGRAS DE FORMATO\n1. Quatro alternativas, ids \"a\", \"b\", \"c\" e \"d\".\n2. Uma única correta. Varie a letra certa entre as questões.\n3. Alternativas de comprimento parecido. A mais longa não pode ser sempre a correta.\n4. Nada de \"todas as anteriores\", \"nenhuma das anteriores\" ou negativa dupla.\n5. Enunciado direto, no máximo três linhas, em português brasileiro.\n6. A explicação diz por que a correta está certa E por que o erro mais provável está errado. Duas a quatro linhas.\n7. Não invente número, prazo, alíquota ou artigo de lei do qual você não tenha certeza. Na dúvida, faça a questão sobre o raciocínio, não sobre o número.\n8. Nada de pergunta sobre a plataforma, o instrutor ou a duração da aula.\n\nResponda APENAS com JSON válido, sem cerca de código e sem comentário.`;\n\nconst user = `Gere exatamente ${quantidade} questões de múltipla escolha sobre esta aula.\n\nAULA\nCurso: ${curso || 'não informado'}\nMódulo: ${modulo || 'não informado'}\nTítulo: ${titulo}\nDescrição: ${descricao || 'não informada'}\nÁrea: ${categoria}\nNível: ${nivel}\n\nCALIBRAGEM PARA O NÍVEL ${nivel.toUpperCase()}\n${calibragem[nivel] || calibragem['Iniciante']}\n\nFormato exato da resposta:\n{\"questoes\":[{\"enunciado\":\"...\",\"alternativas\":[{\"id\":\"a\",\"texto\":\"...\"},{\"id\":\"b\",\"texto\":\"...\"},{\"id\":\"c\",\"texto\":\"...\"},{\"id\":\"d\",\"texto\":\"...\"}],\"correta\":\"b\",\"explicacao\":\"...\"}]}`;\n\nreturn [{ json: { system, user, quantidade, titulo, nivel } }];"
+      },
+      "id": "preparar",
+      "name": "Montar prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 3000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "claude",
+      "name": "Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Valida antes de devolver. Questão sem gabarito válido é pior que questão\n// nenhuma: o admin aprovaria sem perceber e o aluno erraria a certa.\n\nconst LETRAS = ['a', 'b', 'c', 'd'];\nconst bruto = $input.first().json;\nconst texto = bruto?.content?.[0]?.text ?? '';\n\nfunction extrair(t) {\n  const limpo = String(t).replace(/```(?:json)?/gi, '').trim();\n  try { return JSON.parse(limpo); } catch (_) {}\n  const i = limpo.indexOf('{');\n  const f = limpo.lastIndexOf('}');\n  if (i === -1 || f <= i) return null;\n  try { return JSON.parse(limpo.slice(i, f + 1)); } catch (_) { return null; }\n}\n\nconst dados = extrair(texto);\nconst lista = Array.isArray(dados) ? dados : (dados?.questoes ?? []);\n\nconst questoes = [];\nfor (const item of (Array.isArray(lista) ? lista : [])) {\n  const enunciado = typeof item?.enunciado === 'string' ? item.enunciado.trim() : '';\n  if (!enunciado) continue;\n\n  const alternativas = (Array.isArray(item?.alternativas) ? item.alternativas : [])\n    .map((a, i) => {\n      const txt = typeof a?.texto === 'string' ? a.texto.trim() : (typeof a === 'string' ? a : '');\n      const id  = typeof a?.id === 'string' && LETRAS.includes(a.id.toLowerCase())\n        ? a.id.toLowerCase() : LETRAS[i];\n      return txt && id ? { id, texto: txt } : null;\n    })\n    .filter(Boolean)\n    .slice(0, 4);\n\n  if (alternativas.length < 2) continue;\n\n  const correta = typeof item?.correta === 'string' ? item.correta.trim().toLowerCase() : '';\n  if (!alternativas.some((a) => a.id === correta)) continue;\n\n  questoes.push({\n    enunciado,\n    alternativas,\n    correta,\n    explicacao: typeof item?.explicacao === 'string' ? item.explicacao.trim() : ''\n  });\n}\n\nif (questoes.length === 0) {\n  // Devolver vazio faz a rota /api/gerar-questoes cair no caminho seguinte\n  // em vez de entregar lixo ao admin.\n  return [{ json: { questoes: [], erro: 'O modelo não devolveu questões utilizáveis.' } }];\n}\n\nreturn [{ json: { questoes } }];"
+      },
+      "id": "validar",
+      "name": "Validar questões",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "responder",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Montar prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "main": [
+        [
+          {
+            "node": "Validar questões",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar questões": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "castelo-branco-academy"
+  },
+  "tags": [
+    {
+      "name": "Castelo Branco Academy"
+    }
+  ]
+}
