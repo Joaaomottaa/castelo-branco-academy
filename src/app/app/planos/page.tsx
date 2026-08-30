@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ArrowRight, BadgeCheck, Check, HelpCircle, Minus, Sparkles, X,
+  ArrowRight, BadgeCheck, BadgePercent, Check, HelpCircle, Minus, Sparkles, X,
 } from "lucide-react";
 import { Badge, Button, Card, cn } from "@/components/ui";
 import { useSession } from "@/lib/session";
@@ -10,6 +10,7 @@ import { planos } from "@/lib/planos";
 import { brand } from "@/lib/brand";
 import { abrirTino } from "@/lib/tino-abrir";
 import { cancelarPlano } from "@/lib/repo-cupons";
+import { meuDescontoDaEmpresa, type DescontoDaEmpresa } from "@/lib/repo-empresa";
 
 export default function PlanosPage() {
   const { user, atualizarPerfil } = useSession();
@@ -17,6 +18,15 @@ export default function PlanosPage() {
   const [voltandoAoFree, setVoltandoAoFree] = useState(false);
   const [cancelando, setCancelando] = useState(false);
   const meuPlano = (user?.plano ?? "Free").toLowerCase();
+
+  // Quem entrou por um convite de desconto precisa ver o abatimento aqui, e
+  // não só no checkout: é nesta tela que a pessoa decide se assina.
+  const [descEmpresa, setDescEmpresa] = useState<DescontoDaEmpresa | null>(null);
+  useEffect(() => {
+    let ativo = true;
+    meuDescontoDaEmpresa().then((d) => { if (ativo) setDescEmpresa(d); });
+    return () => { ativo = false; };
+  }, []);
 
   async function confirmarCancelamento() {
     setCancelando(true);
@@ -43,6 +53,14 @@ export default function PlanosPage() {
           na carreira — certificado com validação, pontos de educação continuada e o Tino
           estudando junto.
         </p>
+
+        {descEmpresa && (
+          <p className="mx-auto mt-5 inline-flex max-w-xl flex-wrap items-center justify-center gap-2 rounded-full border border-teal/25 bg-teal/5 px-4 py-2 text-sm text-navy-700">
+            <BadgePercent size={15} className="text-teal" />
+            A <strong>{descEmpresa.empresa}</strong> oferece{" "}
+            <strong>{descEmpresa.pct}% de desconto</strong> no Pro — já aplicado no checkout.
+          </p>
+        )}
 
         {/* Alternância mensal/anual */}
         <div className="mt-7 inline-flex items-center rounded-full border border-navy-100 bg-cream p-1">

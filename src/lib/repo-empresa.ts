@@ -430,9 +430,18 @@ export interface DescontoDaEmpresa {
 export async function meuDescontoDaEmpresa(): Promise<DescontoDaEmpresa | null> {
   const sb = getSupabase();
   if (!sb) return null;
+
+  // Filtrar por `perfil_id` é obrigatório, não é otimização: a policy de
+  // `empresa_membros` devolve o time inteiro para quem é do time, e um
+  // `limit(1)` solto traria a linha de outra pessoa.
+  const { data: sessao } = await sb.auth.getUser();
+  const eu = sessao.user?.id;
+  if (!eu) return null;
+
   const { data } = await sb
     .from("empresa_membros")
     .select("desconto_pct, licenca, status, empresas ( nome )")
+    .eq("perfil_id", eu)
     .eq("status", "ativo")
     .limit(1);
 
