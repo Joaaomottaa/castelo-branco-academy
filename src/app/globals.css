@@ -42,9 +42,11 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);

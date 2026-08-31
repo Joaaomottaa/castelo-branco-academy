@@ -278,7 +278,7 @@ export default function CatalogoPage() {
           }
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
           {lista.map((c) => {
             const { feitas, total, pct } = progressoDe(c);
             return (

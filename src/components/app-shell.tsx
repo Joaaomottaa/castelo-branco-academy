@@ -175,23 +175,24 @@ export function AppShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "brand-gradient fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform lg:translate-x-0",
-          menuAberto ? "translate-x-0" : "-translate-x-full"
+          "brand-gradient fixed inset-y-0 left-0 z-50 flex w-16 flex-col overflow-hidden border-r border-white/10 transition-[width,box-shadow] duration-300 lg:w-64",
+          menuAberto && "w-64 shadow-2xl shadow-navy-900/40"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
-          <Link href="/">
-            <Logo variant="light" />
+        <div className="flex h-16 shrink-0 items-center justify-center border-b border-white/10 px-3 lg:justify-between lg:px-5">
+          <Link href="/" aria-label="Ir para a página inicial" className="shrink-0">
+            <Logo variant="light" size="sm" className="lg:hidden" />
+            <Logo variant="light" className="hidden lg:inline-flex" />
           </Link>
-          <button onClick={() => setMenuAberto(false)} className="text-white lg:hidden">
+          <button onClick={() => setMenuAberto(false)} aria-label="Fechar menu" className="ml-auto hidden text-white lg:hidden">
             <X size={20} />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto p-3">
+        <nav className="flex-1 space-y-5 overflow-x-hidden overflow-y-auto p-2.5 lg:p-3">
           {nav.map((grupo) => (
             <div key={grupo.secao}>
-              <p className="mb-1.5 px-3.5 text-[10px] font-bold uppercase tracking-[0.16em] text-navy-100/35">
+              <p className={cn("mb-1.5 px-3.5 text-[10px] font-bold uppercase tracking-[0.16em] text-navy-100/35", !menuAberto && "hidden lg:block")}>
                 {grupo.secao}
               </p>
               <div className="space-y-0.5">
@@ -204,15 +205,17 @@ export function AppShell({
                     <Link
                       key={n.href}
                       href={n.href}
+                      title={n.label}
                       className={cn(
-                        "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition",
+                        "flex items-center rounded-xl py-2.5 text-sm font-medium transition",
+                        menuAberto ? "gap-3 px-3.5" : "justify-center px-0 lg:justify-start lg:gap-3 lg:px-3.5",
                         ativo
                           ? "bg-gold-400/15 text-gold-300 shadow-[inset_2px_0_0_0_#C89F50]"
                           : "text-navy-100/70 hover:bg-white/5 hover:text-white"
                       )}
                     >
                       <n.icon size={17} />
-                      {n.label}
+                      <span className={cn(!menuAberto && "hidden lg:block")}>{n.label}</span>
                     </Link>
                   );
                 })}
@@ -221,7 +224,8 @@ export function AppShell({
           ))}
         </nav>
 
-        {area === "aluno" && user.role !== "empresa" && <MetaPEPC pontos={pontosPEPC} />}
+        <div className={cn(!menuAberto && "hidden lg:block")}>
+          {area === "aluno" && user.role !== "empresa" && <MetaPEPC pontos={pontosPEPC} />}
 
         {/* A empresa fica a um clique da área do aluno, e vice-versa: o gestor
             também estuda, e obrigá-lo a digitar a URL para trocar de chapéu
@@ -262,19 +266,20 @@ export function AppShell({
             Voltar para a área do aluno
           </Link>
         )}
+        </div>
       </aside>
 
       {menuAberto && (
         <div
-          className="fixed inset-0 z-40 bg-navy-900/50 lg:hidden"
+          className="fixed inset-y-0 left-16 right-0 z-40 bg-navy-900/50 lg:hidden"
           onClick={() => setMenuAberto(false)}
         />
       )}
 
       {/* Conteúdo */}
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-navy-100 bg-white/85 px-5 backdrop-blur-xl lg:px-8">
-          <button onClick={() => setMenuAberto(true)} className="text-navy-700 lg:hidden">
+      <div className="min-w-0 pl-16 lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-16 min-w-0 items-center gap-3 border-b border-navy-100 bg-white/85 px-3 backdrop-blur-xl sm:px-5 lg:px-8">
+          <button onClick={() => setMenuAberto(true)} aria-label="Expandir menu" className="shrink-0 text-navy-700 lg:hidden">
             <Menu size={21} />
           </button>
 
@@ -286,7 +291,7 @@ export function AppShell({
             />
           </div>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <span className="hidden md:inline">
               <SeletorDeModo compacto />
             </span>
@@ -387,7 +392,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="px-4 py-6 sm:px-5 sm:py-8 lg:px-8">{children}</main>
+        <main className="min-w-0 overflow-x-clip px-3 py-5 sm:px-5 sm:py-8 lg:px-8">{children}</main>
       </div>
 
     </div>
