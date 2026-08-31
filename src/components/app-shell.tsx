@@ -282,7 +282,7 @@ export function AppShell({
       )}
 
       {/* Conteúdo */}
-      <div className="min-w-0 max-w-full pl-14 lg:pl-64">
+      <div className="ml-14 w-[calc(100dvw-3.5rem)] min-w-0 max-w-full lg:ml-64 lg:w-[calc(100vw-16rem)]">
         <header className="sticky top-0 z-30 flex h-14 min-w-0 max-w-full items-center gap-2 border-b border-navy-100 bg-white/85 px-2 backdrop-blur-xl sm:h-16 sm:gap-3 sm:px-5 lg:px-8">
           <button onClick={() => setMenuAberto(true)} aria-label="Expandir menu" className="shrink-0 text-navy-700 lg:hidden">
             <Menu size={21} />

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SessionProvider } from "@/lib/session";
 import { DadosProvider } from "@/lib/dados";
@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   },
   description:
     "Plataforma de cursos, certificação e banco de talentos para o mercado contábil. Formação prática em tributário, logística e comércio exterior.",
+};
+
+// Garante a largura real do aparelho. Sem esta declaração explícita alguns
+// navegadores móveis preservam uma viewport de desktop quando o zoom muda.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

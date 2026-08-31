@@ -85,7 +85,7 @@ type BtnProps = {
 };
 
 const btnBase =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400";
+  "inline-flex min-w-0 max-w-full items-center justify-center gap-2 rounded-full font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-400";
 
 const btnVariants: Record<string, string> = {
   primary: "bg-navy-700 text-white hover:bg-navy-600 shadow-lg shadow-navy-700/20",
