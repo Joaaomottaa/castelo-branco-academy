@@ -18,6 +18,10 @@ import { useSession } from "@/lib/session";
 
    Marcar como lida acontece ao abrir o painel, não ao clicar em cada item:
    ninguém abre a caixa e deixa metade por ler de propósito.
+
+   O sino vive só na barra escura do AppShell, e por isso é desenhado em claro
+   sobre escuro. O painel que ele abre é uma superfície própria e continua
+   claro. Reaproveitar o sino num fundo claro exigiria um variante de cor.
    ========================================================================== */
 
 const ICONES: Record<string, typeof Bell> = {
@@ -55,13 +59,13 @@ export function SinoDeNotificacoes() {
     <div className="relative">
       <button
         onClick={abrir}
-        className="relative text-navy-600 transition hover:text-gold-500"
+        className="relative text-white/75 transition hover:text-gold-300"
         title="Notificações"
         aria-label={`Notificações${naoLidas.length ? `: ${naoLidas.length} não lidas` : ""}`}
       >
         <Bell size={19} />
         {naoLidas.length > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-400 px-1 text-[9px] font-bold text-navy-800 ring-2 ring-white">
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-400 px-1 text-[9px] font-bold text-navy-800 ring-2 ring-navy-700">
             {naoLidas.length > 9 ? "9+" : naoLidas.length}
           </span>
         )}

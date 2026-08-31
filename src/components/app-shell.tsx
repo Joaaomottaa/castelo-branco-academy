@@ -181,7 +181,9 @@ export function AppShell({
       >
         <div
           className={cn(
-            "flex h-14 shrink-0 items-center border-b border-white/10 lg:h-16 lg:justify-between lg:px-5",
+            // Mesma altura e mesmo fio dourado da barra de cima: a linha
+            // atravessa a tela inteira em vez de quebrar na quina.
+            "flex h-14 shrink-0 items-center border-b border-gold-400/30 sm:h-16 lg:justify-between lg:px-5",
             menuAberto ? "justify-between px-4" : "justify-center px-2"
           )}
         >
@@ -297,16 +299,25 @@ export function AppShell({
 
       {/* Conteúdo */}
       <div className="app-content max-w-full">
-        <header className="sticky top-0 z-30 flex h-14 min-w-0 max-w-full items-center gap-2 border-b border-navy-100 bg-white/85 px-2 backdrop-blur-xl sm:h-16 sm:gap-3 sm:px-5 lg:px-8">
-          <button onClick={() => setMenuAberto(true)} aria-label="Expandir menu" className="shrink-0 text-navy-700 lg:hidden">
+        {/* A barra de cima é do mesmo material da lateral: as duas formam um
+            "L" navy em volta do creme do conteúdo. Branca sobre creme ela mal
+            se distinguia da página, e o encontro com a lateral escura era um
+            corte seco. O fio dourado embaixo fecha a moldura e é o único lugar
+            da casca onde a cor de destaque aparece inteira.
+
+            Opaca de propósito: translúcida sobre o creme da página ela ficava
+            um tom mais clara que a lateral, e a quina entre as duas voltava a
+            aparecer como emenda. */}
+        <header className="sticky top-0 z-30 flex h-14 min-w-0 max-w-full items-center gap-2 border-b border-gold-400/30 bg-navy-700 px-2 sm:h-16 sm:gap-3 sm:px-5 lg:px-8">
+          <button onClick={() => setMenuAberto(true)} aria-label="Expandir menu" className="shrink-0 text-white/80 transition hover:text-white lg:hidden">
             <Menu size={21} />
           </button>
 
           <div className="relative hidden max-w-sm flex-1 sm:block">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
             <input
               placeholder="Buscar cursos, aulas, talentos…"
-              className="w-full rounded-full border border-navy-100 bg-cream/70 py-2 pl-10 pr-4 text-sm outline-none transition focus:border-gold-400 focus:bg-white"
+              className="w-full rounded-full border border-white/12 bg-white/8 py-2 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-gold-400/70 focus:bg-white/14"
             />
           </div>
 
@@ -315,7 +326,7 @@ export function AppShell({
               <SeletorDeModo compacto />
             </span>
             {modoDemo && (
-              <span className="hidden rounded-full border border-gold-200 bg-gold-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-600 lg:inline">
+              <span className="hidden rounded-full border border-gold-400/30 bg-gold-400/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-200 lg:inline">
                 Dados locais
               </span>
             )}
@@ -324,13 +335,17 @@ export function AppShell({
             <div className="relative">
               <button
                 onClick={() => setPerfilAberto((p) => !p)}
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-cream"
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-white/10"
               >
-                <Avatar nome={user.nome} size={32} />
-                <span className="hidden text-sm font-semibold text-navy-700 sm:block">
+                {/* O avatar padrão é navy: sobre a barra navy ele sumiria.
+                    O anel dourado o recorta do fundo. */}
+                <span className="inline-flex rounded-full ring-1 ring-gold-400/45">
+                  <Avatar nome={user.nome} size={32} cor="#0D3563" />
+                </span>
+                <span className="hidden text-sm font-semibold text-white sm:block">
                   {user.nome.split(" ")[0]}
                 </span>
-                <ChevronDown size={14} className="text-muted" />
+                <ChevronDown size={14} className="text-white/50" />
               </button>
 
               {perfilAberto && (
