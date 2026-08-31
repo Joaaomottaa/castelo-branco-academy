@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import {
-  ArrowRight, BadgeCheck, BadgePercent, Check, HelpCircle, Minus, Sparkles, X,
+  ArrowRight, BadgeCheck, BadgePercent, Check, HelpCircle, Minus, MoveHorizontal,
+  Sparkles, X,
 } from "lucide-react";
-import { Badge, Button, Card, cn } from "@/components/ui";
+import { Badge, Button, Card, cn, fileiraCls, fileiraItemCls } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { planos } from "@/lib/planos";
 import { brand } from "@/lib/brand";
@@ -91,15 +92,27 @@ export default function PlanosPage() {
         </div>
       </div>
 
-      {/* Cards */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Cards
+          Empilhados, os planos ficavam a uma tela de distância um do outro no
+          celular — e comparar preço de memória é o mesmo que não comparar. Aqui
+          eles deitam lado a lado e a pessoa arrasta: o Free e o Pro aparecem
+          juntos, com o vizinho já à vista. Do `sm` para cima volta a ser grade.
+          O `pt-4` é o espaço do selo "Recomendado", que fica meio passo acima da
+          borda do cartão e seria cortado pela rolagem lateral. */}
+      <div>
+        <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+          <MoveHorizontal size={13} className="text-gold-500" />
+          Arraste para o lado para comparar os planos
+        </p>
+        <div className={cn(fileiraCls, "pt-4 sm:grid-cols-2 sm:pt-0 lg:grid-cols-3")}>
         {planos.map((p) => {
           const atual = ehMeuPlano(p.slug);
           return (
             <div
               key={p.slug}
               className={cn(
-                "relative flex flex-col rounded-2xl p-7",
+                fileiraItemCls,
+                "relative flex flex-col rounded-2xl p-5 sm:p-7",
                 p.destaque
                   ? "border-2 border-gold-400 bg-navy-700 shadow-2xl shadow-navy-700/25 lg:-my-3 lg:py-10"
                   : "border border-navy-100 bg-white"
@@ -194,6 +207,7 @@ export default function PlanosPage() {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Comparativo detalhado */}

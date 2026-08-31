@@ -426,7 +426,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="min-w-0 max-w-full overflow-x-clip px-3 py-5 sm:px-5 sm:py-8 lg:px-8">{children}</main>
+        <main className="folga-tino min-w-0 max-w-full overflow-x-clip px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8">{children}</main>
       </div>
 
     </div>

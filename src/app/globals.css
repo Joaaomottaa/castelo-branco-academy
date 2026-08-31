@@ -160,3 +160,28 @@ body {
   to { opacity: 1; transform: none; }
 }
 .animate-fade-up { animation: fade-up 0.6s ease both; }
+
+/* Fileira lateral (ver `fileiraCls` em components/ui.tsx).
+   A barra de rolagem horizontal do WebKit tem 10px e ficaria por cima da
+   borda de baixo dos cartões; nesta fileira o arrastar já é a pista. */
+.fileira {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+.fileira::-webkit-scrollbar {
+  display: none;
+}
+
+/* Espaço para o botão do Tino.
+   Ele é fixo no canto de baixo à direita (56px + 20px de folga). Sem esta
+   reserva ele cobria o último cartão de toda tela — e no celular o último
+   cartão costuma ser justamente o botão de ação da página. */
+.folga-tino {
+  padding-bottom: 6rem;
+}
+@media (min-width: 640px) {
+  .folga-tino {
+    padding-bottom: 7rem;
+  }
+}

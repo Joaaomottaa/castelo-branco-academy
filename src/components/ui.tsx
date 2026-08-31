@@ -360,3 +360,37 @@ export function Carregando({ texto = "Carregando…" }: { texto?: string }) {
     </div>
   );
 }
+
+/* ------------------------------ Enquadramento ---------------------------- */
+/**
+ * Fileira lateral.
+ *
+ * No celular um grupo de cartões comparáveis — planos, KPIs largos, vagas —
+ * não deve virar uma pilha de um por tela: quem compara precisa ver o vizinho.
+ * A fileira deita os cartões lado a lado e a pessoa arrasta; a partir do `sm`
+ * ela volta a ser grade (quem chama declara as colunas: `sm:grid-cols-2`).
+ *
+ * O `-mx-3 px-3` sangra até a borda da tela usando a mesma medida do <main>,
+ * então o primeiro cartão começa alinhado ao resto da página e o último não
+ * fica colado na borda.
+ */
+export const fileiraCls =
+  "fileira -mx-3 flex snap-x snap-mandatory scroll-px-3 gap-3 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:snap-none sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0";
+
+/** O cartão de uma fileira: largura fixa que deixa o vizinho aparecer. */
+export const fileiraItemCls =
+  "w-[78vw] min-w-0 max-w-[19rem] shrink-0 snap-start sm:w-auto sm:max-w-none";
+
+/**
+ * Barra de abas.
+ *
+ * Três abas com ícone não cabem em 360px. Espremer quebra o rótulo no meio
+ * ("Resumo com IA" em duas linhas) e ainda empurra a última para fora. Aqui a
+ * barra rola de lado e cada aba fica inteira, numa linha só.
+ */
+export const abasCls =
+  "fileira flex overflow-x-auto border-b border-navy-100";
+
+/** A aba em si: nunca quebra o rótulo, nunca encolhe abaixo do texto. */
+export const abaCls =
+  "flex shrink-0 items-center gap-2 whitespace-nowrap px-4 py-3.5 text-sm font-semibold transition sm:px-5";

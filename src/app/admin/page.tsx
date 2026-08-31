@@ -426,21 +426,28 @@ function Kpi({
 }) {
   const sobe = (v ?? 0) >= 0;
   return (
-    <Card className="group relative !p-4">
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-600">
-            {icone}
-          </span>
-          <span className="truncate text-[11px] font-semibold text-muted">
-            {rotulo}
-            {estimado && (
-              <span className="ml-1 rounded bg-navy-50 px-1 text-[8px] font-bold uppercase text-navy-500">
-                est.
-              </span>
-            )}
-          </span>
+    <Card className="group relative !p-3.5 sm:!p-4">
+      {/* O rótulo e a variação disputavam a mesma linha. Num cartão de meia
+          tela de celular sobravam uns 50px para o texto, e "Matrículas" virava
+          "Matr…" — um painel que esconde o nome do número não informa nada.
+          A variação desceu para a linha do valor, que é curto e cabe ao lado
+          dela; o rótulo ficou com a largura inteira e agora quebra em duas
+          linhas em vez de ser cortado. */}
+      <div className="flex items-start gap-2">
+        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-600">
+          {icone}
         </span>
+        <span className="min-w-0 text-[11px] font-semibold leading-tight text-muted">
+          {rotulo}
+          {estimado && (
+            <span className="ml-1 rounded bg-navy-50 px-1 text-[8px] font-bold uppercase text-navy-500">
+              est.
+            </span>
+          )}
+        </span>
+      </div>
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <p className="text-lg font-bold tabular-nums text-navy-700 sm:text-xl">{valor}</p>
         {v !== null && (
           <span
             className={cn(
@@ -453,7 +460,6 @@ function Kpi({
           </span>
         )}
       </div>
-      <p className="mt-2 text-xl font-bold tabular-nums text-navy-700">{valor}</p>
 
       {nota && (
         <div className="pointer-events-none absolute inset-x-3 bottom-full z-10 mb-1 rounded-lg bg-navy-900 px-3 py-2 text-[10px] leading-relaxed text-white opacity-0 shadow-xl transition group-hover:opacity-100">
