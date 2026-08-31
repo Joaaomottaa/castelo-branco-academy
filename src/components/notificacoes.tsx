@@ -74,13 +74,25 @@ export function SinoDeNotificacoes() {
       {aberto && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setAberto(false)} />
-          {/* `app-header-panel` (globals.css) resolve o celular: ancorado ao
-              sino, um painel de 20rem só crescia para a esquerda, ia para
-              debaixo da barra compacta (z-50, acima do cabeçalho) e ainda era
-              cortado pelo `overflow-x-clip` da moldura. A classe o prende à
-              faixa entre a barra e a borda direita e o tira daquele clip; de
-              sm para cima volta a ser menu suspenso normal. */}
-          <div className="app-header-panel z-20 mt-2 overflow-hidden rounded-xl border border-navy-100 bg-white shadow-xl">
+          {/* Ancorado ao sino, que fica quase na borda direita, um painel de
+              20rem só tem para onde crescer para a esquerda. No celular isso o
+              punha debaixo da barra compacta de 3.5rem — que é z-50 e portanto
+              desenha por cima do cabeçalho (z-30) —, e o que sobrava ainda era
+              cortado pelo `overflow-x-clip` da moldura. Nenhum z-index interno
+              resolve: o painel vive dentro do contexto de empilhamento do
+              <header>, então não passa do z-30 do pai.
+
+              Por isso o celular é `fixed` na faixa entre a barra (`left-16`
+              passa dos 3.5rem dela) e a borda direita — `fixed` também o tira
+              do alcance daquele clip — e a largura sai das duas âncoras, sem
+              `w-*`. De `sm` para cima volta ao menu suspenso de 20rem ancorado
+              ao sino: `top-auto`/`left-auto` devolvem a posição estática, que
+              é onde ele sempre esteve no desktop.
+
+              Tudo isto mora aqui, em utilitários, e não numa classe própria no
+              globals.css: já houve uma `.app-header-panel` lá que nunca chegou
+              a ser aplicada a elemento nenhum. */}
+          <div className="fixed left-16 right-2 top-14 z-20 mt-2 overflow-hidden rounded-xl border border-navy-100 bg-white shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:w-80">
             <div className="flex items-center justify-between border-b border-navy-100 px-4 py-3">
               <p className="text-sm font-bold text-navy-700">Notificações</p>
               {lista.length > 0 && (
@@ -90,10 +102,10 @@ export function SinoDeNotificacoes() {
               )}
             </div>
 
-            {/* Fixo no celular, o painel não é empurrado pelo fim da página:
-                sem teto de viewport a lista passava do rodapé em telas
-                baixas. Solto de sm para cima, onde 24rem cabem. */}
-            <div className="max-h-[calc(100vh-9rem)] overflow-y-auto sm:max-h-96">
+            {/* No celular o painel é `fixed`: não é mais empurrado pelo fim
+                da página, então o teto precisa vir da viewport. 24rem fixas
+                passavam do rodapé em telas baixas. */}
+            <div className="max-h-[70vh] overflow-y-auto sm:max-h-96">
               {modoDemo ? (
                 <p className="px-4 py-8 text-center text-xs leading-relaxed text-muted">
                   No modo demonstração não há caixa de notificações — ela lê do banco.

@@ -68,6 +68,12 @@ body {
 .app-menu-overlay {
   left: 3.5rem;
 }
+/* A caixa de notificações tinha aqui uma `.app-header-panel` para se ajustar
+   ao celular. A regra nunca chegou a ser aplicada a elemento nenhum, e enquanto
+   estava aqui parecia que o problema já tinha dono. Agora o painel se posiciona
+   com utilitários, em `notificacoes.tsx`, ao lado do resto do próprio layout;
+   o que esta seção define e ele precisa saber é a largura da barra: 3.5rem. */
+
 /* Marca compacta da barra recolhida: só o brasão, sem nada do texto.
    Não dá para recortar isso do `logoCastelo.png`: naquela arte o "C" de
    CASTELO passa por trás da capa do leão, então qualquer janela retangular
