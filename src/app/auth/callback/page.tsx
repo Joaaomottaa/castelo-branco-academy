@@ -70,7 +70,9 @@ function Callback() {
         <h1 className="mt-4 text-lg font-bold text-navy-700">
           Não deu para entrar com o Google
         </h1>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">
+        {/* A mensagem do provedor vem como um bloco só, sem espaço para
+            quebrar — no celular ela empurrava a tela para o lado. */}
+        <p className="mx-auto mt-2 max-w-sm break-words text-sm leading-relaxed text-muted">
           {erroProvedor}
         </p>
         <Link

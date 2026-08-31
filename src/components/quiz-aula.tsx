@@ -111,7 +111,7 @@ export function ModalQuiz({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/70 p-3 backdrop-blur-sm sm:p-4"
       onClick={() => fase !== "respondendo" && aoFechar()}
     >
       <div
@@ -119,13 +119,15 @@ export function ModalQuiz({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho */}
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-navy-100 px-6 py-4">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-navy-100 px-5 py-4 sm:gap-4 sm:px-6">
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gold-500">
               <ClipboardCheck size={13} /> Teste de conhecimento
             </p>
-            <h2 className="mt-0.5 truncate text-base font-bold text-navy-700">{aulaTitulo}</h2>
-            {cursoTitulo && <p className="truncate text-xs text-muted">{cursoTitulo}</p>}
+            {/* A aula e o curso dividiam a linha com o X de fechar: no celular
+                "Encerramento do bloco fiscal" virava "Encerramento do…". */}
+            <h2 className="mt-0.5 line-clamp-2 break-words text-base font-bold leading-tight text-navy-700">{aulaTitulo}</h2>
+            {cursoTitulo && <p className="line-clamp-2 break-words text-xs leading-snug text-muted">{cursoTitulo}</p>}
           </div>
           {fase !== "respondendo" && (
             <button
@@ -140,8 +142,8 @@ export function ModalQuiz({
 
         {/* Barra de progresso da prova */}
         {fase === "respondendo" && questoes.length > 0 && (
-          <div className="shrink-0 border-b border-navy-100 px-6 py-3">
-            <div className="flex items-center justify-between text-xs font-semibold text-muted">
+          <div className="shrink-0 border-b border-navy-100 px-5 py-3 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs font-semibold text-muted">
               <span>
                 Questão {indice + 1} de {questoes.length}
               </span>
@@ -170,7 +172,7 @@ export function ModalQuiz({
           </div>
         )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
           {!status ? (
             <p className="py-10 text-center text-sm text-muted">Carregando avaliação…</p>
           ) : erro ? (
@@ -194,12 +196,14 @@ export function ModalQuiz({
         </div>
 
         {/* Rodapé — a ação muda com a fase */}
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-navy-100 px-6 py-4">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-navy-100 px-5 py-4 sm:gap-3 sm:px-6">
           {fase === "aviso" && (
             <>
+              {/* No celular as duas ações não caíam na mesma linha e a de
+                  começar escorregava para fora do rodapé. Meia largura cada. */}
               <button
                 onClick={aoFechar}
-                className="rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:text-navy-700"
+                className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:text-navy-700 sm:min-w-0 sm:flex-none"
               >
                 Agora não
               </button>
@@ -207,6 +211,7 @@ export function ModalQuiz({
                 variant="gold"
                 onClick={comecar}
                 disabled={status !== null && restantes <= 0 && !status.aprovada}
+                className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
               >
                 {status?.aprovada ? "Refazer para praticar" : "Começar teste"}{" "}
                 <ArrowRight size={15} />
@@ -219,7 +224,7 @@ export function ModalQuiz({
               <button
                 onClick={() => setIndice((i) => Math.max(0, i - 1))}
                 disabled={indice === 0}
-                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-navy-700 transition hover:bg-navy-50 disabled:opacity-40"
+                className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-navy-700 transition hover:bg-navy-50 disabled:opacity-40 sm:min-w-0 sm:flex-none"
               >
                 <ArrowLeft size={15} /> Anterior
               </button>
@@ -229,6 +234,7 @@ export function ModalQuiz({
                   variant="primary"
                   onClick={() => setIndice((i) => i + 1)}
                   disabled={!respostas[questoes[indice].id]}
+                  className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
                 >
                   Próxima <ArrowRight size={15} />
                 </Button>
@@ -237,6 +243,7 @@ export function ModalQuiz({
                   variant="gold"
                   onClick={enviar}
                   disabled={enviando || Object.keys(respostas).length < questoes.length}
+                  className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
                 >
                   {enviando ? "Corrigindo…" : "Enviar respostas"}
                 </Button>
@@ -249,14 +256,22 @@ export function ModalQuiz({
               <span className="text-xs text-muted">
                 Tentativa {resultado.tentativasUsadas} de {resultado.tentativasMax}
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                 {!resultado.aprovada &&
                   resultado.tentativasUsadas < resultado.tentativasMax && (
-                    <Button variant="outline" onClick={comecar}>
+                    <Button
+                      variant="outline"
+                      onClick={comecar}
+                      className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+                    >
                       <RotateCcw size={15} /> Tentar novamente
                     </Button>
                   )}
-                <Button variant={resultado.aprovada ? "gold" : "primary"} onClick={aoFechar}>
+                <Button
+                  variant={resultado.aprovada ? "gold" : "primary"}
+                  onClick={aoFechar}
+                  className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+                >
                   {resultado.aprovada ? "Continuar" : "Voltar para a aula"}
                 </Button>
               </div>
@@ -313,14 +328,16 @@ function Abertura({ status, restantes }: { status: StatusQuiz; restantes: number
         repete a mesma prova.
       </p>
 
-      <div className="mx-auto mt-6 grid max-w-md gap-3 sm:grid-cols-3">
+      {/* Os três números só dizem algo comparados entre si: empilhados, cada
+          um ficava numa tela diferente. Ficam lado a lado desde o celular. */}
+      <div className="mx-auto mt-6 grid max-w-md grid-cols-3 gap-2 sm:gap-3">
         {[
           [String(status.qtd), status.qtd === 1 ? "questão" : "questões"],
           [String(status.minimo), "acertos para passar"],
           [String(restantes), restantes === 1 ? "tentativa" : "tentativas"],
         ].map(([n, label]) => (
-          <div key={label} className="rounded-xl border border-navy-100 bg-cream/60 p-3.5">
-            <p className="text-2xl font-bold text-navy-700">{n}</p>
+          <div key={label} className="rounded-xl border border-navy-100 bg-cream/60 p-2.5 sm:p-3.5">
+            <p className="text-xl font-bold text-navy-700 sm:text-2xl">{n}</p>
             <p className="mt-0.5 text-[11px] leading-tight text-muted">{label}</p>
           </div>
         ))}
@@ -357,7 +374,7 @@ function Pergunta({
               key={alt.id}
               onClick={() => aoMarcar(alt.id)}
               className={cn(
-                "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition",
+                "flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition sm:p-4",
                 ativa
                   ? "border-gold-400 bg-gold-50 ring-1 ring-gold-300"
                   : "border-navy-100 hover:border-navy-200 hover:bg-cream/50"
@@ -397,7 +414,7 @@ function Resultado({
       {/* Placar */}
       <div
         className={cn(
-          "rounded-2xl border p-6 text-center",
+          "rounded-2xl border p-5 text-center sm:p-6",
           resultado.aprovada
             ? "border-emerald-200 bg-emerald-50"
             : "border-red-200 bg-red-50"
@@ -414,7 +431,7 @@ function Resultado({
 
         <p
           className={cn(
-            "mt-3 text-3xl font-bold",
+            "mt-3 text-2xl font-bold sm:text-3xl",
             resultado.aprovada ? "text-emerald-700" : "text-red-700"
           )}
         >
@@ -431,7 +448,7 @@ function Resultado({
             : `Faltou atingir ${resultado.minimo} ${resultado.minimo === 1 ? "acerto" : "acertos"}`}
         </p>
 
-        <div className="mt-4 flex items-center justify-center gap-6 text-xs font-semibold">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 text-xs font-semibold">
           <span className="text-emerald-700">
             {resultado.acertos} {resultado.acertos === 1 ? "acerto" : "acertos"}
           </span>
@@ -467,7 +484,7 @@ function Resultado({
             <div
               key={g.questaoId}
               className={cn(
-                "rounded-xl border p-4",
+                "rounded-xl border p-3.5 sm:p-4",
                 g.acertou ? "border-emerald-200 bg-emerald-50/50" : "border-red-200 bg-red-50/40"
               )}
             >

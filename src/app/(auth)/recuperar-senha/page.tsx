@@ -33,7 +33,7 @@ export default function RecuperarSenhaPage() {
           <CheckCircle2 size={26} />
         </span>
         <h1 className="text-2xl font-bold text-navy-700">Verifique seu e-mail</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
+        <p className="mt-3 break-words text-sm leading-relaxed text-muted">
           Se existir uma conta para <strong className="text-navy-700">{email}</strong>,
           enviamos um link de redefinição de senha. O link expira em 60 minutos.
         </p>

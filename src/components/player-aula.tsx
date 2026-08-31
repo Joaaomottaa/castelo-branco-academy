@@ -103,11 +103,11 @@ export function PlayerAula({
           href={aula.videoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-full w-full flex-col items-center justify-center gap-3 text-white/80 transition hover:text-white"
+          className="flex h-full w-full flex-col items-center justify-center gap-3 px-4 text-white/80 transition hover:text-white sm:px-6"
         >
           <Play size={34} />
           <span className="text-sm font-semibold">Abrir o vídeo em nova aba</span>
-          <span className="max-w-md truncate px-6 text-xs text-white/50">{aula.videoUrl}</span>
+          <span className="max-w-full truncate text-xs text-white/50">{aula.videoUrl}</span>
         </a>
       </Moldura>
     );
@@ -116,12 +116,16 @@ export function PlayerAula({
   /* --------------------------------------------------------- sem vídeo -- */
   return (
     <Moldura cor={cor}>
-      <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <span className="gold-gradient flex h-16 w-16 items-center justify-center rounded-full text-navy-800">
+      {/* A moldura é 16:9: em 360px de tela ela tem 157px de altura, e o texto
+          de demonstração ficava mais alto do que isso — o fim da frase era
+          cortado pela borda. No celular o círculo e a fonte encolhem para o
+          recado caber inteiro dentro do quadro. */}
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center sm:gap-3 sm:px-6">
+        <span className="gold-gradient flex h-11 w-11 items-center justify-center rounded-full text-navy-800 sm:h-16 sm:w-16">
           <Play size={26} className="ml-1" />
         </span>
-        <p className="text-sm font-semibold text-white/85">Aula ainda sem vídeo publicado</p>
-        <p className="max-w-sm text-xs leading-relaxed text-white/50">
+        <p className="text-[13px] font-semibold text-white/85 sm:text-sm">Aula ainda sem vídeo publicado</p>
+        <p className="max-w-sm text-[11px] leading-snug text-white/50 sm:text-xs sm:leading-relaxed">
           O conteúdo desta aula está descrito abaixo. O vídeo entra pela área
           administrativa, em Cursos › editar aula.
         </p>
@@ -148,7 +152,7 @@ function Moldura({ children, cor }: { children: React.ReactNode; cor: string }) 
 
 function Aviso({ icone, texto }: { icone: React.ReactNode; texto: string }) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-2.5 px-6 text-center text-white/70">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-2.5 px-4 text-center text-white/70 sm:px-6">
       {icone}
       <p className="text-sm">{texto}</p>
     </div>

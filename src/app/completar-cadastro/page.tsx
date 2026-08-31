@@ -180,7 +180,7 @@ function CompletarCadastro() {
 
         <form
           onSubmit={finalizar}
-          className="mt-8 space-y-7 rounded-2xl border border-navy-100 bg-white p-6 sm:p-8"
+          className="mt-8 space-y-7 rounded-2xl border border-navy-100 bg-white p-5 sm:p-8"
         >
           {/* ------------------------------------------------ identificação */}
           <div className="space-y-5">
@@ -323,8 +323,10 @@ function CompletarCadastro() {
           </div>
         </form>
 
-        <p className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-muted">
-          {empresa ? <Building2 size={13} /> : <User size={13} />}
+        {/* E-mail longo não tem onde quebrar: sem isso ele vazava a lateral da
+            tela no celular em vez de descer para a linha de baixo. */}
+        <p className="mt-6 flex flex-wrap items-center justify-center gap-2 break-words text-center text-xs text-muted">
+          {empresa ? <Building2 size={13} className="shrink-0" /> : <User size={13} className="shrink-0" />}
           Conectado como {user.email}
         </p>
       </main>

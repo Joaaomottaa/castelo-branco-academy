@@ -87,12 +87,12 @@ export function ValidadorCertificado({ codigoInicial }: { codigoInicial?: string
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-5 py-12">
+      <main className="mx-auto max-w-4xl px-5 py-10 sm:py-12">
         <div className="text-center">
           <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-navy-700 text-gold-400">
             <ShieldCheck size={26} />
           </span>
-          <h1 className="mt-5 text-3xl font-bold tracking-tight text-navy-700">
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
             Validação de certificado
           </h1>
           <p className="mx-auto mt-2 max-w-lg text-sm text-muted">
@@ -158,8 +158,8 @@ function CertificadoAutentico({ dados }: { dados: CertificadoValidado }) {
   const trilha = dados.tipo === "trilha";
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-700">
-        <BadgeCheck size={22} />
+      <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-emerald-700 sm:px-5 sm:py-4">
+        <BadgeCheck size={22} className="shrink-0" />
         <p className="text-sm font-bold">
           Certificado válido e emitido pela Castelo Branco Academy
         </p>
@@ -185,21 +185,23 @@ function CertificadoAutentico({ dados }: { dados: CertificadoValidado }) {
       </div>
 
       {/* Os mesmos dados em texto: o cartão acima é o documento, esta lista é a
-          que se copia para o processo seletivo. */}
-      <div className="grid gap-3 sm:grid-cols-2">
+          que se copia para o processo seletivo. Duas colunas mesmo no celular —
+          um dado por linha esticava a lista por duas telas, e aqui nada é
+          cortado: rótulo e valor quebram. */}
+      <div className="grid grid-cols-2 gap-3">
         <Linha rotulo="Concluinte" valor={dados.aluno} />
         <Linha rotulo={trilha ? "Trilha" : "Curso"} valor={dados.titulo} />
-        <Linha rotulo="Área" valor={dados.area} icone={<Target size={15} />} />
+        <Linha rotulo="Área" valor={dados.area} icone={<Target size={15} className="shrink-0" />} />
         <Linha rotulo="Nível" valor={dados.nivel} />
         <Linha
           rotulo="Carga horária"
           valor={`${dados.cargaHoraria} horas`}
-          icone={<Clock size={15} />}
+          icone={<Clock size={15} className="shrink-0" />}
         />
         <Linha
           rotulo="Data de conclusão"
           valor={formatarData(dados.emitidoEm)}
-          icone={<CalendarDays size={15} />}
+          icone={<CalendarDays size={15} className="shrink-0" />}
         />
       </div>
 
@@ -213,11 +215,11 @@ function Linha({
   rotulo: string; valor?: string; icone?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-navy-100 bg-white px-4 py-3">
-      <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted">
+    <div className="min-w-0 rounded-xl border border-navy-100 bg-white px-3.5 py-3 sm:px-4">
+      <p className="flex items-start gap-1.5 text-[11px] uppercase tracking-wider text-muted">
         {icone} {rotulo}
       </p>
-      <p className="mt-1 text-sm font-semibold text-navy-700">{valor || "—"}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-navy-700">{valor || "—"}</p>
     </div>
   );
 }
@@ -225,7 +227,7 @@ function Linha({
 function NaoEncontrado({ motivo, codigo }: { motivo?: string; codigo?: string }) {
   const vazio = motivo === "sem-codigo";
   return (
-    <div className="mx-auto max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+    <div className="mx-auto max-w-xl rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center sm:p-6">
       <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
         <AlertCircle size={22} />
       </span>

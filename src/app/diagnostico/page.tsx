@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  AlertTriangle, ArrowLeft, CheckCircle2, Database, Loader2, RefreshCw, XCircle,
+  AlertTriangle, ArrowLeft, CheckCircle2, Database, Loader2, MoveHorizontal,
+  RefreshCw, XCircle,
 } from "lucide-react";
-import { Button, Card, Logo, cn } from "@/components/ui";
+import { Button, Card, Logo, cn, fileiraCls, fileiraItemCls } from "@/components/ui";
 import { getSupabase, supabaseConfigurado, SUPABASE_URL } from "@/lib/supabase";
 import { useSession } from "@/lib/session";
 import { useDados } from "@/lib/dados";
@@ -284,7 +285,7 @@ export default function DiagnosticoPage() {
 
       <main className="mx-auto max-w-4xl space-y-6 px-5 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
               Status da instalação
             </h1>
@@ -295,7 +296,13 @@ export default function DiagnosticoPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <SeletorDeModo />
-            <Button variant="outline" href="/">
+            {/* No celular os dois botões dividem uma linha em vez de um deles
+                sair pela borda da tela. */}
+            <Button
+              variant="outline"
+              href="/"
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
               <ArrowLeft size={15} /> Voltar
             </Button>
             <Button
@@ -305,6 +312,7 @@ export default function DiagnosticoPage() {
                 void rodar();
               }}
               disabled={rodando}
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
             >
               {rodando ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
               Rodar de novo
@@ -312,57 +320,67 @@ export default function DiagnosticoPage() {
           </div>
         </div>
 
-        {/* Resumo */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="flex items-center gap-4">
-            <span
-              className={cn(
-                "inline-flex h-11 w-11 items-center justify-center rounded-xl",
-                origem === "supabase"
-                  ? "bg-emerald-50 text-emerald-600"
-                  : "bg-gold-50 text-gold-500"
-              )}
-            >
-              <Database size={19} />
-            </span>
-            <div>
-              <p className="text-base font-bold text-navy-700">
-                {origem === "supabase" ? "Supabase" : "Modo demo"}
+        {/* Resumo
+            Os três cartões respondem a mesma pergunta em três medidas e só
+            valem comparados: empilhados, cada um ficava a uma tela do outro no
+            celular. Deitados, a pessoa arrasta e vê os três; do `sm` para cima
+            voltam a ser grade. */}
+        <div>
+          <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+            <MoveHorizontal size={13} className="text-gold-500" />
+            Arraste para o lado para ver o resumo
+          </p>
+          <div className={cn(fileiraCls, "sm:grid-cols-3")}>
+            <Card className={cn(fileiraItemCls, "flex items-center gap-4")}>
+              <span
+                className={cn(
+                  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                  origem === "supabase"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : "bg-gold-50 text-gold-500"
+                )}
+              >
+                <Database size={19} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-base font-bold text-navy-700">
+                  {origem === "supabase" ? "Supabase" : "Modo demo"}
+                </p>
+                <p className="text-xs text-muted">Origem dos dados</p>
+              </div>
+            </Card>
+            <Card className={fileiraItemCls}>
+              <p className="text-xl font-bold text-navy-700 sm:text-2xl">
+                {cursos.length} · {talentos.length} · {vagas.length}
               </p>
-              <p className="text-xs text-muted">Origem dos dados</p>
-            </div>
-          </Card>
-          <Card>
-            <p className="text-2xl font-bold text-navy-700">
-              {cursos.length} · {talentos.length} · {vagas.length}
-            </p>
-            <p className="text-xs text-muted">cursos · talentos · vagas carregados</p>
-          </Card>
-          <Card>
-            <p
-              className={cn(
-                "text-2xl font-bold",
-                checagens.length === 0
-                  ? "text-muted"
+              <p className="text-xs text-muted">cursos · talentos · vagas carregados</p>
+            </Card>
+            <Card className={fileiraItemCls}>
+              <p
+                className={cn(
+                  "text-xl font-bold sm:text-2xl",
+                  checagens.length === 0
+                    ? "text-muted"
+                    : erros
+                      ? "text-red-600"
+                      : avisos
+                        ? "text-amber-600"
+                        : "text-emerald-600"
+                )}
+              >
+                {checagens.length === 0
+                  ? "Verificando…"
                   : erros
-                    ? "text-red-600"
+                    ? `${erros} erro(s)`
                     : avisos
-                      ? "text-amber-600"
-                      : "text-emerald-600"
-              )}
-            >
-              {checagens.length === 0
-                ? "Verificando…"
-                : erros
-                  ? `${erros} erro(s)`
-                  : avisos
-                    ? `${avisos} aviso(s)`
-                    : "Tudo certo"}
-            </p>
-            <p className="text-xs text-muted">
-              {checagens.length === 0 ? "aguarde" : `${checagens.length} verificações`}
-            </p>
-          </Card>
+                      ? `${avisos} aviso(s)`
+                      : "Tudo certo"}
+              </p>
+              <p className="text-xs text-muted">
+                {checagens.length === 0 ? "aguarde" : `${checagens.length} verificações`}
+              </p>
+            </Card>
+          </div>
         </div>
 
         {erro && (
@@ -370,7 +388,7 @@ export default function DiagnosticoPage() {
             <p className="flex items-center gap-2 text-sm font-bold text-red-700">
               <XCircle size={16} /> Falha ao carregar do Supabase
             </p>
-            <p className="mt-1.5 font-mono text-xs text-red-600">{erro}</p>
+            <p className="mt-1.5 break-words font-mono text-xs text-red-600">{erro}</p>
             <p className="mt-2 text-xs text-red-600/80">
               A aplicação caiu para o seed local para não quebrar a navegação.
             </p>
@@ -390,7 +408,7 @@ export default function DiagnosticoPage() {
                 para voltar.
               </p>
             ) : (
-              <p className="mt-1.5 text-sm leading-relaxed text-gold-600/85">
+              <p className="mt-1.5 break-words text-sm leading-relaxed text-gold-600/85">
                 Crie o arquivo <code className="font-mono">.env.local</code> na raiz do projeto
                 com <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> e{" "}
                 <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> e reinicie o
@@ -404,7 +422,7 @@ export default function DiagnosticoPage() {
         <Card className="!p-0 overflow-hidden">
           <ul className="divide-y divide-navy-100">
             {checagens.map((c) => (
-              <li key={c.nome} className="flex items-start gap-3.5 px-5 py-3.5">
+              <li key={c.nome} className="flex items-start gap-3.5 px-4 py-3.5 sm:px-5">
                 <Icone estado={c.estado} />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-navy-700">{c.nome}</p>
@@ -413,7 +431,7 @@ export default function DiagnosticoPage() {
               </li>
             ))}
             {checagens.length === 0 && (
-              <li className="px-5 py-10 text-center text-sm text-muted">
+              <li className="px-4 py-10 text-center text-sm text-muted sm:px-5">
                 <Loader2 size={18} className="mx-auto mb-2 animate-spin" />
                 Verificando…
               </li>
@@ -423,7 +441,7 @@ export default function DiagnosticoPage() {
 
         <Card>
           <h2 className="text-sm font-bold text-navy-700">Ordem dos scripts SQL</h2>
-          <ol className="mt-3 space-y-1.5 text-sm text-muted">
+          <ol className="mt-3 space-y-1.5 break-words text-sm text-muted">
             <li>1. <code className="font-mono text-navy-700">supabase/01_schema.sql</code> — tabelas, RLS, triggers</li>
             <li>2. <code className="font-mono text-navy-700">supabase/02_seed.sql</code> — cursos, aulas, vagas</li>
             <li>3. <code className="font-mono text-navy-700">supabase/03_usuarios_demo.sql</code> — contas de teste</li>

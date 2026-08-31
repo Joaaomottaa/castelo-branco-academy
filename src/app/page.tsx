@@ -1,11 +1,13 @@
 import Link from "next/link";
 import {
   ArrowRight, Award, BadgeCheck, BarChart3, Bot, Briefcase, Building2,
-  CheckCircle2, Clock, Flame, GraduationCap, PlayCircle, Search,
-  ShieldCheck, Sparkles, Star, Target, Trophy, Users,
+  CheckCircle2, Clock, Flame, GraduationCap, MoveHorizontal, PlayCircle,
+  Search, ShieldCheck, Sparkles, Star, Target, Trophy, Users,
 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { Badge, Button, Card, SectionTitle } from "@/components/ui";
+import {
+  Badge, Button, Card, SectionTitle, cn, fileiraCls, fileiraItemCls,
+} from "@/components/ui";
 import { carregarPublico } from "@/lib/repo";
 import { depoimentos } from "@/lib/depoimentos";
 import type { Curso, Perfil } from "@/lib/types";
@@ -62,7 +64,7 @@ function Hero() {
             <Sparkles size={13} /> Castelo Branco Academy
           </span>
 
-          <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
+          <h1 className="mt-6 text-balance text-3xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
             A escola do contador que{" "}
             <span className="gold-text">decide</span>, não só apura.
           </h1>
@@ -74,14 +76,14 @@ function Hero() {
           </p>
 
           <div className="mt-9 flex flex-wrap gap-3">
-            <Button href="/cadastro" variant="gold" size="lg">
+            <Button href="/cadastro" variant="gold" size="lg" className="w-full sm:w-auto">
               Criar minha conta grátis <ArrowRight size={16} />
             </Button>
             <Button
               href="/login"
               variant="outline"
               size="lg"
-              className="!border-white/25 !bg-white/5 !text-white hover:!border-gold-400 hover:!text-gold-300"
+              className="w-full !border-white/25 !bg-white/5 !text-white hover:!border-gold-400 hover:!text-gold-300 sm:w-auto"
             >
               <PlayCircle size={16} /> Ver a plataforma
             </Button>
@@ -124,7 +126,7 @@ function HeroCard() {
         <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/12">
           <div className="gold-gradient h-full w-[62%] rounded-full" />
         </div>
-        <div className="mt-4 flex items-center gap-4 text-xs text-navy-100/55">
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-navy-100/55">
           <span className="inline-flex items-center gap-1.5"><Clock size={13} /> 19 min restantes</span>
           <span className="inline-flex items-center gap-1.5"><Flame size={13} className="text-gold-400" /> 12 dias de ofensiva</span>
         </div>
@@ -144,7 +146,7 @@ function MiniCard({ icon, valor, rotulo }: { icon: React.ReactNode; valor: strin
   return (
     <div className="rounded-2xl border border-white/12 bg-white/[0.04] p-4">
       <span className="text-gold-400">{icon}</span>
-      <p className="mt-2 text-xl font-bold text-white">{valor}</p>
+      <p className="mt-2 text-lg font-bold text-white sm:text-xl">{valor}</p>
       <p className="text-[11px] uppercase tracking-wider text-navy-100/50">{rotulo}</p>
     </div>
   );
@@ -163,7 +165,7 @@ function Numeros({ trilhas, horas }: { trilhas: number; horas: number }) {
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-5 py-10 sm:gap-8 lg:grid-cols-4 lg:px-8">
         {itens.map(([n, l]) => (
           <div key={l} className="text-center sm:text-left">
-            <p className="text-3xl font-bold text-navy-700">{n}</p>
+            <p className="text-2xl font-bold text-navy-700 sm:text-3xl">{n}</p>
             <p className="mt-1 text-xs uppercase tracking-wider text-muted">{l}</p>
           </div>
         ))}
@@ -182,21 +184,29 @@ function Cursos({ destaques }: { destaques: Curso[] }) {
           title="Conteúdo que resolve o problema de segunda-feira."
           description="Cada curso nasce de um caso real atendido pela Castelo Branco. Nada de teoria solta: você sai com planilha, checklist e método aplicável no cliente."
         />
-        <Button href="/app/cursos" variant="outline">
+        <Button href="/app/cursos" variant="outline" className="w-full sm:w-auto">
           Ver catálogo completo <ArrowRight size={15} />
         </Button>
       </div>
 
-      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Empilhados, os três destaques ficavam a uma tela de distância um do
+          outro — e quem escolhe curso compara. Deitados na fileira o vizinho
+          aparece de lado; do `md` para cima volta a ser a mesma grade. */}
+      <div className="mt-12">
+        <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+          <MoveHorizontal size={13} className="text-gold-500" />
+          Arraste para o lado para ver os outros destaques
+        </p>
+        <div className={cn(fileiraCls, "sm:gap-6 md:grid-cols-2 lg:grid-cols-3")}>
         {destaques.map((c) => (
-          <Link key={c.slug} href={`/app/cursos/${c.slug}`}>
+          <Link key={c.slug} href={`/app/cursos/${c.slug}`} className={fileiraItemCls}>
             <Card hover className="flex h-full flex-col">
               <div
-                className="mb-5 flex h-32 items-end justify-between rounded-xl p-4"
+                className="mb-5 flex h-32 items-end justify-between gap-2 rounded-xl p-4"
                 style={{ background: `linear-gradient(135deg, ${c.cor} 0%, #001838 100%)` }}
               >
-                <GraduationCap size={26} className="text-gold-300" />
-                <div className="flex gap-1.5">
+                <GraduationCap size={26} className="shrink-0 text-gold-300" />
+                <div className="flex flex-wrap justify-end gap-1.5">
                   {c.novo && <Badge tone="gold">Novo</Badge>}
                   <Badge tone="navy" className="!bg-white/10 !text-white !border-white/20">
                     {c.nivel}
@@ -210,7 +220,7 @@ function Cursos({ destaques }: { destaques: Curso[] }) {
               <h3 className="mt-1.5 text-lg font-bold leading-snug text-navy-700">{c.titulo}</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{c.subtitulo}</p>
 
-              <div className="mt-5 flex items-center justify-between border-t border-navy-100 pt-4 text-xs text-muted">
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-navy-100 pt-4 text-xs text-muted">
                 <span className="inline-flex items-center gap-1.5">
                   <Clock size={13} /> {c.cargaHoraria}h · {c.pontosPEPC} pts
                 </span>
@@ -221,6 +231,7 @@ function Cursos({ destaques }: { destaques: Curso[] }) {
             </Card>
           </Link>
         ))}
+        </div>
       </div>
     </section>
   );
@@ -260,9 +271,14 @@ function Trilhas() {
           title="Não é uma lista de cursos. É um caminho."
           description="Escolha o cargo que você quer ocupar e a plataforma monta a sequência, o ritmo e as avaliações — com selo próprio no fim da trilha."
         />
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <div className="mt-12">
+          <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+            <MoveHorizontal size={13} className="text-gold-500" />
+            Arraste para o lado para comparar as trilhas
+          </p>
+          <div className={cn(fileiraCls, "sm:gap-6 lg:grid-cols-3")}>
           {trilhas.map((t, i) => (
-            <Card key={t.nome} hover className="relative overflow-hidden">
+            <Card key={t.nome} hover className={cn(fileiraItemCls, "relative overflow-hidden")}>
               <span
                 className="absolute right-4 top-4 text-5xl font-bold opacity-10"
                 style={{ color: t.cor }}
@@ -290,6 +306,7 @@ function Trilhas() {
               </p>
             </Card>
           ))}
+          </div>
         </div>
       </div>
     </section>
@@ -382,8 +399,13 @@ function Talentos({ talentos, totalVagas }: { talentos: Perfil[]; totalVagas: nu
                   {t.nome.split(" ").map((p) => p[0]).slice(0, 2).join("")}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-white">{t.nome}</p>
-                  <p className="truncate text-xs text-navy-100/55">
+                  {/* O selo de senioridade à direita deixa pouco mais de 130px
+                      para o nome no celular: cortado, o perfil deixa de ser
+                      identificável — que é o único papel dele aqui. */}
+                  <p className="line-clamp-2 text-sm font-semibold leading-tight text-white">
+                    {t.nome}
+                  </p>
+                  <p className="line-clamp-2 text-xs leading-snug text-navy-100/55">
                     {t.cargo} · {t.cidade}/{t.uf}
                   </p>
                 </div>
@@ -431,10 +453,10 @@ function ParaEmpresas() {
             description="Escritórios contábeis, transportadoras e traders usam a Academy como universidade corporativa — e como funil de contratação. O mesmo login resolve os dois."
           />
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button href="/cadastro?perfil=empresa" variant="primary">
+            <Button href="/cadastro?perfil=empresa" variant="primary" className="w-full sm:w-auto">
               Criar conta empresarial <ArrowRight size={15} />
             </Button>
-            <Button href="/app/vagas" variant="outline">
+            <Button href="/app/vagas" variant="outline" className="w-full sm:w-auto">
               Ver vagas publicadas
             </Button>
           </div>
@@ -505,7 +527,10 @@ function Depoimentos({ media, alunos }: { media: number; alunos: number }) {
       {/* Selo agregado */}
       {media > 0 && (
         <div className="mt-8 flex justify-center">
-          <div className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-3 rounded-full border border-navy-100 bg-white px-6 py-3 shadow-sm">
+          {/* Em tela de celular o conteúdo do selo ocupa três linhas, e a
+              pílula redonda vira uma bolha — por isso o canto só fica
+              totalmente arredondado quando ele volta a ser uma linha única. */}
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-3 rounded-2xl border border-navy-100 bg-white px-5 py-3 shadow-sm sm:rounded-full sm:px-6">
             <span className="flex items-baseline gap-2">
               <span className="text-2xl font-bold tabular-nums text-navy-700">
                 {media.toFixed(1).replace(".", ",")}
@@ -543,8 +568,10 @@ function Depoimentos({ media, alunos }: { media: number; alunos: number }) {
                 className="h-11 w-11 shrink-0 rounded-full object-cover"
               />
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-navy-700">{d.nome}</p>
-                <p className="truncate text-xs text-muted">
+                <p className="line-clamp-2 text-sm font-bold leading-tight text-navy-700">
+                  {d.nome}
+                </p>
+                <p className="line-clamp-2 text-xs leading-snug text-muted">
                   {d.cargo} · {d.cidade}
                 </p>
               </div>
@@ -638,15 +665,25 @@ function Planos() {
         description="O modelo recorrente sustenta a plataforma; a venda avulsa de cursos e a licença corporativa aceleram o caixa."
         center
       />
-      <div className="mt-12 grid gap-6 lg:grid-cols-3">
+      {/* Mesma fileira de /app/planos: preço só se compara vendo dois planos
+          ao mesmo tempo. O `pt-4` é o espaço do selo "Mais popular", que fica
+          meio passo acima da borda e a rolagem lateral cortaria. */}
+      <div className="mt-12">
+        <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+          <MoveHorizontal size={13} className="text-gold-500" />
+          Arraste para o lado para comparar os planos
+        </p>
+        <div className={cn(fileiraCls, "pt-4 sm:gap-6 sm:pt-0 lg:grid-cols-3")}>
         {planos.map((p) => (
           <div
             key={p.nome}
-            className={
+            className={cn(
+              fileiraItemCls,
+              "rounded-2xl p-5 sm:p-7",
               p.destaque
-                ? "relative rounded-2xl border-2 border-gold-400 bg-navy-700 p-7 shadow-2xl shadow-navy-700/25"
-                : "rounded-2xl border border-navy-100 bg-white p-7"
-            }
+                ? "relative border-2 border-gold-400 bg-navy-700 shadow-2xl shadow-navy-700/25"
+                : "border border-navy-100 bg-white"
+            )}
           >
             {p.destaque && (
               <span className="gold-gradient absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-navy-800">
@@ -656,8 +693,8 @@ function Planos() {
             <p className={p.destaque ? "text-sm font-bold text-gold-300" : "text-sm font-bold text-gold-500"}>
               {p.nome}
             </p>
-            <p className="mt-3 flex items-end gap-1.5">
-              <span className={p.destaque ? "text-4xl font-bold text-white" : "text-4xl font-bold text-navy-700"}>
+            <p className="mt-3 flex flex-wrap items-end gap-1.5">
+              <span className={cn("text-3xl font-bold sm:text-4xl", p.destaque ? "text-white" : "text-navy-700")}>
                 {p.preco}
               </span>
               <span className={p.destaque ? "pb-1 text-sm text-navy-100/60" : "pb-1 text-sm text-muted"}>
@@ -685,6 +722,7 @@ function Planos() {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </section>
   );
@@ -694,7 +732,7 @@ function Planos() {
 function CTAFinal() {
   return (
     <section className="mx-auto max-w-7xl px-5 pb-20 lg:px-8">
-      <div className="brand-gradient relative overflow-hidden rounded-3xl px-8 py-16 text-center lg:px-16">
+      <div className="brand-gradient relative overflow-hidden rounded-3xl px-5 py-12 text-center sm:px-8 sm:py-16 lg:px-16">
         <div className="grid-lines absolute inset-0" />
         <div className="relative">
           <p className="eyebrow text-gold-300">Comece hoje</p>
@@ -706,14 +744,14 @@ function CTAFinal() {
             de talentos já combinam com o seu perfil.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button href="/cadastro" variant="gold" size="lg">
+            <Button href="/cadastro" variant="gold" size="lg" className="w-full sm:w-auto">
               Criar conta grátis <ArrowRight size={16} />
             </Button>
             <Button
               href="/login"
               variant="outline"
               size="lg"
-              className="!border-white/25 !bg-white/5 !text-white hover:!border-gold-400 hover:!text-gold-300"
+              className="w-full !border-white/25 !bg-white/5 !text-white hover:!border-gold-400 hover:!text-gold-300 sm:w-auto"
             >
               Já tenho conta
             </Button>

@@ -93,7 +93,7 @@ function CadastroPage() {
           <MailCheck size={26} />
         </span>
         <h1 className="text-2xl font-bold text-navy-700">Confirme seu e-mail</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
+        <p className="mt-3 break-words text-sm leading-relaxed text-muted">
           A conta de <strong className="text-navy-700">{email}</strong> foi criada, mas o
           projeto exige confirmação. Abra o link que enviamos e depois faça login.
         </p>
@@ -180,8 +180,10 @@ function CadastroPage() {
         <span className="h-px flex-1 bg-navy-100" />
       </div>
 
+      {/* Escolher entre profissional e empresa é comparar as duas: empilhadas,
+          uma delas ficava fora da tela no celular e a comparação se perdia. */}
       {!convite && (
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3">
         <TipoConta
           ativo={role === "aluno"}
           onClick={() => setRole("aluno")}
@@ -333,8 +335,8 @@ function CadastroPage() {
           "Perfil no banco de talentos sem custo",
           "Cancele quando quiser, sem multa",
         ].map((t) => (
-          <li key={t} className="flex items-center gap-2 text-sm text-muted">
-            <Check size={15} className="text-gold-500" /> {t}
+          <li key={t} className="flex items-start gap-2 text-sm text-muted">
+            <Check size={15} className="mt-0.5 shrink-0 text-gold-500" /> {t}
           </li>
         ))}
       </ul>
@@ -359,15 +361,15 @@ function TipoConta({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-xl border-2 p-4 text-left transition",
+        "min-w-0 rounded-xl border-2 p-3.5 text-left transition sm:p-4",
         ativo
           ? "border-gold-400 bg-gold-50"
           : "border-navy-100 bg-white hover:border-navy-200"
       )}
     >
       <span className={ativo ? "text-gold-500" : "text-navy-400"}>{icon}</span>
-      <p className="mt-2 text-sm font-bold text-navy-700">{titulo}</p>
-      <p className="mt-0.5 text-xs text-muted">{desc}</p>
+      <p className="mt-2 text-sm font-bold leading-tight text-navy-700">{titulo}</p>
+      <p className="mt-0.5 text-xs leading-snug text-muted">{desc}</p>
     </button>
   );
 }

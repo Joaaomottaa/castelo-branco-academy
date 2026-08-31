@@ -58,8 +58,11 @@ export function Duvidas({ aulaId, contexto }: { aulaId: string; contexto: Contex
 
   return (
     <div>
-      {/* ------------------------------------------------------------ abas */}
-      <div className="flex gap-1 rounded-xl bg-cream p-1">
+      {/* ------------------------------------------------------------ abas
+          "Tirar dúvida com IA" e "Fórum da turma" divididos em duas metades de
+          um cartão de celular viravam "Tirar dúvi…" e "Fórum da t…". A barra
+          rola de lado e cada aba fica com o rótulo inteiro. */}
+      <div className="fileira flex gap-1 overflow-x-auto rounded-xl bg-cream p-1">
         <BotaoAba
           ativo={aba === "ia"}
           onClick={() => setAba("ia")}
@@ -109,12 +112,12 @@ function BotaoAba({
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition",
+        "flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold transition",
         ativo ? "bg-white text-navy-700 shadow-sm" : "text-muted hover:text-navy-700"
       )}
     >
       {icone}
-      <span className="truncate">{rotulo}</span>
+      <span>{rotulo}</span>
       {contador !== undefined && (
         <span
           className={cn(
@@ -198,13 +201,19 @@ function AbaIA({
               <button
                 key={s}
                 onClick={() => setTexto(s)}
-                className="max-w-[240px] truncate rounded-full border border-navy-100 px-3 py-1 text-xs text-muted transition hover:border-gold-300 hover:text-navy-700"
+                className="max-w-full truncate rounded-full border border-navy-100 px-3 py-1 text-xs text-muted transition hover:border-gold-300 hover:text-navy-700 sm:max-w-[240px]"
               >
                 {s}
               </button>
             ))}
           </div>
-          <Button variant="gold" size="sm" onClick={() => enviar(texto)} disabled={pensando || !texto.trim()}>
+          <Button
+            variant="gold"
+            size="sm"
+            onClick={() => enviar(texto)}
+            disabled={pensando || !texto.trim()}
+            className="w-full sm:w-auto"
+          >
             {pensando ? (
               <><Loader2 size={13} className="animate-spin" /> Pensando…</>
             ) : (
@@ -323,8 +332,14 @@ function AbaForum({
           placeholder="Descreva a dúvida com o contexto: regime da empresa, o que você tentou e onde travou. Pergunta com contexto recebe resposta melhor."
           className="w-full rounded-xl border border-navy-200 px-4 py-3 text-sm outline-none transition focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15"
         />
-        <div className="mt-2 flex justify-end">
-          <Button variant="primary" size="sm" onClick={publicar} disabled={enviando || !texto.trim()}>
+        <div className="mt-2 flex flex-wrap justify-end">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={publicar}
+            disabled={enviando || !texto.trim()}
+            className="w-full sm:w-auto"
+          >
             {enviando ? "Publicando…" : "Publicar no fórum"}
           </Button>
         </div>
@@ -386,7 +401,7 @@ function AbaForum({
                             )}
                           </div>
                           <p className="mt-1.5 text-sm leading-relaxed text-ink">{r.conteudo}</p>
-                          <div className="mt-2.5 flex items-center gap-3">
+                          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                             <button
                               onClick={async () => { await alternarVoto(r.id, !r.votei); await aoMudar(); }}
                               className={cn(
@@ -424,14 +439,20 @@ function AbaForum({
                       placeholder="Sua resposta"
                       className="w-full rounded-lg border border-navy-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-gold-400"
                     />
-                    <div className="mt-2 flex justify-end gap-2">
+                    <div className="mt-2 flex flex-wrap justify-end gap-2">
                       <button
                         onClick={() => { setRespondendo(null); setResposta(""); }}
-                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-muted transition hover:text-navy-700"
+                        className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center rounded-full px-3 py-1.5 text-xs font-semibold text-muted transition hover:text-navy-700 sm:min-w-0 sm:flex-none"
                       >
                         Cancelar
                       </button>
-                      <Button variant="primary" size="sm" onClick={() => responder(d.id)} disabled={!resposta.trim()}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => responder(d.id)}
+                        disabled={!resposta.trim()}
+                        className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+                      >
                         Responder
                       </Button>
                     </div>

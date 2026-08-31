@@ -90,7 +90,7 @@ export function TelaDoConvite({ codigo }: { codigo: string }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-5 py-14">
+      <main className="mx-auto max-w-2xl px-5 py-10 sm:py-14">
         {convite === null ? (
           <p className="flex items-center justify-center gap-2 text-sm text-muted">
             <Loader2 size={16} className="animate-spin" /> Abrindo o convite…
@@ -136,11 +136,13 @@ export function TelaDoConvite({ codigo }: { codigo: string }) {
               )}
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Button href="/app" variant="gold">
+              <Button href="/app" variant="gold" className="w-full sm:w-auto">
                 Ir para o meu painel <ArrowRight size={15} />
               </Button>
               {convite.tipo === "desconto" && (
-                <Button href="/app/planos" variant="ghost">Ver o plano Pro</Button>
+                <Button href="/app/planos" variant="ghost" className="w-full sm:w-auto">
+                  Ver o plano Pro
+                </Button>
               )}
             </div>
           </Card>
@@ -163,15 +165,15 @@ export function TelaDoConvite({ codigo }: { codigo: string }) {
             </div>
 
             <div className={cn(
-              "mt-6 rounded-2xl border p-5",
+              "mt-6 rounded-2xl border p-4 sm:p-5",
               convite.tipo === "licenca"
                 ? "border-gold-200 bg-gold-50/60"
                 : "border-teal/25 bg-teal/5"
             )}>
-              <p className="flex items-center gap-2 text-sm font-bold text-navy-700">
+              <p className="flex items-start gap-2 text-sm font-bold leading-snug text-navy-700">
                 {convite.tipo === "licenca"
-                  ? <><KeyRound size={16} className="text-gold-500" /> Licença Pro por conta da empresa</>
-                  : <><BadgePercent size={16} className="text-teal" /> {convite.descontoPct}% de desconto no plano Pro</>}
+                  ? <><KeyRound size={16} className="mt-0.5 shrink-0 text-gold-500" /> Licença Pro por conta da empresa</>
+                  : <><BadgePercent size={16} className="mt-0.5 shrink-0 text-teal" /> {convite.descontoPct}% de desconto no plano Pro</>}
               </p>
               <ul className="mt-3 space-y-2 text-sm leading-relaxed text-ink">
                 {(convite.tipo === "licenca"

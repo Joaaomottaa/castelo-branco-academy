@@ -67,7 +67,7 @@ export function ListaMateriais({ aulaId }: { aulaId: string }) {
 
   if (itens.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-navy-200 bg-cream/40 p-6 text-center">
+      <div className="rounded-xl border border-dashed border-navy-200 bg-cream/40 p-5 text-center sm:p-6">
         <Paperclip size={22} className="mx-auto text-navy-300" />
         <p className="mt-2.5 text-sm font-semibold text-navy-700">
           Esta aula ainda não tem material de apoio
@@ -90,8 +90,11 @@ export function ListaMateriais({ aulaId }: { aulaId: string }) {
         >
           <IconeMaterial tipo={m.tipo} className="shrink-0 text-gold-500" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-navy-700">{m.titulo}</p>
-            <p className="truncate text-xs text-muted">
+            {/* O nome do arquivo dividia ~160px com o ícone e a seta de
+                download: "Planilha de apuração do Simples" virava "Planilha
+                de apu…". Agora quebra em duas linhas. */}
+            <p className="line-clamp-2 break-words text-sm font-semibold leading-snug text-navy-700">{m.titulo}</p>
+            <p className="line-clamp-2 text-xs leading-snug text-muted">
               {ROTULO_TIPO[m.tipo]}
               {m.bytes ? ` · ${tamanhoLegivel(m.bytes)}` : ""}
               {m.descricao ? ` · ${m.descricao}` : ""}
@@ -204,9 +207,9 @@ export function EditorMateriais({
   }
 
   return (
-    <div className="rounded-xl border border-navy-100 p-5">
+    <div className="rounded-xl border border-navy-100 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="flex items-center gap-2 text-sm font-bold text-navy-700">
             <Paperclip size={15} className="text-gold-500" /> Materiais de apoio
           </p>
@@ -216,7 +219,7 @@ export function EditorMateriais({
             Até {LIMITE_MATERIAL_BYTES / 1024 / 1024} MB por arquivo — acima disso, use um link.
           </p>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">
           <input
             ref={inputArquivo}
             type="file"
@@ -231,7 +234,7 @@ export function EditorMateriais({
             type="button"
             onClick={() => inputArquivo.current?.click()}
             disabled={enviando}
-            className="inline-flex items-center gap-1.5 rounded-full border border-navy-200 px-3.5 py-1.5 text-xs font-semibold text-navy-700 transition hover:border-gold-400 hover:text-gold-600 disabled:opacity-50"
+            className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-1.5 rounded-full border border-navy-200 px-3.5 py-1.5 text-xs font-semibold text-navy-700 transition hover:border-gold-400 hover:text-gold-600 disabled:opacity-50 sm:min-w-0 sm:flex-none"
           >
             {enviando ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
             {enviando ? "Enviando…" : "Enviar arquivo"}
@@ -239,7 +242,7 @@ export function EditorMateriais({
           <button
             type="button"
             onClick={() => setFormLink((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-navy-200 px-3.5 py-1.5 text-xs font-semibold text-navy-700 transition hover:border-gold-400 hover:text-gold-600"
+            className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-1.5 rounded-full border border-navy-200 px-3.5 py-1.5 text-xs font-semibold text-navy-700 transition hover:border-gold-400 hover:text-gold-600 sm:min-w-0 sm:flex-none"
           >
             <Link2 size={13} /> Adicionar link
           </button>
@@ -268,7 +271,7 @@ export function EditorMateriais({
             <button
               type="button"
               onClick={() => void adicionarLink()}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-navy-700 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-navy-600"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-navy-700 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-navy-600 sm:w-auto"
             >
               <Plus size={13} /> Adicionar
             </button>
@@ -303,15 +306,19 @@ export function EditorMateriais({
             )}
           >
             <IconeMaterial tipo={m.tipo} size={16} className="shrink-0 text-gold-500" />
-            <input
-              value={m.titulo}
-              onChange={(e) => void renomear(m, e.target.value)}
-              className="min-w-0 flex-1 border-none bg-transparent p-0 text-sm font-semibold text-navy-700 outline-none focus:underline"
-            />
-            <span className="shrink-0 text-[11px] text-muted">
-              {ROTULO_TIPO[m.tipo]}
-              {m.bytes ? ` · ${tamanhoLegivel(m.bytes)}` : ""}
-            </span>
+            {/* O tipo e o tamanho dividiam a linha com o campo do título e
+                sobravam uns 70px para digitar. No celular eles descem. */}
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+              <input
+                value={m.titulo}
+                onChange={(e) => void renomear(m, e.target.value)}
+                className="w-full min-w-0 border-none bg-transparent p-0 text-sm font-semibold text-navy-700 outline-none focus:underline sm:w-auto sm:flex-1"
+              />
+              <span className="shrink-0 text-[11px] text-muted">
+                {ROTULO_TIPO[m.tipo]}
+                {m.bytes ? ` · ${tamanhoLegivel(m.bytes)}` : ""}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => void remover(m)}

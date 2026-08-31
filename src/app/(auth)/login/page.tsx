@@ -61,7 +61,7 @@ function LoginPage() {
       <div className="mt-6 rounded-xl border border-gold-200 bg-gold-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gold-600">
-              <Info size={14} /> Contas de demonstração
+              <Info size={14} className="shrink-0" /> Contas de demonstração
             </p>
             <SeletorDeModo compacto />
           </div>
@@ -121,7 +121,7 @@ function LoginPage() {
           </div>
         </Field>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
             <input type="checkbox" className="h-4 w-4 rounded border-navy-200 accent-[#C89F50]" />
             Lembrar de mim

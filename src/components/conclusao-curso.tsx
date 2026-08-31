@@ -88,7 +88,7 @@ export function ConclusaoCurso({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/75 p-3 backdrop-blur-sm sm:p-4"
       onClick={aoFechar}
     >
       <div
@@ -97,7 +97,7 @@ export function ConclusaoCurso({
       >
         {/* Faixa de parabéns */}
         <div
-          className="relative shrink-0 overflow-hidden px-7 py-7 text-center"
+          className="relative shrink-0 overflow-hidden px-5 py-6 text-center sm:px-7 sm:py-7"
           style={{ background: "linear-gradient(135deg, #00204D 0%, #001838 100%)" }}
         >
           <div className="grid-lines absolute inset-0" />
@@ -118,7 +118,7 @@ export function ConclusaoCurso({
           <p className="relative mt-1 text-sm text-navy-100/70">{cursoTitulo}</p>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5 sm:p-6">
           {erro && (
             <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {erro}
@@ -131,8 +131,11 @@ export function ConclusaoCurso({
 
           {/* Certificado */}
           {cert && (
-            <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5">
-              <div className="flex items-start gap-4">
+            <div className="rounded-2xl border border-gold-200 bg-gold-50 p-4 sm:p-5">
+              {/* O botão dividia a linha com o brasão e os dados do
+                  certificado: em 360px sobravam uns 50px para "40h · 12
+                  pontos PEPC". No celular ele desce para a linha de baixo. */}
+              <div className="flex flex-wrap items-start gap-3 sm:gap-4">
                 <span className="gold-gradient inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-navy-800">
                   <Award size={22} />
                 </span>
@@ -143,9 +146,14 @@ export function ConclusaoCurso({
                   <p className="mt-1 text-sm font-semibold text-navy-700">
                     {cert.cargaHoraria}h · {cert.pontosPEPC} pontos PEPC
                   </p>
-                  <p className="mt-0.5 font-mono text-xs text-gold-600">{cert.codigo}</p>
+                  <p className="mt-0.5 break-all font-mono text-xs text-gold-600">{cert.codigo}</p>
                 </div>
-                <Button href="/app/certificados" variant="gold" size="sm">
+                <Button
+                  href="/app/certificados"
+                  variant="gold"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   Ver certificado
                 </Button>
               </div>
@@ -204,7 +212,7 @@ export function ConclusaoCurso({
           )}
 
           {/* Avaliação */}
-          <div className="rounded-2xl border border-navy-100 bg-cream/50 p-5">
+          <div className="rounded-2xl border border-navy-100 bg-cream/50 p-4 sm:p-5">
             {avaliado ? (
               <p className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-emerald-600">
                 <CheckCircle2 size={16} /> Obrigado pela avaliação
@@ -249,7 +257,7 @@ export function ConclusaoCurso({
                 <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                   <button
                     onClick={aoFechar}
-                    className="rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:text-navy-700"
+                    className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-muted transition hover:text-navy-700 sm:min-w-0 sm:flex-none"
                   >
                     Agora não
                   </button>
@@ -258,6 +266,7 @@ export function ConclusaoCurso({
                     size="sm"
                     onClick={enviarAvaliacao}
                     disabled={enviando || (nota === null && !comentario.trim())}
+                    className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
                   >
                     {enviando ? "Enviando…" : "Enviar avaliação"}
                   </Button>
@@ -267,7 +276,7 @@ export function ConclusaoCurso({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-navy-100 px-6 py-4">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-navy-100 px-5 py-4 sm:gap-3 sm:px-6">
           <Link
             href="/app/cursos"
             className="text-sm font-semibold text-muted transition hover:text-navy-700"

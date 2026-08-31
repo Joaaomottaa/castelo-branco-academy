@@ -113,8 +113,14 @@ export function CamposEndereco({
         </p>
       )}
 
+      {/* O CEP fica com a linha inteira no celular: em meia linha, os oito
+          dígitos disputavam espaço com o sinal de busca e apareciam cortados. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-[180px_1fr] sm:gap-4">
-        <Field label="CEP" hint={obrigatorio ? undefined : "Opcional."}>
+        <Field
+          label="CEP"
+          hint={obrigatorio ? undefined : "Opcional."}
+          className="col-span-2 sm:col-span-1"
+        >
           <div className="relative">
             <input
               required={obrigatorio}
@@ -168,7 +174,7 @@ export function CamposEndereco({
         </Field>
       </div>
 
-      <div className="grid grid-cols-[1fr_90px] gap-3 sm:grid-cols-[1fr_1fr_90px] sm:gap-4">
+      <div className="grid grid-cols-[1fr_72px] gap-3 sm:grid-cols-[1fr_1fr_90px] sm:gap-4">
         <Field label="Bairro" className="col-span-2 sm:col-span-1">
           <input
             value={valor.bairro}
@@ -212,7 +218,7 @@ export function CamposEndereco({
           onClick={() => setManual(true)}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted transition hover:text-gold-600"
         >
-          <PencilLine size={13} /> O endereço veio errado? Corrigir à mão
+          <PencilLine size={13} className="shrink-0" /> O endereço veio errado? Corrigir à mão
         </button>
       )}
     </div>
