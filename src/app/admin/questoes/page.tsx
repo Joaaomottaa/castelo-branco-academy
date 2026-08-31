@@ -291,7 +291,7 @@ export default function AdminQuestoesPage() {
               setArea(e.target.value);
               setAssunto("");
             }}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             <option value="">Todas as áreas</option>
             {areas.map((a) => (
@@ -302,7 +302,7 @@ export default function AdminQuestoesPage() {
           <select
             value={assunto}
             onChange={(e) => setAssunto(e.target.value)}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             <option value="">Todos os assuntos</option>
             {assuntos.map((a) => (
@@ -313,7 +313,7 @@ export default function AdminQuestoesPage() {
           <select
             value={nivel}
             onChange={(e) => setNivel(e.target.value)}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             <option value="">Todos os níveis</option>
             {NIVEIS.map((n) => (
@@ -324,7 +324,7 @@ export default function AdminQuestoesPage() {
           <select
             value={origem}
             onChange={(e) => setOrigem(e.target.value)}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             <option value="">Toda origem</option>
             {Object.entries(ROTULO_ORIGEM).map(([k, v]) => (
@@ -337,7 +337,7 @@ export default function AdminQuestoesPage() {
           <select
             value={situacao}
             onChange={(e) => setSituacao(e.target.value as typeof situacao)}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             <option value="">Ativas e inativas</option>
             <option value="ativa">Só ativas</option>
@@ -347,7 +347,7 @@ export default function AdminQuestoesPage() {
           <select
             value={desempenho}
             onChange={(e) => setDesempenho(e.target.value as Desempenho)}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             {DESEMPENHOS.map(([k, label]) => (
               <option key={k} value={k}>
@@ -359,7 +359,7 @@ export default function AdminQuestoesPage() {
           <select
             value={ordem}
             onChange={(e) => setOrdem(e.target.value as Ordem)}
-            className={cn(inputCls, "!w-auto !py-2 text-sm")}
+            className={cn(inputCls, "!w-auto max-w-full !py-2 text-sm")}
           >
             {ORDENS.map(([k, label]) => (
               <option key={k} value={k}>

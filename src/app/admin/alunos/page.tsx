@@ -118,7 +118,8 @@ export default function AdminAlunosPage() {
             Cadastro, planos, progresso e comunicação individual.
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* Três botões em linha passam de 360 px de tela: quebram. */}
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={recarregar}>
             <RefreshCw size={14} className={cn(carregando && "animate-spin")} /> Atualizar
           </Button>

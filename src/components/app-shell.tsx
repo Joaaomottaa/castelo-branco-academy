@@ -179,12 +179,29 @@ export function AppShell({
           menuAberto && "app-sidebar-open shadow-2xl shadow-navy-900/40"
         )}
       >
-        <div className="flex h-14 shrink-0 items-center justify-center border-b border-white/10 px-2 lg:h-16 lg:justify-between lg:px-5">
+        <div
+          className={cn(
+            "flex h-14 shrink-0 items-center border-b border-white/10 lg:h-16 lg:justify-between lg:px-5",
+            menuAberto ? "justify-between px-4" : "justify-center px-2"
+          )}
+        >
           <Link href="/" aria-label="Ir para a página inicial" className="shrink-0">
-            {/* O fundo usa a área do leão da marca oficial. Ao contrário de
-                uma <img> responsiva, ele não encolhe e não revela o texto. */}
-            <span aria-hidden="true" className={cn("app-compact-mark block lg:hidden", menuAberto && "hidden")} />
-            <Logo variant="light" className={cn("hidden lg:inline-flex", menuAberto && "!inline-flex lg:!hidden")} />
+            {/* Recolhida, a barra mostra só o brasão (ver `.app-compact-mark`
+                em globals.css); aberta, a marca completa. */}
+            <span
+              aria-hidden="true"
+              className={cn("app-compact-mark", menuAberto ? "hidden" : "block lg:hidden")}
+            />
+            {/* A marca completa vai dentro de um invólucro só dela, e cada
+                estado usa um conjunto de classes exclusivo. O Tailwind v4
+                emite as utilidades de `display` em ordem alfabética, então
+                `inline-flex` vence `hidden` quando as duas caem no mesmo
+                elemento — e a <Logo> já nasce `inline-flex`. Era por isso que
+                a marca inteira aparecia na barra de 3.5rem do celular e
+                empurrava o leão para fora da tela. */}
+            <span className={menuAberto ? "block" : "hidden lg:block"}>
+              <Logo variant="light" />
+            </span>
           </Link>
           <button onClick={() => setMenuAberto(false)} aria-label="Fechar menu" className={cn("ml-auto text-white lg:hidden", !menuAberto && "hidden")}>
             <X size={20} />

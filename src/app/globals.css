@@ -68,13 +68,18 @@ body {
 .app-menu-overlay {
   left: 3.5rem;
 }
+/* Marca compacta da barra recolhida: só o brasão, sem nada do texto.
+   Não dá para recortar isso do `logoCastelo.png`: naquela arte o "C" de
+   CASTELO passa por trás da capa do leão, então qualquer janela retangular
+   que mostre o brasão inteiro mostra também um pedaço de letra. O
+   `marcaCastelo.png` é o mesmo leão extraído da arte oficial, sem o texto. */
 .app-compact-mark {
-  width: 2.25rem;
-  height: 2.5rem;
-  background-image: url("/logoCastelo.png");
-  background-position: left center;
+  width: 1.875rem;
+  height: 2.25rem;
+  background-image: url("/marcaCastelo.png");
+  background-position: center;
   background-repeat: no-repeat;
-  background-size: auto 2.5rem;
+  background-size: contain;
 }
 @media (min-width: 1024px) {
   .app-sidebar,
@@ -85,6 +90,19 @@ body {
     width: calc(100% - 16rem);
     margin-left: 16rem;
   }
+}
+
+/* Coluna de grid pode encolher.
+   Um item de grid nasce com `min-width: auto`: ele nunca fica menor que o
+   próprio conteúdo. Como quase todo cartão daqui usa `truncate`
+   (white-space: nowrap), esse mínimo passa a ser a linha inteira de texto — a
+   coluna estica além da largura da tela e o `overflow-x-clip` do <main> corta
+   o que passou. Era essa a origem dos cartões "vazando" para fora no celular,
+   onde os grids de duas colunas viram uma coluna de trilha `auto`.
+   O `:where()` deixa a regra com especificidade zero, então qualquer
+   `min-w-*` declarado no próprio item continua vencendo. */
+:where(.grid) > * {
+  min-width: 0;
 }
 
 /* Utilitários de marca ---------------------------------------------------- */

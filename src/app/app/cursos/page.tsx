@@ -284,12 +284,16 @@ export default function CatalogoPage() {
             return (
               <Link key={c.slug} href={`/app/cursos/${c.slug}`}>
                 <Card hover className="flex h-full flex-col !p-0 overflow-hidden">
+                  {/* No celular a capa tem ~114 px úteis, e um selo como
+                      "Intermediário" sozinho já passa de 100. Lado a lado com
+                      o ícone ele era cortado pela borda do cartão. Em coluna,
+                      o ícone sobe e os selos ficam com a largura inteira. */}
                   <div
-                    className="relative flex h-36 items-end justify-between p-4"
+                    className="relative flex h-36 flex-col items-start justify-between p-4"
                     style={{ background: `linear-gradient(135deg, ${c.cor} 0%, #001838 100%)` }}
                   >
-                    <GraduationCap size={26} className="text-gold-300" />
-                    <div className="flex gap-1.5">
+                    <GraduationCap size={26} className="shrink-0 text-gold-300" />
+                    <div className="flex w-full flex-wrap justify-end gap-1.5">
                       {pct >= 100 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-0.5 text-[11px] font-bold text-white">
                           <CheckCircle2 size={11} /> Concluído
@@ -310,7 +314,10 @@ export default function CatalogoPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-1 flex-col p-5">
+                  {/* Em duas colunas no celular o cartão tem ~134 px: com
+                      `p-5` sobravam 94 px de miolo e até uma etiqueta sozinha
+                      ("PER/DCOMP") era cortada. */}
+                  <div className="flex flex-1 flex-col p-4 sm:p-5">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-gold-500">
                       {c.categoria}
                     </p>
@@ -333,7 +340,9 @@ export default function CatalogoPage() {
                       </div>
                     )}
 
-                    <div className="mt-4 flex items-center justify-between border-t border-navy-100 pt-4 text-xs text-muted">
+                    {/* Quatro números não cabem numa linha só no cartão
+                        estreito do celular — quebram em vez de vazar. */}
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 border-t border-navy-100 pt-4 text-xs text-muted">
                       <span className="inline-flex items-center gap-1.5">
                         <Clock size={13} /> {c.cargaHoraria}h
                       </span>
