@@ -15,7 +15,9 @@ import {
 } from "./supabase";
 import { DEMO_TRAVADO, definirModo, type Modo } from "./modo";
 
-const STORAGE_USER = "cba.user";
+// Chave de versões anteriores. Nunca mais é usada para autenticar: mantê-la
+// apenas aqui permite remover uma sessão demo antiga do navegador.
+const STORAGE_USER_LEGACY = "cba.user";
 const STORAGE_PROGRESS = "cba.progresso";
 const STORAGE_FAVS = "cba.favoritos";
 const STORAGE_APPS = "cba.candidaturas";
@@ -140,6 +142,24 @@ function gravar(chave: string, valor: unknown) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(chave, JSON.stringify(valor));
+  } catch {
+    /* storage indisponível */
+  }
+}
+
+/**
+ * O modo demonstração não é uma autenticação real. Portanto não pode restaurar
+ * o último perfil que usou este navegador: em computador compartilhado isso
+ * exibiria os dados da pessoa anterior. As credenciais reais ficam somente na
+ * sessão isolada do Supabase.
+ */
+function limparDadosDemoDoNavegador() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_USER_LEGACY);
+    window.localStorage.removeItem(STORAGE_PROGRESS);
+    window.localStorage.removeItem(STORAGE_FAVS);
+    window.localStorage.removeItem(STORAGE_APPS);
   } catch {
     /* storage indisponível */
   }
@@ -360,12 +380,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           await carregarDadosDoUsuario(u.id);
         }
       } else {
-        const salvo = ler<Perfil | null>(STORAGE_USER, null);
-        if (salvo && ativo) setUser(salvo);
+        // Não restaura sessão em Demo. A versão antiga lia `cba.user` aqui,
+        // fazendo o próximo visitante entrar como quem usou o aparelho antes.
+        limparDadosDemoDoNavegador();
         if (ativo) {
-          setProgresso(ler<Progresso[]>(STORAGE_PROGRESS, progressoInicialDemo()));
-          setFavoritos(ler<string[]>(STORAGE_FAVS, ["t2"]));
-          setCandidaturas(ler<string[]>(STORAGE_APPS, []));
+          setUser(null);
+          setProgresso(progressoInicialDemo());
+          setFavoritos(["t2"]);
+          setCandidaturas([]);
         }
       }
 
@@ -544,7 +566,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       const { senha: _omit, ...perfil } = conta;
       void _omit;
       setUser(perfil);
-      gravar(STORAGE_USER, perfil);
+      // Sessão demo vive só na memória da aba. Nunca reutiliza a pessoa que
+      // usou este navegador anteriormente.
+      setProgresso(progressoInicialDemo());
+      setFavoritos(["t2"]);
+      setCandidaturas([]);
       return { user: perfil };
     },
     [carregarDadosDoUsuario]
@@ -607,7 +633,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
       salvarConta({ ...u, senha: dados.senha });
       setUser(u);
-      gravar(STORAGE_USER, u);
       setAviso(
         "Conta criada no modo demonstração — ela vive só neste navegador e não foi " +
           "gravada no banco. Para criar uma conta real, mude a chave para Supabase."
@@ -626,7 +651,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setProgresso([]);
     setFavoritos([]);
     setCandidaturas([]);
-    if (typeof window !== "undefined") window.localStorage.removeItem(STORAGE_USER);
+    limparDadosDemoDoNavegador();
   }, []);
 
   /* ------------------------------------------------------ atualizarPerfil -- */
@@ -634,9 +659,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     async (patch: Partial<Perfil>) => {
       setUser((atual) => {
         if (!atual) return atual;
-        const novo = { ...atual, ...patch };
-        gravar(STORAGE_USER, novo);
-        return novo;
+        return { ...atual, ...patch };
       });
 
       const sb = getSupabase();
@@ -675,7 +698,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         };
         const lista =
           idx >= 0 ? atual.map((p, i) => (i === idx ? novo : p)) : [...atual, novo];
-        if (modoDemo) gravar(STORAGE_PROGRESS, lista);
         return lista;
       });
 
@@ -707,7 +729,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setFavoritos((atual) => {
         virouFavorito = !atual.includes(id);
         const novo = virouFavorito ? [...atual, id] : atual.filter((f) => f !== id);
-        if (modoDemo) gravar(STORAGE_FAVS, novo);
         return novo;
       });
 
@@ -733,7 +754,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setCandidaturas((atual) => {
         if (atual.includes(vagaId)) return atual;
         const novo = [...atual, vagaId];
-        if (modoDemo) gravar(STORAGE_APPS, novo);
         return novo;
       });
 
