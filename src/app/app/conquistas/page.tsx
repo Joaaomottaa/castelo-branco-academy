@@ -184,7 +184,9 @@ export default function ConquistasPage() {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Uma medalha por linha no celular fazia 21 conquistas virarem meia hora
+            de rolagem. Duas por linha: o cartão é curto e comporta a redução. */}
+        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {filtradas.map((c) => {
             const r = RARIDADES[c.raridade] ?? RARIDADES.comum;
             return (
@@ -192,16 +194,16 @@ export default function ConquistasPage() {
                 key={c.id}
                 onClick={() => setAberta(c)}
                 className={cn(
-                  "group rounded-2xl border p-5 text-left transition",
+                  "group rounded-2xl border p-3.5 text-left transition sm:p-5",
                   c.obtida
                     ? `${r.borda} bg-white card-hover`
                     : "border-navy-100 bg-cream/60 hover:border-navy-200"
                 )}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-1.5">
                   <span
                     className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-xl text-2xl transition",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl transition sm:h-12 sm:w-12 sm:text-2xl",
                       c.obtida ? r.cor : "bg-navy-50 grayscale opacity-40"
                     )}
                   >
@@ -209,7 +211,7 @@ export default function ConquistasPage() {
                   </span>
                   <span
                     className={cn(
-                      "rounded-full border px-2 py-0.5 text-[10px] font-bold",
+                      "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold",
                       c.obtida ? `${r.borda} ${r.texto} ${r.cor}` : "border-navy-100 text-navy-300"
                     )}
                   >
@@ -217,14 +219,16 @@ export default function ConquistasPage() {
                   </span>
                 </div>
 
-                <p className={cn("mt-3.5 text-sm font-bold", c.obtida ? "text-navy-700" : "text-navy-400")}>
+                <p className={cn("mt-3 leading-snug text-[13px] font-bold sm:mt-3.5 sm:text-sm", c.obtida ? "text-navy-700" : "text-navy-400")}>
                   {c.nome}
                 </p>
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
+                {/* Em duas colunas de celular a descrição precisa de uma linha
+                    a mais; o texto completo está no detalhe que o cartão abre. */}
+                <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-muted sm:line-clamp-2">
                   {c.descricao}
                 </p>
 
-                <div className="mt-3.5 flex items-center justify-between border-t border-navy-100 pt-3">
+                <div className="mt-3.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-navy-100 pt-3">
                   <span className="text-[11px] font-bold text-gold-600">+{c.xp} XP</span>
                   {c.obtida ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
@@ -266,7 +270,7 @@ export default function ConquistasPage() {
                 {e.tipo === "curso" ? <Award size={14} /> : e.tipo === "missao" ? <Target size={14} /> : <Zap size={14} />}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-ink">{e.descricao ?? e.tipo}</p>
+                <p className="text-sm leading-snug text-ink">{e.descricao ?? e.tipo}</p>
                 <p className="text-[11px] text-muted">
                   {new Date(e.criadoEm).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                 </p>
@@ -284,13 +288,13 @@ export default function ConquistasPage() {
           onClick={() => setAberta(null)}
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white p-7"
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 sm:p-7"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
               <span
                 className={cn(
-                  "flex h-16 w-16 items-center justify-center rounded-2xl text-3xl",
+                  "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl sm:h-16 sm:w-16 sm:text-3xl",
                   aberta.obtida ? (RARIDADES[aberta.raridade] ?? RARIDADES.comum).cor : "bg-navy-50 grayscale opacity-50"
                 )}
               >
@@ -414,14 +418,23 @@ function Kpi({
     navy: "bg-navy-50 text-navy-600",
     teal: "bg-teal/10 text-teal",
   };
+  // Mesmo desenho do indicador do painel do aluno: no celular o ícone sobe e o
+  // rótulo fica com a largura inteira do cartão. Deitado e com `truncate`,
+  // "Estudo nos últimos 7 dias" virava "Estudo nos últi…" — o rótulo é o que
+  // dá sentido ao número, cortá-lo é perder a informação.
   return (
-    <Card className="flex items-center gap-4">
-      <span className={cn("inline-flex h-11 w-11 items-center justify-center rounded-xl", tons[tom])}>
+    <Card className="flex min-w-0 flex-col gap-2.5 !p-3 sm:flex-row sm:items-center sm:gap-4 sm:!p-5">
+      <span
+        className={cn(
+          "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11",
+          tons[tom]
+        )}
+      >
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-xl font-bold text-navy-700">{valor}</p>
-        <p className="truncate text-xs text-muted">{rotulo}</p>
+        <p className="break-words text-base font-bold leading-tight text-navy-700 sm:text-xl">{valor}</p>
+        <p className="text-[10px] leading-tight text-muted sm:text-xs">{rotulo}</p>
       </div>
     </Card>
   );

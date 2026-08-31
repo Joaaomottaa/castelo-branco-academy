@@ -94,7 +94,7 @@ export default function AdminPage() {
             {m.modo === "demo" && " · cenário de demonstração"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={recarregar}>
             <RefreshCw size={14} /> Atualizar
           </Button>
@@ -151,7 +151,9 @@ export default function AdminPage() {
             </select>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
+          {/* No celular este par não cabe na mesma linha dos períodos: ele passa
+              a ocupar a linha inteira, com o botão de baixar na ponta. */}
+          <div className="ml-auto flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
             <div className="flex rounded-full border border-navy-100 p-0.5">
               {(["real", "demo"] as ModoMetricas[]).map((k) => (
                 <button
@@ -291,8 +293,10 @@ export default function AdminPage() {
               Gerenciar
             </Link>
           </div>
+          {/* Quatro colunas em 280px esmagam o nome do curso até virar duas
+              letras. A tabela mantém um mínimo e rola dentro do próprio quadro. */}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="border-b border-navy-100 text-left text-[10px] uppercase tracking-wider text-muted">
                   <th className="pb-2 font-semibold">Curso</th>
@@ -307,7 +311,7 @@ export default function AdminPage() {
                     <td className="py-2.5 pr-4">
                       <div className="flex items-center gap-2.5">
                         <span className="h-6 w-6 shrink-0 rounded-md" style={{ background: c.cor }} />
-                        <span className="line-clamp-1 text-[13px] font-medium text-navy-700">
+                        <span className="line-clamp-2 text-[13px] font-medium leading-snug text-navy-700">
                           {c.titulo}
                         </span>
                       </div>
@@ -366,8 +370,10 @@ export default function AdminPage() {
                     {s.estado === "ok" ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-baseline justify-between gap-2 text-[13px] font-semibold text-navy-700">
-                      <span className="truncate">{s.rotulo}</span>
+                    {/* "Aprovação nas avaliações" não cabe numa linha ao lado do
+                        número no celular: o rótulo quebra e o número acompanha. */}
+                    <p className="flex flex-wrap items-baseline justify-between gap-x-2 text-[13px] font-semibold text-navy-700">
+                      <span className="min-w-0 leading-snug">{s.rotulo}</span>
                       <span className="shrink-0 tabular-nums">{s.valor}</span>
                     </p>
                     <p className="mt-0.5 text-[11px] leading-snug text-muted">{s.detalhe}</p>

@@ -377,9 +377,15 @@ export function Carregando({ texto = "Carregando…" }: { texto?: string }) {
 export const fileiraCls =
   "fileira -mx-3 flex snap-x snap-mandatory scroll-px-3 gap-3 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:snap-none sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0";
 
-/** O cartão de uma fileira: largura fixa que deixa o vizinho aparecer. */
+/**
+ * O cartão de uma fileira: largura que deixa o vizinho aparecer.
+ *
+ * A medida é porcentagem da fileira, não `vw`: dentro do app a barra lateral
+ * come 3.5rem da tela, então `78vw` daria um cartão maior que a área de
+ * conteúdo e o vizinho não apareceria — que é justamente o ponto.
+ */
 export const fileiraItemCls =
-  "w-[78vw] min-w-0 max-w-[19rem] shrink-0 snap-start sm:w-auto sm:max-w-none";
+  "w-[86%] min-w-0 max-w-[19rem] shrink-0 snap-start sm:w-auto sm:max-w-none";
 
 /**
  * Barra de abas.

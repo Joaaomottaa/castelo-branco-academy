@@ -213,15 +213,22 @@ export default function PlanosPage() {
       {/* Comparativo detalhado */}
       <div>
         <h2 className="text-lg font-bold text-navy-700">Comparativo detalhado</h2>
-        <div className="tbl mt-4 overflow-x-auto rounded-2xl border border-navy-100 bg-white">
-          <table className="w-full min-w-[640px] text-sm">
+        {/* A coluna de recurso tem largura própria e menor que a tela: assim
+            sempre sobra um pedaço da primeira coluna de plano à direita, e fica
+            claro que a tabela continua para o lado. */}
+        <p className="mb-2.5 mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+          <MoveHorizontal size={13} className="text-gold-500" />
+          Arraste a tabela para ver cada plano
+        </p>
+        <div className="mt-1 overflow-x-auto rounded-2xl border border-navy-100 bg-white sm:mt-4">
+          <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-navy-100 bg-cream/60">
-                <th className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted">
+                <th className="w-[190px] px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted sm:w-auto sm:px-5">
                   Recurso
                 </th>
                 {planos.map((p) => (
-                  <th key={p.slug} className="px-5 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider text-muted">
+                  <th key={p.slug} className="px-4 py-3.5 text-center text-[11px] font-bold uppercase tracking-wider text-muted sm:px-5">
                     {p.nome}
                   </th>
                 ))}
@@ -230,14 +237,14 @@ export default function PlanosPage() {
             <tbody className="divide-y divide-navy-100">
               {COMPARATIVO.map((linha) => (
                 <tr key={linha.recurso} className="transition hover:bg-cream/40">
-                  <td className="px-5 py-3.5">
-                    <span className="font-medium text-navy-700">{linha.recurso}</span>
+                  <td className="px-4 py-3.5 sm:px-5">
+                    <span className="font-medium leading-snug text-navy-700">{linha.recurso}</span>
                     {linha.nota && (
                       <span className="mt-0.5 block text-xs text-muted">{linha.nota}</span>
                     )}
                   </td>
                   {linha.valores.map((v, i) => (
-                    <td key={i} className="px-5 py-3.5 text-center">
+                    <td key={i} className="px-4 py-3.5 text-center sm:px-5">
                       {v === true ? (
                         <Check size={17} className="mx-auto text-emerald-500" />
                       ) : v === false ? (
@@ -256,8 +263,8 @@ export default function PlanosPage() {
 
       {/* IA em destaque */}
       <Card className="!border-gold-200 !bg-gold-50">
-        <div className="flex flex-wrap items-start gap-5">
-          <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navy-700 text-gold-300">
+        <div className="flex flex-wrap items-start gap-4 sm:gap-5">
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-700 text-gold-300 sm:h-12 sm:w-12">
             <Sparkles size={22} />
           </span>
           <div className="min-w-0 flex-1">

@@ -84,7 +84,7 @@ export default function PainelPage() {
               >
                 <div className="min-w-0 flex-1">
                   <Badge tone="gold">Continuar de onde parou</Badge>
-                  <h2 className="mt-3 text-xl font-bold text-white">{proximo.curso.titulo}</h2>
+                  <h2 className="mt-3 text-lg font-bold leading-snug text-white sm:text-xl">{proximo.curso.titulo}</h2>
                   <p className="mt-1 text-sm text-navy-100/65">
                     {proximo.concluidas} de {proximo.total} aulas concluídas
                   </p>
@@ -129,13 +129,13 @@ export default function PainelPage() {
                 <Link key={curso.slug} href={`/app/cursos/${curso.slug}`}>
                   <Card hover className="flex items-center gap-4 !py-4">
                     <span
-                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white"
+                      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white sm:h-11 sm:w-11"
                       style={{ background: curso.cor }}
                     >
                       <BookOpen size={18} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-navy-700">{curso.titulo}</p>
+                      <p className="text-sm font-bold leading-snug text-navy-700">{curso.titulo}</p>
                       <p className="mt-0.5 text-xs text-muted">
                         {concluidas}/{total} aulas · {curso.cargaHoraria}h
                       </p>
@@ -165,7 +165,7 @@ export default function PainelPage() {
                 Ver todas
               </Link>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
               {vagas
                 .slice()
                 .sort((a, b) => (b.match ?? 0) - (a.match ?? 0))
@@ -173,16 +173,20 @@ export default function PainelPage() {
                 .map((v) => (
                   <Link key={v.id} href="/app/vagas">
                     <Card hover className="h-full">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-navy-700">{v.titulo}</p>
-                          <p className="mt-0.5 truncate text-xs text-muted">
-                            {v.empresa} · {v.cidade}/{v.uf}
-                          </p>
-                        </div>
+                      {/* O nome da vaga é o que decide se vale abrir, e dividindo a
+                          linha com o selo de match sobrava meia tela: "Analista
+                          Fiscal Pleno — Transp…". O selo desceu para junto da
+                          faixa salarial e o nome ganhou a largura inteira. */}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold leading-snug text-navy-700">{v.titulo}</p>
+                        <p className="mt-0.5 text-xs leading-snug text-muted">
+                          {v.empresa} · {v.cidade}/{v.uf}
+                        </p>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-navy-700">{v.faixa}</p>
                         <Badge tone="green">{v.match}% match</Badge>
                       </div>
-                      <p className="mt-3 text-sm font-semibold text-navy-700">{v.faixa}</p>
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         <Badge tone="muted">{v.modelo}</Badge>
                         <Badge tone="muted">{v.contrato}</Badge>
@@ -268,8 +272,8 @@ export default function PainelPage() {
                     </span>
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-navy-700">{titulo}</p>
-                    <p className="truncate text-xs text-muted">{sub}</p>
+                    <p className="text-sm font-semibold leading-snug text-navy-700">{titulo}</p>
+                    <p className="text-xs leading-snug text-muted">{sub}</p>
                   </div>
                 </div>
               ))}

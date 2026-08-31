@@ -8,7 +8,7 @@ import {
   Circle, ClipboardCheck, Download, ListChecks, MessageSquare, Play,
   Radio, Trophy,
 } from "lucide-react";
-import { Badge, Button, Card, Progress, cn } from "@/components/ui";
+import { Badge, Button, Card, Progress, abaCls, abasCls, cn } from "@/components/ui";
 import { useDados } from "@/lib/dados";
 import { Carregando } from "@/components/ui";
 import { useSession } from "@/lib/session";
@@ -120,12 +120,12 @@ export default function AulaPage({
         />
 
         {/* Cabeçalho da aula */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-wider text-gold-500">
               {aula.moduloTitulo}
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-navy-700">{aula.titulo}</h1>
+            <h1 className="mt-1 text-xl font-bold tracking-tight text-navy-700 sm:text-2xl">{aula.titulo}</h1>
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
               <Badge tone="muted">{aula.duracaoMin} min</Badge>
               <Badge tone="navy">{rotuloTipo(aula.tipo)}</Badge>
@@ -133,9 +133,12 @@ export default function AulaPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Três ações numa linha rígida: no celular a última ("Próxima aula")
+              saía pela borda direita da tela. Agora a linha quebra e cada ação
+              ocupa metade da largura; no desktop volta a ser uma linha só. */}
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             {feita && (
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+              <span className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 sm:min-w-0 sm:flex-none">
                 <CheckCircle2 size={16} /> Concluída
               </span>
             )}
@@ -143,13 +146,17 @@ export default function AulaPage({
             {temAvaliacao && feita && (
               <button
                 onClick={() => setQuizAberto(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white px-4 py-2 text-sm font-semibold text-navy-700 transition hover:border-gold-400"
+                className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-2 rounded-full border border-navy-200 bg-white px-4 py-2 text-sm font-semibold text-navy-700 transition hover:border-gold-400 sm:min-w-0 sm:flex-none"
               >
                 <ClipboardCheck size={16} /> Refazer teste
               </button>
             )}
 
-            <Button variant="gold" onClick={acaoPrincipal}>
+            <Button
+              variant="gold"
+              onClick={acaoPrincipal}
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
               {temAvaliacao && !feita ? (
                 <>
                   <ClipboardCheck size={15} /> Finalizar aula
@@ -170,7 +177,9 @@ export default function AulaPage({
 
         {/* Abas */}
         <Card className="!p-0">
-          <div className="flex border-b border-navy-100">
+          {/* Três abas com ícone não cabem em 360px: espremidas, "Resumo com IA"
+              quebrava no meio e a terceira ficava fora. A barra rola de lado. */}
+          <div className={abasCls}>
             {([
               ["resumo", "Resumo com IA", ListChecks],
               ["material", "Materiais", Download],
@@ -180,7 +189,7 @@ export default function AulaPage({
                 key={k}
                 onClick={() => setAba(k)}
                 className={cn(
-                  "flex items-center gap-2 px-5 py-3.5 text-sm font-semibold transition",
+                  abaCls,
                   aba === k
                     ? "border-b-2 border-gold-400 text-navy-700"
                     : "text-muted hover:text-navy-700"
@@ -191,7 +200,7 @@ export default function AulaPage({
             ))}
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {aba === "resumo" && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-xs font-semibold text-gold-600">
@@ -237,24 +246,29 @@ export default function AulaPage({
           </div>
         </Card>
 
-        {/* Navegação */}
-        <div className="flex items-center justify-between gap-3">
+        {/* Navegação
+            Lado a lado no celular sobravam ~140px para cada título de aula, e os
+            dois nomes apareciam cortados — quem lê "Teste víd…" não sabe para
+            onde está indo. Empilhados, cada um tem a largura inteira. */}
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           {anterior ? (
             <Link
               href={`/app/cursos/${slug}/aula/${anterior.id}`}
               className="flex min-w-0 items-center gap-2 text-sm text-muted transition hover:text-navy-700"
             >
-              <ChevronLeft size={16} /> <span className="truncate">{anterior.titulo}</span>
+              <ChevronLeft size={16} className="shrink-0" />
+              <span className="leading-snug sm:truncate">{anterior.titulo}</span>
             </Link>
           ) : (
-            <span />
+            <span className="hidden sm:block" />
           )}
           {proxima && (
             <Link
               href={`/app/cursos/${slug}/aula/${proxima.id}`}
               className="flex min-w-0 items-center gap-2 text-sm font-semibold text-navy-700 transition hover:text-gold-600"
             >
-              <span className="truncate">{proxima.titulo}</span> <ChevronRight size={16} />
+              <span className="leading-snug sm:truncate">{proxima.titulo}</span>
+              <ChevronRight size={16} className="shrink-0" />
             </Link>
           )}
         </div>
@@ -263,7 +277,7 @@ export default function AulaPage({
       {/* Playlist lateral */}
       <aside className="space-y-4">
         <Card className="!p-0 overflow-hidden">
-          <div className="border-b border-navy-100 p-5">
+          <div className="border-b border-navy-100 p-4 sm:p-5">
             <p className="text-sm font-bold text-navy-700">Conteúdo do curso</p>
             <div className="mt-3 flex items-center gap-3">
               <Progress value={pct} className="flex-1" />
@@ -277,7 +291,7 @@ export default function AulaPage({
           <div className="max-h-[560px] overflow-y-auto">
             {curso.modulos.map((m, mi) => (
               <div key={m.id}>
-                <p className="sticky top-0 bg-cream px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-navy-600">
+                <p className="sticky top-0 bg-cream px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-navy-600 sm:px-5">
                   {String(mi + 1).padStart(2, "0")} · {m.titulo}
                 </p>
                 <ul>
@@ -289,23 +303,25 @@ export default function AulaPage({
                         <Link
                           href={`/app/cursos/${slug}/aula/${a.id}`}
                           className={cn(
-                            "flex items-center gap-3 px-5 py-3 text-sm transition",
+                            "flex items-start gap-3 px-4 py-3 text-sm transition sm:px-5",
                             ativa ? "bg-gold-50 font-semibold text-navy-700" : "hover:bg-cream/70"
                           )}
                         >
                           {ok ? (
-                            <CheckCircle2 size={16} className="shrink-0 text-emerald-500" />
+                            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-500" />
                           ) : ativa ? (
-                            <Play size={16} className="shrink-0 text-gold-500" />
+                            <Play size={16} className="mt-0.5 shrink-0 text-gold-500" />
                           ) : a.tipo === "ao-vivo" ? (
-                            <Radio size={16} className="shrink-0 text-navy-200" />
+                            <Radio size={16} className="mt-0.5 shrink-0 text-navy-200" />
                           ) : (
-                            <Circle size={16} className="shrink-0 text-navy-200" />
+                            <Circle size={16} className="mt-0.5 shrink-0 text-navy-200" />
                           )}
-                          <span className={cn("min-w-0 flex-1 truncate", !ativa && !ok && "text-ink")}>
+                          {/* O nome da aula usa quantas linhas precisar: a lista
+                              rola na vertical, não há altura a economizar. */}
+                          <span className={cn("min-w-0 flex-1 leading-snug", !ativa && !ok && "text-ink")}>
                             {a.titulo}
                           </span>
-                          <span className="shrink-0 text-[11px] text-muted">{a.duracaoMin}m</span>
+                          <span className="mt-0.5 shrink-0 text-[11px] text-muted">{a.duracaoMin}m</span>
                         </Link>
                       </li>
                     );
