@@ -74,7 +74,13 @@ export function SinoDeNotificacoes() {
       {aberto && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setAberto(false)} />
-          <div className="absolute right-0 z-20 mt-2 w-80 overflow-hidden rounded-xl border border-navy-100 bg-white shadow-xl">
+          {/* `app-header-panel` (globals.css) resolve o celular: ancorado ao
+              sino, um painel de 20rem só crescia para a esquerda, ia para
+              debaixo da barra compacta (z-50, acima do cabeçalho) e ainda era
+              cortado pelo `overflow-x-clip` da moldura. A classe o prende à
+              faixa entre a barra e a borda direita e o tira daquele clip; de
+              sm para cima volta a ser menu suspenso normal. */}
+          <div className="app-header-panel z-20 mt-2 overflow-hidden rounded-xl border border-navy-100 bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-navy-100 px-4 py-3">
               <p className="text-sm font-bold text-navy-700">Notificações</p>
               {lista.length > 0 && (
@@ -84,7 +90,10 @@ export function SinoDeNotificacoes() {
               )}
             </div>
 
-            <div className="max-h-96 overflow-y-auto">
+            {/* Fixo no celular, o painel não é empurrado pelo fim da página:
+                sem teto de viewport a lista passava do rodapé em telas
+                baixas. Solto de sm para cima, onde 24rem cabem. */}
+            <div className="max-h-[calc(100vh-9rem)] overflow-y-auto sm:max-h-96">
               {modoDemo ? (
                 <p className="px-4 py-8 text-center text-xs leading-relaxed text-muted">
                   No modo demonstração não há caixa de notificações — ela lê do banco.
