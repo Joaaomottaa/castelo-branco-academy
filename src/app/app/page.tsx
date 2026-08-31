@@ -73,7 +73,7 @@ export default function PainelPage() {
         <div className="space-y-6">
           {/* Continuar assistindo */}
           {proximo && (
-            <Card className="overflow-hidden !p-0">
+            <Card className="w-full overflow-hidden !p-0">
               {/* No celular o botão não cabe ao lado do título: flex-wrap não
                   salvava porque o bloco de texto é flex-1 e encolhia,
                   empurrando o botão para fora da tela. Empilha, e vira linha

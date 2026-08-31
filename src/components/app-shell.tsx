@@ -175,18 +175,15 @@ export function AppShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "brand-gradient fixed inset-y-0 left-0 z-50 flex w-14 flex-col overflow-hidden border-r border-white/10 transition-[width,box-shadow] duration-300 lg:w-64",
-          menuAberto && "w-72 shadow-2xl shadow-navy-900/40"
+          "app-sidebar brand-gradient fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r border-white/10 transition-[width,box-shadow] duration-300",
+          menuAberto && "app-sidebar-open shadow-2xl shadow-navy-900/40"
         )}
       >
         <div className="flex h-14 shrink-0 items-center justify-center border-b border-white/10 px-2 lg:h-16 lg:justify-between lg:px-5">
           <Link href="/" aria-label="Ir para a página inicial" className="shrink-0">
-            <span className={cn("flex h-10 w-9 items-center overflow-hidden lg:hidden", menuAberto && "hidden")}>
-              {/* O recorte mostra apenas o leão dourado da marca oficial quando
-                  a barra está compacta, sem comprimir o logotipo completo. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logoCastelo.png" alt="Castelo Branco" className="h-10 w-auto max-w-none" />
-            </span>
+            {/* O fundo usa a área do leão da marca oficial. Ao contrário de
+                uma <img> responsiva, ele não encolhe e não revela o texto. */}
+            <span aria-hidden="true" className={cn("app-compact-mark block lg:hidden", menuAberto && "hidden")} />
             <Logo variant="light" className={cn("hidden lg:inline-flex", menuAberto && "!inline-flex lg:!hidden")} />
           </Link>
           <button onClick={() => setMenuAberto(false)} aria-label="Fechar menu" className={cn("ml-auto text-white lg:hidden", !menuAberto && "hidden")}>
@@ -276,13 +273,13 @@ export function AppShell({
 
       {menuAberto && (
         <div
-          className="fixed inset-y-0 left-14 right-0 z-40 bg-navy-900/50 lg:hidden"
+          className="app-menu-overlay fixed inset-y-0 right-0 z-40 bg-navy-900/50 lg:hidden"
           onClick={() => setMenuAberto(false)}
         />
       )}
 
       {/* Conteúdo */}
-      <div className="ml-14 w-[calc(100dvw-3.5rem)] min-w-0 max-w-full lg:ml-64 lg:w-[calc(100vw-16rem)]">
+      <div className="app-content max-w-full">
         <header className="sticky top-0 z-30 flex h-14 min-w-0 max-w-full items-center gap-2 border-b border-navy-100 bg-white/85 px-2 backdrop-blur-xl sm:h-16 sm:gap-3 sm:px-5 lg:px-8">
           <button onClick={() => setMenuAberto(true)} aria-label="Expandir menu" className="shrink-0 text-navy-700 lg:hidden">
             <Menu size={21} />
