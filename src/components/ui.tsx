@@ -204,7 +204,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-navy-100 bg-white p-4 sm:p-5",
+        "min-w-0 max-w-full rounded-2xl border border-navy-100 bg-white p-4 sm:p-5",
         hover && "card-hover",
         className
       )}

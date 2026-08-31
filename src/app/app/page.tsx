@@ -43,10 +43,10 @@ export default function PainelPage() {
   const pontosPEPC = certificados.reduce((a, c) => a + c.pontosPEPC, 0);
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 max-w-full space-y-5 sm:space-y-8">
       {/* Cabeçalho */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <div className="flex min-w-0 flex-wrap items-end justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
           <p className="eyebrow text-gold-500">{saudacao()}</p>
           <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
             Olá, {user?.nome.split(" ")[0]} 👋
@@ -56,13 +56,13 @@ export default function PainelPage() {
             com alta compatibilidade.
           </p>
         </div>
-        <Button href="/app/cursos" variant="outline">
+        <Button href="/app/cursos" variant="outline" className="w-full sm:w-auto">
           <BookOpen size={15} /> Explorar catálogo
         </Button>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="grid min-w-0 grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
         <Kpi icon={<Flame size={18} />} valor={`${user?.ofensiva ?? 12} dias`} rotulo="Ofensiva de estudo" tom="gold" />
         <Kpi icon={<Clock size={18} />} valor={`${horasEstudadas.toFixed(1)}h`} rotulo="Horas estudadas" tom="navy" />
         <Kpi icon={<Award size={18} />} valor={`${certificados.length}`} rotulo="Certificados emitidos" tom="teal" />
@@ -293,7 +293,7 @@ function Kpi({
     green: "bg-emerald-50 text-emerald-600",
   };
   return (
-    <Card className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+    <Card className="flex min-w-0 flex-col gap-2.5 !p-3 sm:flex-row sm:items-center sm:gap-4 sm:!p-5">
       <span
         className={cn(
           "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11",
@@ -303,8 +303,8 @@ function Kpi({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-lg font-bold leading-tight text-navy-700 sm:text-xl">{valor}</p>
-        <p className="text-[11px] leading-tight text-muted sm:text-xs">{rotulo}</p>
+        <p className="break-words text-base font-bold leading-tight text-navy-700 sm:text-xl">{valor}</p>
+        <p className="text-[10px] leading-tight text-muted sm:text-xs">{rotulo}</p>
       </div>
     </Card>
   );

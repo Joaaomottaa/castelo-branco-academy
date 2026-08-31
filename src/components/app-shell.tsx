@@ -171,20 +171,25 @@ export function AppShell({
   const pontosPEPC = meusCertificados.reduce((a, c) => a + c.pontosPEPC, 0);
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen max-w-full overflow-x-clip bg-cream">
       {/* Sidebar */}
       <aside
         className={cn(
-          "brand-gradient fixed inset-y-0 left-0 z-50 flex w-16 flex-col overflow-hidden border-r border-white/10 transition-[width,box-shadow] duration-300 lg:w-64",
-          menuAberto && "w-64 shadow-2xl shadow-navy-900/40"
+          "brand-gradient fixed inset-y-0 left-0 z-50 flex w-14 flex-col overflow-hidden border-r border-white/10 transition-[width,box-shadow] duration-300 lg:w-64",
+          menuAberto && "w-72 shadow-2xl shadow-navy-900/40"
         )}
       >
-        <div className="flex h-16 shrink-0 items-center justify-center border-b border-white/10 px-3 lg:justify-between lg:px-5">
+        <div className="flex h-14 shrink-0 items-center justify-center border-b border-white/10 px-2 lg:h-16 lg:justify-between lg:px-5">
           <Link href="/" aria-label="Ir para a página inicial" className="shrink-0">
-            <Logo variant="light" size="sm" className="lg:hidden" />
-            <Logo variant="light" className="hidden lg:inline-flex" />
+            <span className={cn("flex h-10 w-9 items-center overflow-hidden lg:hidden", menuAberto && "hidden")}>
+              {/* O recorte mostra apenas o leão dourado da marca oficial quando
+                  a barra está compacta, sem comprimir o logotipo completo. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logoCastelo.png" alt="Castelo Branco" className="h-10 w-auto max-w-none" />
+            </span>
+            <Logo variant="light" className={cn("hidden lg:inline-flex", menuAberto && "!inline-flex lg:!hidden")} />
           </Link>
-          <button onClick={() => setMenuAberto(false)} aria-label="Fechar menu" className="ml-auto hidden text-white lg:hidden">
+          <button onClick={() => setMenuAberto(false)} aria-label="Fechar menu" className={cn("ml-auto text-white lg:hidden", !menuAberto && "hidden")}>
             <X size={20} />
           </button>
         </div>
@@ -271,14 +276,14 @@ export function AppShell({
 
       {menuAberto && (
         <div
-          className="fixed inset-y-0 left-16 right-0 z-40 bg-navy-900/50 lg:hidden"
+          className="fixed inset-y-0 left-14 right-0 z-40 bg-navy-900/50 lg:hidden"
           onClick={() => setMenuAberto(false)}
         />
       )}
 
       {/* Conteúdo */}
-      <div className="min-w-0 pl-16 lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 min-w-0 items-center gap-3 border-b border-navy-100 bg-white/85 px-3 backdrop-blur-xl sm:px-5 lg:px-8">
+      <div className="min-w-0 max-w-full pl-14 lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-14 min-w-0 max-w-full items-center gap-2 border-b border-navy-100 bg-white/85 px-2 backdrop-blur-xl sm:h-16 sm:gap-3 sm:px-5 lg:px-8">
           <button onClick={() => setMenuAberto(true)} aria-label="Expandir menu" className="shrink-0 text-navy-700 lg:hidden">
             <Menu size={21} />
           </button>
@@ -392,7 +397,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="min-w-0 overflow-x-clip px-3 py-5 sm:px-5 sm:py-8 lg:px-8">{children}</main>
+        <main className="min-w-0 max-w-full overflow-x-clip px-3 py-5 sm:px-5 sm:py-8 lg:px-8">{children}</main>
       </div>
 
     </div>
