@@ -597,7 +597,7 @@ function ModalQuestao({
       aoFechar={aoFechar}
       largura="max-w-3xl"
       rodape={
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <button
             onClick={aoFechar}
             className="rounded-full px-5 py-2.5 text-sm font-semibold text-navy-700 transition hover:bg-navy-50"

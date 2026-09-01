@@ -38,7 +38,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/60 p-3 backdrop-blur-sm sm:p-4"
       onClick={aoFechar}
     >
       <div
@@ -48,10 +48,13 @@ export function Modal({
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-navy-100 px-6 py-5">
+        {/* Todo editor da área administrativa passa por aqui: a folga de
+            desktop (24px de cada lado) comia um sexto da largura de um celular,
+            e o título dividia a linha com o X de fechar. */}
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-navy-100 px-5 py-4 sm:gap-4 sm:px-6 sm:py-5">
           <div className="min-w-0">
-            <h2 className="text-lg font-bold text-navy-700">{titulo}</h2>
-            {subtitulo && <p className="mt-0.5 text-xs text-muted">{subtitulo}</p>}
+            <h2 className="text-base font-bold leading-snug text-navy-700 sm:text-lg">{titulo}</h2>
+            {subtitulo && <p className="mt-0.5 text-xs leading-snug text-muted">{subtitulo}</p>}
           </div>
           <button
             onClick={aoFechar}
@@ -62,10 +65,10 @@ export function Modal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">{children}</div>
 
         {rodape && (
-          <div className="shrink-0 border-t border-navy-100 px-6 py-4">{rodape}</div>
+          <div className="shrink-0 border-t border-navy-100 px-5 py-4 sm:px-6">{rodape}</div>
         )}
       </div>
     </div>
@@ -102,17 +105,17 @@ export function ConfirmarExclusao({
   return (
     <Modal titulo={titulo} aoFechar={aoFechar} largura="max-w-md">
       <p className="text-sm leading-relaxed text-ink">{descricao}</p>
-      <div className="mt-6 flex justify-end gap-2">
+      <div className="mt-6 flex flex-wrap justify-end gap-2">
         <button
           onClick={aoFechar}
-          className="rounded-full px-5 py-2.5 text-sm font-semibold text-navy-700 transition hover:bg-navy-50"
+          className="min-w-[calc(50%-0.25rem)] flex-1 rounded-full px-5 py-2.5 text-sm font-semibold text-navy-700 transition hover:bg-navy-50 sm:min-w-0 sm:flex-none"
         >
           Cancelar
         </button>
         <button
           onClick={aoConfirmar}
           disabled={ocupado}
-          className="rounded-full bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-50"
+          className="min-w-[calc(50%-0.25rem)] flex-1 rounded-full bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-50 sm:min-w-0 sm:flex-none"
         >
           {ocupado ? "Excluindo…" : rotuloBotao}
         </button>

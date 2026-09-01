@@ -279,8 +279,8 @@ export default function AdminCursosPage() {
                       <FileVideo size={19} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-navy-700">{c.titulo}</p>
-                      <p className="mt-0.5 truncate text-xs text-muted">
+                      <p className="text-sm font-bold text-navy-700">{c.titulo}</p>
+                      <p className="mt-0.5 text-xs text-muted leading-snug">
                         {c.modulos.length} módulos · {aulas} aulas · {c.cargaHoraria}h ·{" "}
                         {comVideo}/{aulas} com vídeo · {comQuiz} com avaliação
                       </p>
@@ -357,7 +357,7 @@ export default function AdminCursosPage() {
                               <span className="shrink-0 rounded-md bg-navy-700 px-2 py-0.5 text-[10px] font-bold text-white">
                                 {String(mi + 1).padStart(2, "0")}
                               </span>
-                              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-navy-700">
+                              <span className="min-w-0 flex-1 text-sm font-semibold text-navy-700">
                                 {m.titulo}
                               </span>
                               <span className="shrink-0 text-xs text-muted">
@@ -387,7 +387,7 @@ export default function AdminCursosPage() {
                                     primeiro={ai === 0}
                                     ultimo={ai === m.aulas.length - 1}
                                   />
-                                  <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                                  <span className="min-w-0 flex-1 text-sm text-ink leading-snug">
                                     {a.titulo}
                                   </span>
 

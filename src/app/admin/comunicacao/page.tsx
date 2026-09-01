@@ -426,7 +426,7 @@ export default function AdminComunicacaoPage() {
               ) : (
                 publico.slice(0, 40).map((d) => (
                   <div key={d.id} className="flex items-center gap-2 rounded px-1.5 py-1">
-                    <span className="min-w-0 flex-1 truncate text-[12px] text-ink">{d.nome}</span>
+                    <span className="min-w-0 flex-1 text-[12px] text-ink leading-snug">{d.nome}</span>
                     <span className="shrink-0 text-[10px] text-muted">{d.plano}</span>
                   </div>
                 ))
@@ -495,7 +495,7 @@ export default function AdminComunicacaoPage() {
                 {historico.slice(0, 8).map((c) => (
                   <div key={c.id} className="border-b border-navy-100 pb-2.5 last:border-0 last:pb-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-navy-700">
+                      <p className="min-w-0 flex-1 text-[13px] font-semibold text-navy-700">
                         {c.titulo}
                       </p>
                       <Badge tone={TIPOS.find((t) => t.v === c.tipo)?.cor ?? "muted"}>

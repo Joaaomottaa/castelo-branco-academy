@@ -863,10 +863,10 @@ function PainelAulas({ questaoId, assunto }: { questaoId: string; assunto: strin
               <PlayCircle size={16} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-navy-700">
+              <span className="block text-sm font-semibold leading-snug text-navy-700">
                 {a.aulaTitulo}
               </span>
-              <span className="block truncate text-[11px] text-muted">
+              <span className="block text-[11px] leading-snug text-muted">
                 {a.cursoTitulo} · {a.modulo} · {a.duracaoMin} min
               </span>
             </span>

@@ -264,8 +264,8 @@ export default function PainelEmpresa() {
                   <div key={m.perfilId} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
                     <Avatar nome={m.nome} size={36} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-navy-700">{m.nome}</p>
-                      <p className="truncate text-xs text-muted">
+                      <p className="text-sm font-semibold text-navy-700">{m.nome}</p>
+                      <p className="text-xs text-muted leading-snug">
                         {m.cargo ?? "Sem cargo"} · {textoUltimoEstudo(m.ultimoEstudo)}
                       </p>
                     </div>

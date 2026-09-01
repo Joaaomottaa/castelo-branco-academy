@@ -224,12 +224,18 @@ export function Tino() {
     <>
       {/* Botão flutuante — pílula no desktop, círculo no celular.
           Um círculo sozinho não diz o que é: a pessoa precisa clicar para
-          descobrir. Com o nome ao lado, ela decide antes. */}
+          descobrir. Com o nome ao lado, ela decide antes.
+
+          O `z-30` é deliberado: no celular o botão ficava por cima do rodapé de
+          qualquer modal (todos em z-50) e cobria justamente o botão de
+          confirmar — "Criar curso" atrás do leão. Abaixo dos modais e do véu do
+          menu, acima do conteúdo da página, que é onde ele precisa estar. A
+          janela de conversa continua em z-[60], acima de tudo. */}
       {!aberto && (
         <button
           onClick={() => setAberto(true)}
           aria-label="Abrir o Tino, assistente da Academy"
-          className="group fixed bottom-5 right-5 z-[60] flex items-center gap-0 overflow-hidden rounded-full bg-navy-700 p-1.5 shadow-2xl shadow-navy-900/30 ring-1 ring-gold-400/40 transition-all hover:ring-gold-400 sm:gap-3 sm:pr-5"
+          className="group fixed bottom-5 right-5 z-30 flex items-center gap-0 overflow-hidden rounded-full bg-navy-700 p-1.5 shadow-2xl shadow-navy-900/30 ring-1 ring-gold-400/40 transition-all hover:ring-gold-400 sm:gap-3 sm:pr-5"
         >
           <span className="relative shrink-0">
             <MarcaTino className="h-12 w-12" />

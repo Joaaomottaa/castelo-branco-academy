@@ -181,8 +181,8 @@ export default function AdminVagasPage() {
                     <Building2 size={17} />
                   </span>
                   <div className="min-w-[180px] flex-1">
-                    <p className="truncate text-sm font-bold text-navy-700">{v.titulo}</p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 truncate text-xs text-muted">
+                    <p className="text-sm font-bold text-navy-700">{v.titulo}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted leading-snug">
                       <span>{v.empresa}</span>
                       {v.cidade && (
                         <span className="inline-flex items-center gap-0.5">
@@ -269,8 +269,8 @@ export default function AdminVagasPage() {
                     <Building2 size={17} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-navy-700">{e.nome}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted">
+                    <p className="text-sm font-bold text-navy-700">{e.nome}</p>
+                    <p className="mt-0.5 text-xs text-muted leading-snug">
                       {[e.cnpj, e.cidade && `${e.cidade}/${e.uf}`, `${e.vagas} vaga(s)`]
                         .filter(Boolean).join(" · ")}
                     </p>
@@ -404,7 +404,7 @@ function ModalVaga({
       aoFechar={aoFechar}
       largura="max-w-2xl"
       rodape={
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={submeter} disabled={salvando}>
             {salvando ? "Salvando…" : vaga ? "Salvar alterações" : "Publicar vaga"}
@@ -654,7 +654,7 @@ function ModalEmpresa({
       aoFechar={aoFechar}
       largura="max-w-lg"
       rodape={
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={submeter} disabled={salvando}>
             {salvando ? "Salvando…" : "Salvar"}
@@ -859,8 +859,8 @@ function ModalCandidatos({
                 </span>
 
                 <div className="min-w-[160px] flex-1">
-                  <p className="truncate text-sm font-bold text-navy-700">{c.perfil.nome}</p>
-                  <p className="mt-0.5 truncate text-xs text-muted">
+                  <p className="text-sm font-bold text-navy-700">{c.perfil.nome}</p>
+                  <p className="mt-0.5 text-xs text-muted leading-snug">
                     {[c.perfil.cargo, c.perfil.senioridade,
                       c.perfil.cidade && `${c.perfil.cidade}/${c.perfil.uf}`]
                       .filter(Boolean).join(" · ")}

@@ -434,7 +434,7 @@ function TabelaCard({
 function Linhas({ cabecalho, linhas }: { cabecalho: string[]; linhas: string[][] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-xs">
+      <table className="w-full min-w-[320px] text-xs">
         <thead>
           <tr className="border-b border-navy-100 text-left text-[10px] uppercase tracking-wide text-muted">
             {cabecalho.map((c, i) => (

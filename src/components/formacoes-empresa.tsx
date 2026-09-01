@@ -82,7 +82,7 @@ export function CartaoFormacoesDaEmpresa() {
             </span>
 
             <div className="min-w-[160px] flex-1">
-              <p className="truncate text-sm font-semibold text-navy-700">{f.titulo}</p>
+              <p className="text-sm font-semibold text-navy-700">{f.titulo}</p>
               <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
                 {f.obrigatoria ? (
                   <Badge tone="gold">Obrigatória</Badge>

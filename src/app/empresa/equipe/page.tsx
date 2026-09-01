@@ -175,7 +175,7 @@ function ListaPessoas({
                     <Badge tone="navy"><ShieldCheck size={11} /> Gestor</Badge>
                   )}
                 </p>
-                <p className="truncate text-xs text-muted">
+                <p className="text-xs text-muted leading-snug">
                   {m.cargo ? `${m.cargo} · ` : ""}{m.email}
                 </p>
               </div>
@@ -262,7 +262,7 @@ function ListaPessoas({
           largura="max-w-lg"
           aoFechar={() => setConfirmar(null)}
           rodape={
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="ghost" onClick={() => setConfirmar(null)}>Cancelar</Button>
               <Button
                 variant="primary"
@@ -512,7 +512,7 @@ function ModalConvite({
             >
               <div className="min-w-0 flex-1">
                 <p className="font-mono text-sm font-bold text-navy-700">{c.codigo}</p>
-                {c.email && <p className="truncate text-xs text-muted">{c.email}</p>}
+                {c.email && <p className="text-xs text-muted leading-snug">{c.email}</p>}
               </div>
               <BotaoCopiar codigo={c.codigo} />
             </div>

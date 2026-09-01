@@ -127,7 +127,7 @@ export function ModalCurso({
       subtitulo={editando ? curso!.slug : "Depois de criar, adicione os módulos e as aulas."}
       aoFechar={aoFechar}
       rodape={
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={submeter} disabled={salvando}>
             {salvando ? "Salvando…" : editando ? "Salvar alterações" : "Criar curso"}
@@ -367,7 +367,7 @@ export function ModalModulo({
       aoFechar={aoFechar}
       largura="max-w-lg"
       rodape={
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={submeter} disabled={salvando}>
             {salvando ? "Salvando…" : "Salvar"}
@@ -725,7 +725,7 @@ export function ModalAula({
       aoFechar={aoFechar}
       largura="max-w-3xl"
       rodape={
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={submeter} disabled={salvando || enviandoVideo}>
             {salvando ? "Salvando…" : editando ? "Salvar alterações" : "Criar aula"}
@@ -871,11 +871,11 @@ export function ModalAula({
                     />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-navy-700">
+                    <p className="text-sm font-semibold text-navy-700">
                       {infoVideo.titulo}
                     </p>
                     {infoVideo.canal && (
-                      <p className="mt-0.5 truncate text-xs text-muted">{infoVideo.canal}</p>
+                      <p className="mt-0.5 text-xs text-muted leading-snug">{infoVideo.canal}</p>
                     )}
                   </div>
                   {f.titulo !== infoVideo.titulo && (
@@ -906,7 +906,7 @@ export function ModalAula({
               <button
                 onClick={() => inputArquivo.current?.click()}
                 disabled={enviandoVideo}
-                className="w-full rounded-xl border-2 border-dashed border-navy-200 bg-cream/50 p-8 text-center transition hover:border-gold-400 disabled:opacity-60"
+                className="w-full rounded-xl border-2 border-dashed border-navy-200 bg-cream/50 p-6 text-center transition hover:border-gold-400 disabled:opacity-60 sm:p-8"
               >
                 {enviandoVideo ? (
                   <>

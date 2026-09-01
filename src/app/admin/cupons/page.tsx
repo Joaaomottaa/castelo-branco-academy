@@ -256,7 +256,9 @@ export default function AdminCuponsPage() {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            {/* Sete colunas não cabem em 280px: sem um mínimo, o nome do aluno
+                e a data ficam com duas letras cada — a tabela rola no quadro. */}
+            <table className="w-full min-w-[680px] text-sm">
               <thead>
                 <tr className="border-b border-navy-100 text-left text-[10px] uppercase tracking-wider text-muted">
                   <th className="pb-2 font-semibold">Aluno</th>
@@ -381,7 +383,7 @@ function ModalCupom({
       aoFechar={aoFechar}
       largura="max-w-xl"
       rodape={
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={submeter} disabled={salvando}>
             {salvando ? "Salvando…" : cupom ? "Salvar alterações" : "Criar cupom"}

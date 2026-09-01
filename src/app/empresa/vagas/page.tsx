@@ -181,7 +181,7 @@ export default function VagasDaEmpresa() {
           largura="max-w-lg"
           aoFechar={() => setApagando(null)}
           rodape={
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="ghost" onClick={() => setApagando(null)}>Cancelar</Button>
               <Button
                 onClick={async () => {
@@ -291,7 +291,7 @@ function ModalVaga({
       subtitulo="A vaga aparece no mural de toda a base assim que for salva como aberta."
       aoFechar={aoFechar}
       rodape={
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={() => void salvar()} disabled={salvando}>
             {salvando && <Loader2 size={15} className="animate-spin" />}

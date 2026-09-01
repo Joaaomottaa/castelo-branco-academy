@@ -233,7 +233,7 @@ function CartaoFormacao({ f, aoRemover }: { f: Formacao; aoRemover: () => void }
           largura="max-w-lg"
           aoFechar={() => setConfirmar(false)}
           rodape={
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="ghost" onClick={() => setConfirmar(false)}>Cancelar</Button>
               <Button onClick={() => { setConfirmar(false); aoRemover(); }}>
                 <Trash2 size={15} /> Remover
@@ -302,7 +302,7 @@ function ModalAtribuir({
       largura="max-w-2xl"
       aoFechar={aoFechar}
       rodape={
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={aoFechar}>Cancelar</Button>
           <Button variant="gold" onClick={() => void salvar()} disabled={salvando}>
             {salvando ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}

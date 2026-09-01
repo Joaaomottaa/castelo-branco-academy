@@ -178,8 +178,8 @@ export default function AdminTrilhasPage() {
                     <Route size={19} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-navy-700">{t.nome}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted">
+                    <p className="text-sm font-bold text-navy-700">{t.nome}</p>
+                    <p className="mt-0.5 text-xs text-muted leading-snug">
                       {t.cargoAlvo} · {t.area}
                     </p>
                     <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
@@ -219,7 +219,7 @@ export default function AdminTrilhasPage() {
                       Nenhum curso obrigatório — sem isso o selo nunca é emitido.
                     </p>
                   ) : (
-                    <p className="truncate text-xs text-muted">
+                    <p className="text-xs text-muted leading-snug">
                       Selo emitido ao concluir {obrigatorios} curso
                       {obrigatorios > 1 ? "s" : ""} obrigatório{obrigatorios > 1 ? "s" : ""} ·{" "}
                       {t.habilidades.length} habilidade{t.habilidades.length === 1 ? "" : "s"}
@@ -558,7 +558,7 @@ function ModalTrilha({
                         <span className="shrink-0 rounded-md bg-navy-700 px-2 py-0.5 text-[10px] font-bold text-white">
                           {i + 1}
                         </span>
-                        <span className="min-w-0 flex-1 truncate text-sm text-ink">{c.titulo}</span>
+                        <span className="min-w-0 flex-1 text-sm text-ink leading-snug">{c.titulo}</span>
                         <span className="shrink-0 text-xs text-muted">{c.cargaHoraria}h</span>
                         <label className="flex shrink-0 cursor-pointer items-center gap-1.5">
                           <input
@@ -619,7 +619,7 @@ function ModalTrilha({
                       >
                         {dentro && <Plus size={10} className="rotate-45" />}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-sm text-ink">{c.titulo}</span>
+                      <span className="min-w-0 flex-1 text-sm text-ink leading-snug">{c.titulo}</span>
                       {!c.publicado && <Badge tone="gold">Rascunho</Badge>}
                       <span className="shrink-0 text-xs text-muted">{c.cargaHoraria}h</span>
                     </button>
@@ -668,7 +668,7 @@ function ModalTrilha({
                         }
                         className="h-4 w-4 shrink-0 accent-[#C89F50]"
                       />
-                      <span className="truncate text-sm text-ink">{h.nome}</span>
+                      <span className="text-sm text-ink leading-snug">{h.nome}</span>
                     </label>
                     {atual && (
                       <div className="flex shrink-0 items-center gap-2">

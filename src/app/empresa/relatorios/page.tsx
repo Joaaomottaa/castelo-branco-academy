@@ -188,7 +188,7 @@ function LinhaPessoa({ m }: { m: LinhaRelatorio }) {
         <Avatar nome={m.nome} size={38} />
         <div className="min-w-[180px] flex-1">
           <p className="text-sm font-semibold text-navy-700">{m.nome}</p>
-          <p className="truncate text-xs text-muted">
+          <p className="text-xs text-muted leading-snug">
             {m.cargo ? `${m.cargo} · ` : ""}{m.crc ? `CRC ${m.crc}` : "CRC não informado"}
           </p>
         </div>
