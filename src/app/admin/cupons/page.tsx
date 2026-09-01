@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  BadgePercent, Copy, Check, Infinity as InfinityIcon, Pencil, Plus, RefreshCw,
-  Ticket, Trash2, TrendingDown, Users,
+  BadgePercent, Copy, Check, Infinity as InfinityIcon, MoveHorizontal, Pencil,
+  Plus, RefreshCw, Ticket, Trash2, TrendingDown, Users,
 } from "lucide-react";
 import { Badge, Button, Card, EmptyState, Field, Progress, cn, inputCls } from "@/components/ui";
 import { AvisoErro, ConfirmarExclusao, Modal } from "@/components/modal";
@@ -102,7 +102,7 @@ export default function AdminCuponsPage() {
 
       {erro && <AvisoErro>{erro}</AvisoErro>}
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Resumo icone={<Ticket size={15} />} valor={String(resumo.ativos)} rotulo="Cupons no ar" />
         <Resumo icone={<Users size={15} />} valor={String(resumo.resgates)} rotulo="Resgates" />
         <Resumo
@@ -255,6 +255,11 @@ export default function AdminCuponsPage() {
             Nenhum cupom foi usado ainda. Quando alguém assinar com desconto, aparece aqui.
           </p>
         ) : (
+          <>
+          <p className="flex items-center gap-1.5 pb-2 text-[11px] font-semibold text-muted sm:hidden">
+            <MoveHorizontal size={13} className="text-gold-500" />
+            Arraste a tabela para ver todas as colunas
+          </p>
           <div className="overflow-x-auto">
             {/* Sete colunas não cabem em 280px: sem um mínimo, o nome do aluno
                 e a data ficam com duas letras cada — a tabela rola no quadro. */}
@@ -299,6 +304,7 @@ export default function AdminCuponsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </Card>
 

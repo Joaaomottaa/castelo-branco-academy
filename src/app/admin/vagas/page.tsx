@@ -110,7 +110,7 @@ export default function AdminVagasPage() {
 
       {erro && <AvisoErro>{erro}</AvisoErro>}
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ["Vagas ativas", vagas.filter((v) => v.ativa).length],
           ["Vagas pausadas", vagas.filter((v) => !v.ativa).length],

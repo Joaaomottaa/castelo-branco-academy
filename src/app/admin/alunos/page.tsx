@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Award, Ban, CheckCircle2, Download, ExternalLink, IdCard, Mail,
-  MoreHorizontal, Pencil, RefreshCw, Route, Search, Send, ShieldCheck, User, X,
+  MoreHorizontal, MoveHorizontal, Pencil, RefreshCw, Route, Search, Send,
+  ShieldCheck, User, X,
 } from "lucide-react";
 import { Avatar, Badge, Button, Card, Field, cn, inputCls } from "@/components/ui";
 import { AvisoErro, Modal } from "@/components/modal";
@@ -144,7 +145,7 @@ export default function AdminAlunosPage() {
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ["Total", todos.length],
           ["Contas ativas", todos.filter((l) => l.ativo !== false).length],
@@ -189,6 +190,10 @@ export default function AdminAlunosPage() {
           </span>
         </div>
 
+        <p className="flex items-center gap-1.5 px-4 pb-2 text-[11px] font-semibold text-muted sm:hidden">
+          <MoveHorizontal size={13} className="text-gold-500" />
+          Arraste a tabela para ver plano, progresso e ações
+        </p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>

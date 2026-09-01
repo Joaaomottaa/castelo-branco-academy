@@ -293,9 +293,33 @@ export default function AdminPage() {
               Gerenciar
             </Link>
           </div>
-          {/* Quatro colunas em 280px esmagam o nome do curso até virar duas
-              letras. A tabela mantém um mínimo e rola dentro do próprio quadro. */}
-          <div className="overflow-x-auto">
+          {/* Quatro colunas não cabem em 280px. Rolar a tabela de lado resolve o
+              corte mas deixa o nome do curso pela metade na primeira olhada — e
+              o nome é o que identifica a linha. No celular cada curso vira um
+              bloco com o nome inteiro em cima e os três números embaixo; do
+              `sm` para cima é a mesma tabela de sempre. */}
+          <div className="space-y-3 sm:hidden">
+            {m.cursos.map((c) => (
+              <div key={c.titulo} className="flex items-start gap-2.5">
+                <span className="mt-0.5 h-6 w-6 shrink-0 rounded-md" style={{ background: c.cor }} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-medium leading-snug text-navy-700">{c.titulo}</p>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <Progress value={c.conclusao} className="flex-1" tone={c.conclusao > 65 ? "green" : "gold"} />
+                    <span className="text-[11px] font-semibold tabular-nums text-navy-700">
+                      {c.conclusao}%
+                    </span>
+                  </div>
+                  <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted">
+                    <span className="tabular-nums">{c.alunos.toLocaleString("pt-BR")} alunos</span>
+                    <span className="tabular-nums">nota {c.nota.toFixed(1)}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="border-b border-navy-100 text-left text-[10px] uppercase tracking-wider text-muted">

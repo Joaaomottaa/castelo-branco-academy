@@ -191,7 +191,7 @@ export default function AdminComunicacaoPage() {
         <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-navy-600">
           <Sparkles size={13} className="text-gold-500" /> Comece por um modelo
         </p>
-        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-5">
           {MODELOS.map((m) => (
             <button
               key={m.nome}
