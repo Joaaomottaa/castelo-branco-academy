@@ -68,15 +68,15 @@ export default function VagasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Vagas</h1>
           <p className="mt-1.5 text-sm text-muted">
             Oportunidades de empresas parceiras. O match considera suas certificações,
             habilidades e localização.
           </p>
         </div>
-        <Button href="/empresa/vagas" variant="outline">
+        <Button href="/empresa/vagas" variant="outline" className="w-full sm:w-auto">
           <Building2 size={15} /> Sou empresa: publicar vaga
         </Button>
       </div>
@@ -147,11 +147,19 @@ export default function VagasPage() {
                     >
                       <Building2 size={17} />
                     </span>
+                    {/* O nome da vaga é o que a pessoa lê para decidir se abre.
+                        Numa linha só, dividindo espaço com o logo e o selo de
+                        match, sobravam ~140px: "Analista Fiscal Pleno — Transp…".
+                        Agora o nome quebra e usa quantas linhas precisar. */}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-navy-700">{v.titulo}</p>
-                      <p className="truncate text-xs text-muted">{v.empresa}</p>
+                      <p className="text-sm font-bold leading-snug text-navy-700">{v.titulo}</p>
+                      <p className="text-xs leading-snug text-muted">{v.empresa}</p>
                     </div>
-                    {v.match && <Badge tone={v.match >= 85 ? "green" : "gold"}>{v.match}%</Badge>}
+                    {v.match && (
+                      <span className="shrink-0">
+                        <Badge tone={v.match >= 85 ? "green" : "gold"}>{v.match}%</Badge>
+                      </span>
+                    )}
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
                     <span className="inline-flex items-center gap-1"><MapPin size={11} /> {v.cidade}/{v.uf}</span>
@@ -190,12 +198,12 @@ function DetalheVaga({
   return (
     <Card className="!p-0 lg:sticky lg:top-24 lg:self-start">
       <div
-        className="rounded-t-2xl p-7"
+        className="rounded-t-2xl p-5 sm:p-7"
         style={{ background: `linear-gradient(120deg, ${vaga.logoCor} 0%, #001838 100%)` }}
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-white lg:text-2xl">{vaga.titulo}</h2>
+            <h2 className="text-lg font-bold leading-snug text-white sm:text-xl lg:text-2xl">{vaga.titulo}</h2>
             <p className="mt-1 text-sm text-navy-100/70">
               {vaga.empresa} · {vaga.cidade}/{vaga.uf}
             </p>
@@ -221,13 +229,13 @@ function DetalheVaga({
           ))}
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-navy-100/55">
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-navy-100/55 sm:gap-x-5">
           <span className="inline-flex items-center gap-1.5"><Clock size={12} /> Publicada há {dias} dias</span>
           <span className="inline-flex items-center gap-1.5"><Briefcase size={12} /> {vaga.candidatos} candidatos</span>
         </div>
       </div>
 
-      <div className="space-y-6 p-7">
+      <div className="space-y-6 p-5 sm:p-7">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wide text-navy-700">Sobre a vaga</h3>
           <p className="mt-2.5 text-sm leading-relaxed text-ink">{vaga.descricao}</p>
@@ -262,17 +270,17 @@ function DetalheVaga({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-3 border-t border-navy-100 pt-5">
+        <div className="flex flex-wrap gap-2 border-t border-navy-100 pt-5 sm:gap-3">
           {aplicada ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700">
+            <span className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 sm:w-auto">
               <CheckCircle2 size={16} /> Candidatura enviada
             </span>
           ) : (
-            <Button variant="gold" size="lg" onClick={onCandidatar}>
+            <Button variant="gold" size="lg" onClick={onCandidatar} className="w-full sm:w-auto">
               Candidatar-se em 1 clique
             </Button>
           )}
-          <Button variant="outline" size="lg">Salvar vaga</Button>
+          <Button variant="outline" size="lg" className="w-full sm:w-auto">Salvar vaga</Button>
         </div>
         <p className="text-xs text-muted">
           Ao se candidatar, seu perfil e certificações verificadas são enviados à empresa.

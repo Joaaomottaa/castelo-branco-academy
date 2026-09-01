@@ -55,12 +55,17 @@ export function Barras({
   const passoEixo = valores.length > 24 ? 4 : valores.length > 14 ? 2 : 1;
 
   return (
-    <div>
-      <div className="flex items-end gap-[3px]" style={{ height: altura }}>
+    // O rótulo do eixo ("31/08") dá a cada coluna uma largura mínima de ~26px.
+    // Quatorze colunas não cabem nos 280px de um celular: em vez de deixar as
+    // últimas serem cortadas pela borda do cartão, o gráfico rola de lado com
+    // todas as datas legíveis. Onde couber, o `min-w-full` faz as colunas
+    // ocuparem a largura inteira como antes.
+    <div className="fileira overflow-x-auto">
+      <div className="flex min-w-full items-end gap-[3px]" style={{ height: altura }}>
         {valores.map((v, i) => (
           <div
             key={i}
-            className="flex h-full flex-1 flex-col justify-end"
+            className="flex h-full min-w-[26px] flex-1 flex-col justify-end"
             onMouseEnter={() => setAtivo(i)}
             onMouseLeave={() => setAtivo(null)}
           >
@@ -260,7 +265,7 @@ export function Rosca({
   let acumulado = 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-6">
+    <div className="flex flex-wrap items-center gap-4 sm:gap-6">
       <svg viewBox="0 0 42 42" style={{ width: tamanho, height: tamanho }} className="shrink-0">
         <circle cx="21" cy="21" r={R} fill="none" stroke="#EEF1F5" strokeWidth="5" />
         {fatias.map((f, i) => {
@@ -288,14 +293,17 @@ export function Rosca({
         </text>
       </svg>
 
-      <div className="min-w-[140px] flex-1 space-y-2.5">
+      {/* A legenda tem largura mínima própria. Sem ela, o `flex-1` a espremia
+          ao lado da rosca no celular e a coluna de porcentagem saía do cartão;
+          com o mínimo, o flex-wrap desce a legenda para a linha de baixo. */}
+      <div className="min-w-[170px] flex-1 space-y-2.5">
         {fatias.map((f, i) => (
-          <div key={f.rotulo} className="flex items-center gap-2.5">
+          <div key={f.rotulo} className="flex items-baseline gap-2.5">
             <span
-              className="h-2.5 w-2.5 shrink-0 rounded-sm"
+              className="h-2.5 w-2.5 shrink-0 translate-y-px rounded-sm"
               style={{ background: f.cor ?? CORES_SERIE[i % CORES_SERIE.length] }}
             />
-            <span className="min-w-0 flex-1 truncate text-sm text-ink">{f.rotulo}</span>
+            <span className="min-w-0 flex-1 text-sm leading-snug text-ink">{f.rotulo}</span>
             <span className="shrink-0 text-sm font-bold tabular-nums text-navy-700">{f.valor}</span>
             <span className="w-11 shrink-0 text-right text-xs tabular-nums text-muted">
               {((f.valor / total) * 100).toFixed(0)}%
@@ -351,7 +359,7 @@ export function Funil({
                 >
                   {((passagem ?? 0) * 100).toFixed(1)}%
                 </span>
-                <span className="truncate text-muted">
+                <span className="leading-snug text-muted">
                   {perda < 0
                     ? `${Math.abs(perda).toLocaleString("pt-BR")} a mais que a etapa anterior`
                     : `${perda.toLocaleString("pt-BR")} ficam pelo caminho`}
@@ -361,7 +369,7 @@ export function Funil({
 
             <div className="group">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="truncate text-xs font-semibold text-navy-700">{e.rotulo}</span>
+                <span className="text-xs font-semibold leading-snug text-navy-700">{e.rotulo}</span>
                 <span className="shrink-0 text-sm font-bold tabular-nums text-navy-700">
                   {e.valor.toLocaleString("pt-BR")}
                 </span>
@@ -379,7 +387,7 @@ export function Funil({
                 />
               </div>
               {e.nota && (
-                <p className="mt-0.5 truncate text-[10px] text-muted opacity-0 transition group-hover:opacity-100">
+                <p className="mt-0.5 text-[10px] leading-snug text-muted opacity-0 transition group-hover:opacity-100">
                   {e.nota}
                 </p>
               )}
@@ -418,7 +426,9 @@ export function BarrasRanking({
       {itens.map((i, k) => (
         <div key={i.rotulo}>
           <div className="mb-1 flex items-baseline justify-between gap-3">
-            <span className="min-w-0 truncate text-sm text-ink">
+            {/* O nome da ferramenta é o dado do ranking: cortado ele deixa de
+                responder a pergunta que a lista existe para responder. */}
+            <span className="min-w-0 text-sm leading-snug text-ink">
               <span className="mr-2 text-xs font-bold text-navy-300">{k + 1}</span>
               {i.rotulo}
             </span>

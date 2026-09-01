@@ -221,18 +221,18 @@ function Talentos() {
                     <div className="flex items-start gap-3.5">
                       <Avatar nome={t.nome} size={48} />
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-start gap-1.5">
                           <Link
                             href={`/app/talentos/${t.id}`}
-                            className="truncate text-sm font-bold text-navy-700 hover:text-gold-600"
+                            className="text-sm font-bold leading-snug text-navy-700 hover:text-gold-600"
                           >
                             {t.nome}
                           </Link>
-                          <BadgeCheck size={15} className="shrink-0 text-gold-500" />
+                          <BadgeCheck size={15} className="mt-0.5 shrink-0 text-gold-500" />
                         </div>
-                        <p className="truncate text-xs text-muted">{t.cargo}</p>
-                        <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted">
-                          <MapPin size={11} /> {t.cidade}/{t.uf}
+                        <p className="text-xs leading-snug text-muted">{t.cargo}</p>
+                        <p className="mt-1 flex items-center gap-1 text-xs leading-snug text-muted">
+                          <MapPin size={11} className="shrink-0" /> {t.cidade}/{t.uf}
                         </p>
                       </div>
                       <button

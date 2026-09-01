@@ -584,18 +584,20 @@ function Kpi({
     navy: "bg-navy-50 text-navy-600",
   }[tom];
 
+  // Mesmo desenho dos outros indicadores do app: no celular o ícone sobe e o
+  // rótulo fica com a largura inteira, senão vira "o seu plano de est…".
   return (
-    <Card className="!p-4">
-      <div className="flex items-center gap-3">
-        <span className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl", cores)}>
+    <Card className="!p-3.5 sm:!p-4">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-3">
+        <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10", cores)}>
           {icone}
         </span>
         <div className="min-w-0">
-          <p className="text-xl font-bold text-navy-700">{valor}</p>
-          <p className="text-[11px] text-muted">{rotulo}</p>
+          <p className="text-lg font-bold leading-tight text-navy-700 sm:text-xl">{valor}</p>
+          <p className="text-[11px] leading-tight text-muted">{rotulo}</p>
         </div>
       </div>
-      {detalhe && <p className="mt-2 truncate text-[11px] text-muted">{detalhe}</p>}
+      {detalhe && <p className="mt-2 text-[11px] leading-snug text-muted">{detalhe}</p>}
     </Card>
   );
 }

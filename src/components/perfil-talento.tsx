@@ -91,14 +91,14 @@ export function PerfilTalento({
   return (
     <div className="space-y-6">
       {/* Cabeçalho */}
-      <div className="brand-gradient relative overflow-hidden rounded-2xl p-7 lg:p-9">
+      <div className="brand-gradient relative overflow-hidden rounded-2xl p-5 sm:p-7 lg:p-9">
         <div className="grid-lines absolute inset-0" />
         <div className="relative flex flex-wrap items-start gap-6">
           <Avatar nome={talento.nome} size={84} cor="#C89F50" />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-white lg:text-3xl">{talento.nome}</h1>
+              <h1 className="text-xl font-bold leading-snug text-white sm:text-2xl lg:text-3xl">{talento.nome}</h1>
               {trilhas.length > 0 && <BadgeCheck size={20} className="text-gold-400" />}
               {modoAdmin && talento.ativo === false && (
                 <span className="rounded-full border border-red-400/40 bg-red-400/15 px-3 py-1 text-[11px] font-bold text-red-200">
@@ -238,7 +238,7 @@ export function PerfilTalento({
                   return (
                     <div
                       key={c.id}
-                      className="flex items-center gap-3.5 rounded-xl border border-navy-100 p-3.5"
+                      className="flex items-start gap-3 rounded-xl border border-navy-100 p-3 sm:items-center sm:gap-3.5 sm:p-3.5"
                     >
                       <span
                         className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white"
@@ -247,14 +247,16 @@ export function PerfilTalento({
                         <Award size={17} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-navy-700">
+                        <p className="text-sm font-semibold leading-snug text-navy-700">
                           {c.cursoTitulo}
                         </p>
-                        <p className="text-xs text-muted">
+                        <p className="text-xs leading-snug text-muted">
                           {c.cargaHoraria}h · {c.pontosPEPC} pts PEPC · código {c.codigo}
                         </p>
                       </div>
-                      <Badge tone="green">Verificado</Badge>
+                      <span className="shrink-0">
+                        <Badge tone="green">Verificado</Badge>
+                      </span>
                     </div>
                   );
                 })}
@@ -443,7 +445,7 @@ function LinhaContato({
           <span className="block text-[10px] font-bold uppercase tracking-wider text-muted">
             {rotulo}
           </span>
-          <span className="block truncate text-sm font-semibold text-navy-700">{valor}</span>
+          <span className="block break-all text-sm font-semibold leading-snug text-navy-700">{valor}</span>
         </span>
       </a>
 
@@ -501,7 +503,7 @@ function ModalMensagem({
         className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-navy-100 px-6 py-5">
+        <div className="flex items-start justify-between gap-3 border-b border-navy-100 px-5 py-4 sm:gap-4 sm:px-6 sm:py-5">
           <div>
             <h2 className="text-lg font-bold text-navy-700">Entrar em contato</h2>
             <p className="mt-0.5 text-xs text-muted">
@@ -513,7 +515,7 @@ function ModalMensagem({
           </button>
         </div>
 
-        <div className="space-y-4 p-6">
+        <div className="space-y-4 p-5 sm:p-6">
           {enviado ? (
             <p className="flex items-center justify-center gap-2 py-6 text-sm font-semibold text-emerald-600">
               <CheckCircle2 size={18} /> Mensagem enviada
@@ -558,7 +560,7 @@ function ModalMensagem({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-navy-100 px-6 py-4">
+        <div className="flex flex-wrap justify-end gap-2 border-t border-navy-100 px-5 py-4 sm:px-6">
           <button
             onClick={aoFechar}
             className="rounded-full px-5 py-2.5 text-sm font-semibold text-navy-700 transition hover:bg-navy-50"

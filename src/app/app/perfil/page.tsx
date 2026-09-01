@@ -331,8 +331,8 @@ export default function PerfilPage() {
               <div className="flex items-center gap-3">
                 <Avatar nome={form.nome || "Aluno"} size={40} />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-navy-700">{form.nome || "Seu nome"}</p>
-                  <p className="truncate text-xs text-muted">
+                  <p className="text-sm font-bold leading-snug text-navy-700">{form.nome || "Seu nome"}</p>
+                  <p className="text-xs leading-snug text-muted">
                     {form.cargo || "Seu cargo"} · {endereco.cidade || "Cidade"}/{endereco.uf || "UF"}
                   </p>
                 </div>

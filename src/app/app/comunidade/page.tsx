@@ -305,8 +305,8 @@ export default function ComunidadePage() {
                   <div key={c.id} className="flex items-center gap-3">
                     <Avatar nome={c.nome} size={36} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-navy-700">{c.nome}</p>
-                      <p className="truncate text-xs text-muted">{c.cargo}</p>
+                      <p className="text-sm font-semibold leading-snug text-navy-700">{c.nome}</p>
+                      <p className="text-xs leading-snug text-muted">{c.cargo}</p>
                     </div>
                     <div className="flex shrink-0 gap-1">
                       <button
@@ -348,8 +348,8 @@ export default function ComunidadePage() {
                 <Link key={c.id} href={`/app/talentos/${c.perfilId}`} className="flex items-center gap-3 rounded-lg p-1.5 transition hover:bg-cream">
                   <Avatar nome={c.nome} size={32} />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-navy-700">{c.nome}</p>
-                    <p className="truncate text-[11px] text-muted">{c.cargo}</p>
+                    <p className="text-sm font-medium leading-snug text-navy-700">{c.nome}</p>
+                    <p className="text-[11px] leading-snug text-muted">{c.cargo}</p>
                   </div>
                 </Link>
               ))}
@@ -371,11 +371,14 @@ export default function ComunidadePage() {
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/app/talentos/${t.id}`}
-                      className="block truncate text-sm font-semibold text-navy-700 hover:text-gold-600"
+                      className="block text-sm font-semibold leading-snug text-navy-700 hover:text-gold-600"
                     >
                       {t.nome}
                     </Link>
-                    <p className="truncate text-[11px] text-muted">
+                    {/* Cargo mais cidade não cabe numa linha de 180px; cortado,
+                        sobra "Analista Fiscal · Feira de Santa…" e a informação
+                        que interessa (onde a pessoa está) some. */}
+                    <p className="text-[11px] leading-snug text-muted">
                       {t.cargo} · {t.cidade}/{t.uf}
                     </p>
                   </div>

@@ -293,7 +293,7 @@ function SimuladoCard({
         </span>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-navy-700">{simulado.nome}</p>
+          <p className="text-sm font-bold leading-snug text-navy-700">{simulado.nome}</p>
           <p className="mt-0.5 text-xs text-muted">
             {simulado.acertos} de {simulado.total} ·{" "}
             {simulado.finalizadoEm
