@@ -121,7 +121,10 @@ export default function AulaPage({
 
         {/* Cabeçalho da aula */}
         <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
-          <div className="min-w-0 flex-1">
+          {/* Sem `flex-1`: o bloco de texto toma a largura do próprio título e
+              a linha quebra quando as ações não cabem ao lado — se ele pudesse
+              esticar, as ações espremiam o título até uma palavra por linha. */}
+          <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-gold-500">
               {aula.moduloTitulo}
             </p>

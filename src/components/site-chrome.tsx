@@ -185,7 +185,7 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="folga-tino mx-auto flex max-w-7xl flex-col gap-2 px-5 pt-5 text-xs text-navy-100/50 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 pb-24 pt-5 text-xs text-navy-100/50 sm:flex-row sm:items-center sm:justify-between sm:pb-5 lg:px-8">
           <p>© {new Date().getFullYear()} Castelo Branco Contabilidade Avançada. Todos os direitos reservados.</p>
           <p>Protótipo de MVP · dados de demonstração</p>
         </div>

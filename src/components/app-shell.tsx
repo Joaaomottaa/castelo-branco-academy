@@ -426,7 +426,11 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="folga-tino min-w-0 max-w-full overflow-x-clip px-3 pt-5 sm:px-5 sm:pt-8 lg:px-8">{children}</main>
+        {/* O `pb-24` é a altura do botão do Tino, que é fixo no canto de baixo:
+            sem essa reserva ele cobria o último cartão de toda tela no celular.
+            No desktop ele fica no vão da direita e a folga volta a ser a de
+            sempre. */}
+        <main className="min-w-0 max-w-full overflow-x-clip px-3 pb-24 pt-5 sm:px-5 sm:pb-8 sm:pt-8 lg:px-8">{children}</main>
       </div>
 
     </div>

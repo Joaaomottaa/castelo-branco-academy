@@ -172,16 +172,3 @@ body {
 .fileira::-webkit-scrollbar {
   display: none;
 }
-
-/* Espaço para o botão do Tino.
-   Ele é fixo no canto de baixo à direita (56px + 20px de folga). Sem esta
-   reserva ele cobria o último cartão de toda tela — e no celular o último
-   cartão costuma ser justamente o botão de ação da página. */
-.folga-tino {
-  padding-bottom: 6rem;
-}
-@media (min-width: 640px) {
-  .folga-tino {
-    padding-bottom: 7rem;
-  }
-}
