@@ -115,7 +115,7 @@ export default function RevisarPage() {
   /* ------------------------------------------------------------- cabeçalho */
   const cabecalho = (
     <div className="flex flex-wrap items-end justify-between gap-4">
-      <div>
+      <div className="min-w-0">
         <Link
           href="/app/questoes"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted transition hover:text-gold-600"
@@ -123,7 +123,7 @@ export default function RevisarPage() {
           <ArrowLeft size={14} /> Banco de questões
         </Link>
         <h1 className="mt-2 flex items-center gap-2.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
-          <RotateCcw size={26} className="text-gold-500" /> Revisar hoje
+          <RotateCcw size={26} className="shrink-0 text-gold-500" /> Revisar hoje
         </h1>
         <p className="mt-1.5 max-w-xl text-sm text-muted">
           As questões que você errou voltam em intervalos crescentes — 1, 3, 7, 14 e
@@ -171,9 +171,21 @@ export default function RevisarPage() {
             O que você acertou volta mais tarde; o que errou volta amanhã. Não
             precisa marcar nada: a fila se refaz sozinha a cada resposta.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button href="/app/questoes" variant="gold">Praticar questões novas</Button>
-            <Button href="/app" variant="outline">Voltar ao painel</Button>
+          <div className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3">
+            <Button
+              href="/app/questoes"
+              variant="gold"
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
+              Praticar questões novas
+            </Button>
+            <Button
+              href="/app"
+              variant="outline"
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
+              Voltar ao painel
+            </Button>
           </div>
         </Card>
       </div>
@@ -254,7 +266,13 @@ export default function RevisarPage() {
       />
 
       <div className={cn("flex justify-end", !respondida && "opacity-40")}>
-        <Button variant="gold" size="lg" onClick={avancar} disabled={!respondida}>
+        <Button
+          variant="gold"
+          size="lg"
+          onClick={avancar}
+          disabled={!respondida}
+          className="w-full sm:w-auto"
+        >
           {i + 1 >= total ? "Encerrar revisão" : "Próxima questão"} <ArrowRight size={16} />
         </Button>
       </div>

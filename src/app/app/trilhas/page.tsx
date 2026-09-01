@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight, Award, BadgeCheck, Briefcase, CheckCircle2, Circle, Clock,
-  Route, Target, Wallet,
+  MoveHorizontal, Route, Target, Wallet,
 } from "lucide-react";
-import { Badge, Button, Card, EmptyState, Progress, SectionTitle, cn } from "@/components/ui";
+import {
+  Badge, Button, Card, EmptyState, Progress, SectionTitle, cn, fileiraCls, fileiraItemCls,
+} from "@/components/ui";
 import { useDados } from "@/lib/dados";
 import { useSession } from "@/lib/session";
 import type { Trilha } from "@/lib/types";
@@ -77,16 +79,25 @@ export default function TrilhasPage() {
           action={<Button href="/app/cursos" variant="outline">Ver cursos</Button>}
         />
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div>
+          {/* Empilhadas, duas trilhas nunca apareciam juntas na tela do celular
+              — e escolher trilha é comparar cargo, carga e sequência. Deitadas
+              na fileira o vizinho fica à vista; do `sm` para cima é a mesma
+              grade de antes. */}
+          <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+            <MoveHorizontal size={13} className="text-gold-500" />
+            Arraste para o lado para comparar as trilhas
+          </p>
+          <div className={cn(fileiraCls, "sm:gap-6 lg:grid-cols-2")}>
           {lista.map((t) => {
             const { pct, concluidos } = progressoDaTrilha(t);
             const completa = trilhasFeitas.has(t.slug);
 
             return (
-              <Card key={t.slug} hover className="!p-0 overflow-hidden">
+              <Card key={t.slug} hover className={cn(fileiraItemCls, "!p-0 overflow-hidden")}>
                 {/* Cabeçalho */}
                 <div
-                  className="relative p-6"
+                  className="relative p-5 sm:p-6"
                   style={{ background: `linear-gradient(125deg, ${t.cor} 0%, #001838 100%)` }}
                 >
                   <div className="grid-lines absolute inset-0" />
@@ -103,7 +114,7 @@ export default function TrilhasPage() {
                       )}
                     </div>
 
-                    <h2 className="mt-3.5 text-xl font-bold leading-snug text-white">
+                    <h2 className="mt-3.5 text-lg font-bold leading-snug text-white sm:text-xl">
                       {t.nome}
                     </h2>
                     <p className="mt-1.5 text-sm text-navy-100/70">{t.subtitulo}</p>
@@ -140,25 +151,32 @@ export default function TrilhasPage() {
                 </div>
 
                 {/* Sequência de cursos */}
-                <div className="p-6">
+                <div className="p-5 sm:p-6">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
                     Sequência
                   </p>
                   <ol className="mt-3 space-y-2.5">
                     {t.cursos.map((c) => {
                       const ok = feitos.has(c.slug);
+                      // Carga e selo disputavam a linha com o nome do curso e
+                      // sobravam ~60px para ele: descem para baixo do nome,
+                      // alinhados com ele, e voltam à linha no `sm`.
                       return (
-                        <li key={c.slug} className="flex items-start gap-2.5 text-sm">
-                          {ok ? (
-                            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-500" />
-                          ) : (
-                            <Circle size={16} className="mt-0.5 shrink-0 text-navy-200" />
-                          )}
-                          <span className={cn("flex-1", ok ? "text-muted line-through" : "text-ink")}>
-                            {c.titulo}
+                        <li key={c.slug} className="flex flex-col gap-1.5 text-sm sm:flex-row sm:items-start sm:gap-2.5">
+                          <span className="flex min-w-0 flex-1 items-start gap-2.5">
+                            {ok ? (
+                              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-500" />
+                            ) : (
+                              <Circle size={16} className="mt-0.5 shrink-0 text-navy-200" />
+                            )}
+                            <span className={cn("min-w-0 flex-1 leading-snug", ok ? "text-muted line-through" : "text-ink")}>
+                              {c.titulo}
+                            </span>
                           </span>
-                          <span className="shrink-0 text-xs text-muted">{c.cargaHoraria}h</span>
-                          {!c.obrigatorio && <Badge tone="muted">opcional</Badge>}
+                          <span className="flex shrink-0 items-center gap-2.5 pl-[26px] sm:pl-0">
+                            <span className="text-xs text-muted">{c.cargaHoraria}h</span>
+                            {!c.obrigatorio && <Badge tone="muted">opcional</Badge>}
+                          </span>
                         </li>
                       );
                     })}
@@ -185,12 +203,13 @@ export default function TrilhasPage() {
               </Card>
             );
           })}
+          </div>
         </div>
       )}
 
       {/* Explicação do valor */}
       <Card className="!border-gold-200 !bg-gold-50">
-        <div className="flex flex-wrap items-start gap-4">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-start">
           <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-gold-500">
             <Target size={20} />
           </span>

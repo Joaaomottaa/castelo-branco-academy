@@ -62,7 +62,7 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
 
       {/* Capa */}
       <div
-        className="relative overflow-hidden rounded-2xl p-8 lg:p-10"
+        className="relative overflow-hidden rounded-2xl p-5 sm:p-8 lg:p-10"
         style={{ background: `linear-gradient(125deg, ${trilha.cor} 0%, #001838 100%)` }}
       >
         <div className="grid-lines absolute inset-0" />
@@ -79,17 +79,17 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
             )}
           </div>
 
-          <h1 className="mt-4 text-balance text-3xl font-bold leading-tight text-white lg:text-4xl">
+          <h1 className="mt-4 text-balance text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl">
             {trilha.nome}
           </h1>
-          <p className="mt-3 text-base text-navy-100/75">{trilha.subtitulo}</p>
+          <p className="mt-3 text-[15px] text-navy-100/75 sm:text-base">{trilha.subtitulo}</p>
           {trilha.descricao && (
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-navy-100/60">
               {trilha.descricao}
             </p>
           )}
 
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-navy-100/70">
+          <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] text-navy-100/70 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6">
             <span className="inline-flex items-center gap-1.5"><Briefcase size={14} className="text-gold-400" /> {trilha.cargoAlvo}</span>
             <span className="inline-flex items-center gap-1.5"><Clock size={14} className="text-gold-400" /> {trilha.cargaHoraria}h</span>
             <span className="inline-flex items-center gap-1.5"><Award size={14} className="text-gold-400" /> {trilha.pontosPEPC} pts PEPC</span>
@@ -100,12 +100,17 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             {proxima?.curso ? (
-              <Button href={`/app/cursos/${proxima.slug}`} variant="gold" size="lg">
+              <Button
+                href={`/app/cursos/${proxima.slug}`}
+                variant="gold"
+                size="lg"
+                className="w-full sm:w-auto"
+              >
                 <PlayCircle size={17} />
                 {pctGeral > 0 ? "Continuar de onde parou" : "Começar a trilha"}
               </Button>
             ) : (
-              <Button href="/app/certificados" variant="gold" size="lg">
+              <Button href="/app/certificados" variant="gold" size="lg" className="w-full sm:w-auto">
                 <Award size={17} /> Ver meu selo
               </Button>
             )}
@@ -119,7 +124,7 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
         {/* Etapas */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <h2 className="text-lg font-bold text-navy-700">Caminho da trilha</h2>
             <span className="text-sm text-muted">
               {concluidos} de {obrigatorios.length} obrigatórios
@@ -128,7 +133,7 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
 
           <div className="relative space-y-3 border-l-2 border-navy-100 pl-0">
             {etapas.map((e, i) => (
-              <div key={e.slug} className="relative pl-8">
+              <div key={e.slug} className="relative pl-6 sm:pl-8">
                 <span
                   className={cn(
                     "absolute -left-[9px] top-6 flex h-4 w-4 items-center justify-center rounded-full border-[3px] border-cream",
@@ -136,39 +141,44 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
                   )}
                 />
                 <Card hover className={cn(e.concluido && "!bg-emerald-50/40")}>
-                  <div className="flex flex-wrap items-start gap-4">
-                    <span
-                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
-                      style={{ background: e.curso?.cor ?? trilha.cor }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
+                  {/* Número, nome e botão na mesma linha deixavam ~60px para o
+                      nome do curso no celular; o botão desce e ocupa a linha. */}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-4">
+                    <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
+                      <span
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
+                        style={{ background: e.curso?.cor ?? trilha.cor }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-bold text-navy-700">{e.titulo}</h3>
-                        {e.concluido && <Badge tone="green"><CheckCircle2 size={10} /> Concluído</Badge>}
-                        {!e.obrigatorio && <Badge tone="muted">Opcional</Badge>}
-                      </div>
-                      <p className="mt-1 text-xs text-muted">
-                        {e.curso?.subtitulo ?? `${e.cargaHoraria} horas`}
-                      </p>
-
-                      {e.total > 0 && (
-                        <div className="mt-3">
-                          <div className="mb-1.5 flex justify-between text-[11px] text-muted">
-                            <span>{e.feitas}/{e.total} aulas</span>
-                            <span className="font-semibold text-navy-700">{e.pct}%</span>
-                          </div>
-                          <Progress value={e.pct} tone={e.concluido ? "green" : "gold"} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-bold text-navy-700">{e.titulo}</h3>
+                          {e.concluido && <Badge tone="green"><CheckCircle2 size={10} /> Concluído</Badge>}
+                          {!e.obrigatorio && <Badge tone="muted">Opcional</Badge>}
                         </div>
-                      )}
+                        <p className="mt-1 text-xs text-muted">
+                          {e.curso?.subtitulo ?? `${e.cargaHoraria} horas`}
+                        </p>
+
+                        {e.total > 0 && (
+                          <div className="mt-3">
+                            <div className="mb-1.5 flex justify-between text-[11px] text-muted">
+                              <span>{e.feitas}/{e.total} aulas</span>
+                              <span className="font-semibold text-navy-700">{e.pct}%</span>
+                            </div>
+                            <Progress value={e.pct} tone={e.concluido ? "green" : "gold"} />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <Button
                       href={`/app/cursos/${e.slug}`}
                       variant={e.concluido ? "outline" : "primary"}
                       size="sm"
+                      className="w-full sm:w-auto"
                     >
                       {e.concluido ? "Revisar" : e.pct > 0 ? "Continuar" : "Começar"}
                     </Button>
@@ -178,7 +188,7 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
             ))}
 
             {/* Selo final */}
-            <div className="relative pl-8">
+            <div className="relative pl-6 sm:pl-8">
               <span
                 className={cn(
                   "absolute -left-[9px] top-6 flex h-4 w-4 items-center justify-center rounded-full border-[3px] border-cream",
@@ -186,24 +196,28 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
                 )}
               />
               <Card className={cn(certTrilha ? "!border-gold-300 !bg-gold-50" : "!border-dashed")}>
-                <div className="flex items-center gap-4">
-                  <span
-                    className={cn(
-                      "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
-                      certTrilha ? "gold-gradient text-navy-800" : "bg-navy-50 text-navy-300"
-                    )}
-                  >
-                    <BadgeCheck size={20} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-navy-700">
-                      Selo {trilha.cargoAlvo}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {certTrilha
-                        ? `Emitido em ${new Date(certTrilha.emitidoEm).toLocaleDateString("pt-BR")} · código ${certTrilha.codigo}`
-                        : `Conclua os ${obrigatorios.length} cursos obrigatórios para liberar o selo`}
-                    </p>
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                    <span
+                      className={cn(
+                        "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                        certTrilha ? "gold-gradient text-navy-800" : "bg-navy-50 text-navy-300"
+                      )}
+                    >
+                      <BadgeCheck size={20} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-navy-700">
+                        Selo {trilha.cargoAlvo}
+                      </p>
+                      {/* O código do certificado é uma palavra só: sem quebra ele
+                          passava da borda do cartão no celular. */}
+                      <p className="mt-0.5 break-words text-xs text-muted">
+                        {certTrilha
+                          ? `Emitido em ${new Date(certTrilha.emitidoEm).toLocaleDateString("pt-BR")} · código ${certTrilha.codigo}`
+                          : `Conclua os ${obrigatorios.length} cursos obrigatórios para liberar o selo`}
+                      </p>
+                    </div>
                   </div>
                   {certTrilha && <Badge tone="gold">Válido</Badge>}
                 </div>
@@ -216,7 +230,7 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
         <div className="space-y-5">
           <Card>
             <h3 className="text-sm font-bold text-navy-700">Seu progresso</h3>
-            <p className="mt-3 text-3xl font-bold text-navy-700">{pctGeral}%</p>
+            <p className="mt-3 text-2xl font-bold text-navy-700 sm:text-3xl">{pctGeral}%</p>
             <Progress value={pctGeral} className="mt-3" />
             <p className="mt-2 text-xs text-muted">
               {concluidos} de {obrigatorios.length} cursos obrigatórios concluídos
@@ -250,8 +264,8 @@ export default function TrilhaPage({ params }: { params: Promise<{ slug: string 
                 {vagasCompativeis.map((v) => (
                   <Link key={v.id} href="/app/vagas" className="block">
                     <div className="rounded-xl border border-navy-100 p-3.5 transition hover:border-gold-300">
-                      <p className="truncate text-sm font-semibold text-navy-700">{v.titulo}</p>
-                      <p className="mt-0.5 truncate text-xs text-muted">
+                      <p className="line-clamp-2 text-sm font-semibold leading-snug text-navy-700">{v.titulo}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted">
                         {v.empresa} · {v.cidade}/{v.uf}
                       </p>
                       <p className="mt-1.5 text-xs font-semibold text-gold-600">{v.faixa}</p>

@@ -366,7 +366,7 @@ function QuestoesPage() {
             {pct >= 70 ? <CheckCircle2 size={30} /> : <Target size={30} />}
           </span>
           <p className="eyebrow text-gold-500">{modo === "simulado" ? "Simulado concluído" : "Prática concluída"}</p>
-          <h1 className="mt-2 text-4xl font-bold text-navy-700">{pct}%</h1>
+          <h1 className="mt-2 text-3xl font-bold text-navy-700 sm:text-4xl">{pct}%</h1>
           <p className="mt-2 text-sm text-muted">
             {acertos} acerto{acertos === 1 ? "" : "s"} em {total} questõe{total === 1 ? "m" : "s"}
           </p>
@@ -380,11 +380,19 @@ function QuestoesPage() {
                 : "Vale revisitar o curso da área antes de tentar de novo — errar aqui é barato, no cliente não."}
           </p>
 
-          <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Button variant="gold" onClick={() => comecar(modo)}>
+          <div className="mt-7 flex flex-wrap justify-center gap-2 sm:gap-3">
+            <Button
+              variant="gold"
+              onClick={() => comecar(modo)}
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
               <RotateCcw size={15} /> Refazer
             </Button>
-            <Button variant="outline" onClick={() => { setIniciada(false); setFinalizado(false); }}>
+            <Button
+              variant="outline"
+              onClick={() => { setIniciada(false); setFinalizado(false); }}
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
               Voltar aos filtros
             </Button>
           </div>
@@ -417,12 +425,13 @@ function QuestoesPage() {
                     value={nomeSimulado}
                     onChange={(e) => setNomeSimulado(e.target.value)}
                     placeholder="Nome do simulado"
-                    className={inputCls + " flex-1"}
+                    className={inputCls + " sm:flex-1"}
                   />
                   <Button
                     variant="gold"
                     onClick={guardarSimulado}
                     disabled={salvandoSim || modoDemo}
+                    className="w-full sm:w-auto"
                   >
                     {salvandoSim ? "Salvando…" : "Salvar"}
                   </Button>
@@ -490,8 +499,8 @@ function QuestoesPage() {
         <Progress value={((indice + 1) / filtradas.length) * 100} />
 
         {!pago && (
-          <div className="flex items-center gap-2.5 rounded-xl border border-gold-200 bg-gold-50 px-4 py-2.5 text-xs font-semibold text-gold-600">
-            <AlertCircle size={14} />
+          <div className="flex items-start gap-2.5 rounded-xl border border-gold-200 bg-gold-50 px-3.5 py-2.5 text-xs font-semibold text-gold-600 sm:items-center sm:px-4">
+            <AlertCircle size={14} className="mt-0.5 shrink-0 sm:mt-0" />
             Plano gratuito: {restantesHoje === Infinity ? "" : `${restantesHoje} questõe${restantesHoje === 1 ? "m" : "s"} restante${restantesHoje === 1 ? "" : "s"} hoje`}
           </div>
         )}
@@ -526,7 +535,7 @@ function QuestoesPage() {
                   disabled={respondida}
                   onClick={() => setRespostas((r) => ({ ...r, [atual.id]: alt.id }))}
                   className={cn(
-                    "flex w-full items-start gap-3.5 rounded-xl border p-4 text-left transition",
+                    "flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition sm:gap-3.5 sm:p-4",
                     mostrar && eCorreta && "border-emerald-300 bg-emerald-50",
                     mostrar && marcada && !eCorreta && "border-red-300 bg-red-50",
                     mostrar && !eCorreta && !marcada && "border-navy-100 opacity-60",
@@ -611,26 +620,44 @@ function QuestoesPage() {
             </div>
           )}
 
-          {/* Navegação */}
-          <div className="mt-6 flex items-center justify-between gap-3 border-t border-navy-100 pt-5">
+          {/* Navegação
+              "Anterior" mais "Confirmar resposta" somam mais que os 280px
+              úteis do celular, e a segunda escorregava para fora do cartão.
+              Meia largura para cada uma; do `sm` para cima voltam ao tamanho
+              natural. */}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-navy-100 pt-5 sm:gap-3">
             <Button
               variant="ghost"
               onClick={() => setIndice((i) => Math.max(0, i - 1))}
               disabled={indice === 0}
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
             >
               <ArrowLeft size={15} /> Anterior
             </Button>
 
             {!respondida ? (
-              <Button variant="primary" onClick={confirmar} disabled={!escolha || bloqueado}>
+              <Button
+                variant="primary"
+                onClick={confirmar}
+                disabled={!escolha || bloqueado}
+                className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+              >
                 {bloqueado ? "Limite diário atingido" : "Confirmar resposta"}
               </Button>
             ) : indice === filtradas.length - 1 ? (
-              <Button variant="gold" onClick={finalizar}>
+              <Button
+                variant="gold"
+                onClick={finalizar}
+                className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+              >
                 Ver resultado <ArrowRight size={15} />
               </Button>
             ) : (
-              <Button variant="gold" onClick={() => setIndice((i) => i + 1)}>
+              <Button
+                variant="gold"
+                onClick={() => setIndice((i) => i + 1)}
+                className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+              >
                 Próxima <ArrowRight size={15} />
               </Button>
             )}
@@ -673,8 +700,8 @@ function QuestoesPage() {
   /* ========================================================= tela de filtros */
   return (
     <div className="space-y-7">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:items-end sm:gap-4">
+        <div className="min-w-0">
           <p className="eyebrow text-gold-500">Banco de questões</p>
           <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">
             Praticar é mais barato que errar no cliente
@@ -684,14 +711,26 @@ function QuestoesPage() {
             gestão. Filtre, pratique e monte simulados com correção comentada.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button href="/app/questoes/resultados" variant="gold">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          <Button
+            href="/app/questoes/resultados"
+            variant="gold"
+            className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+          >
             <BarChart3 size={15} /> Meus resultados
           </Button>
-          <Button href="/app/questoes/simulados" variant="outline">
+          <Button
+            href="/app/questoes/simulados"
+            variant="outline"
+            className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+          >
             <TrendingUp size={15} /> Meus simulados
           </Button>
-          <Button href="/app/questoes/cadernos" variant="outline">
+          <Button
+            href="/app/questoes/cadernos"
+            variant="outline"
+            className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+          >
             <NotebookPen size={15} /> Meus cadernos
           </Button>
         </div>
@@ -702,9 +741,9 @@ function QuestoesPage() {
       {!pago && (
         <Card className="!border-gold-200 !bg-gold-50">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
+            <div className="flex min-w-0 items-start gap-3">
               <Lock size={18} className="mt-0.5 shrink-0 text-gold-500" />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-navy-700">
                   Plano gratuito: {limites.questoesPorDia} questões por dia
                 </p>
@@ -714,7 +753,7 @@ function QuestoesPage() {
                 </p>
               </div>
             </div>
-            <Button href="/app/planos" variant="gold" size="sm">
+            <Button href="/app/planos" variant="gold" size="sm" className="w-full sm:w-auto">
               Ver planos <ArrowRight size={13} />
             </Button>
           </div>
@@ -837,6 +876,7 @@ function QuestoesPage() {
               variant="primary"
               onClick={() => { setBuscou(true); setPagina(1); }}
               disabled={filtradas.length === 0}
+              className="w-full sm:w-auto"
             >
               <Search size={15} /> Buscar questões
             </Button>
@@ -876,7 +916,12 @@ function QuestoesPage() {
                   do assunto abrem embaixo de cada questão.
                 </p>
               </div>
-              <Button variant="gold" onClick={() => comecar("simulado")} disabled={bloqueado}>
+              <Button
+                variant="gold"
+                onClick={() => comecar("simulado")}
+                disabled={bloqueado}
+                className="w-full sm:w-auto"
+              >
                 <TrendingUp size={15} /> Modo simulado
               </Button>
             </div>
@@ -979,26 +1024,38 @@ function BloqueioPlano({ limite = 3 }: { limite?: number }) {
             e as aulas ligadas a cada assunto.
           </p>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {/* Um por linha, os três benefícios empurravam o botão de planos
+              para fora da primeira tela do celular. Dois por linha cabem. */}
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {[
               ["Questões ilimitadas", "Sem cota diária, todo dia."],
               ["Tino em cada erro", "Dúvida com IA sem limite."],
               ["Cadernos sem teto", "Monte quantos quiser."],
             ].map(([t, d]) => (
               <div key={t} className="rounded-xl border border-gold-200 bg-white/70 p-3">
-                <p className="flex items-center gap-1.5 text-xs font-bold text-navy-700">
-                  <Sparkles size={12} className="text-gold-500" /> {t}
+                <p className="flex items-start gap-1.5 text-xs font-bold text-navy-700 sm:items-center">
+                  <Sparkles size={12} className="mt-0.5 shrink-0 text-gold-500 sm:mt-0" /> {t}
                 </p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-muted">{d}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button href="/app/planos" variant="gold" size="sm">
+          <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+            <Button
+              href="/app/planos"
+              variant="gold"
+              size="sm"
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
               Conhecer o Pro <ArrowRight size={14} />
             </Button>
-            <Button href="/app/questoes/cadernos" variant="outline" size="sm">
+            <Button
+              href="/app/questoes/cadernos"
+              variant="outline"
+              size="sm"
+              className="min-w-[calc(50%-0.25rem)] flex-1 sm:min-w-0 sm:flex-none"
+            >
               Ver meus cadernos
             </Button>
           </div>
@@ -1018,14 +1075,14 @@ function ModalCaderno({
   const podeeCriar = limite === "ilimitado" || cadernos.length < limite;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/60 p-4 backdrop-blur-sm" onClick={onFechar}>
-      <div className="w-full max-w-md rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between">
-          <div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-900/60 p-3 backdrop-blur-sm sm:p-4" onClick={onFechar}>
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 sm:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <h3 className="text-lg font-bold text-navy-700">Salvar em caderno</h3>
-            <p className="mt-1 text-xs text-muted">{questao.assunto}</p>
+            <p className="mt-1 break-words text-xs text-muted">{questao.assunto}</p>
           </div>
-          <button onClick={onFechar} className="text-muted hover:text-navy-700"><X size={20} /></button>
+          <button onClick={onFechar} className="shrink-0 text-muted hover:text-navy-700"><X size={20} /></button>
         </div>
 
         <div className="mt-5 space-y-2">
@@ -1033,11 +1090,15 @@ function ModalCaderno({
             <button
               key={c.id}
               onClick={() => onAdicionar(c.id)}
-              className="flex w-full items-center gap-3 rounded-xl border border-navy-100 p-3.5 text-left transition hover:border-gold-400 hover:bg-cream/50"
+              className="flex w-full items-center gap-3 rounded-xl border border-navy-100 p-3 text-left transition hover:border-gold-400 hover:bg-cream/50 sm:p-3.5"
             >
               <span className="h-9 w-9 shrink-0 rounded-lg" style={{ background: c.cor }} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-navy-700">{c.nome}</p>
+                {/* Cortado, o nome do caderno deixa de dizer qual é: "Revisar
+                    antes da prova" virava "Revisar antes…". */}
+                <p className="line-clamp-2 break-words text-sm font-semibold leading-snug text-navy-700">
+                  {c.nome}
+                </p>
                 <p className="text-xs text-muted">{c.total} questõe{c.total === 1 ? "m" : "s"}</p>
               </div>
               <ChevronRight size={16} className="shrink-0 text-navy-300" />
@@ -1057,9 +1118,14 @@ function ModalCaderno({
                   value={novo}
                   onChange={(e) => setNovo(e.target.value)}
                   placeholder="Ex.: Revisar antes da prova"
-                  className={inputCls}
+                  className={inputCls + " min-w-0 flex-1"}
                 />
-                <Button variant="gold" onClick={() => novo.trim() && onCriar(novo.trim())} disabled={!novo.trim()}>
+                <Button
+                  variant="gold"
+                  onClick={() => novo.trim() && onCriar(novo.trim())}
+                  disabled={!novo.trim()}
+                  className="shrink-0"
+                >
                   <Plus size={15} />
                 </Button>
               </div>

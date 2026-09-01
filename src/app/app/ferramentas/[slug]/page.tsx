@@ -62,7 +62,7 @@ export default function FerramentaPage({
                   <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-600">
                     <IconeFerramenta nome={f.icone} size={16} />
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-navy-700">
+                  <span className="min-w-0 flex-1 text-sm font-semibold leading-snug text-navy-700">
                     {f.nome}
                   </span>
                   <ArrowRight size={14} className="shrink-0 text-navy-200 transition group-hover:text-gold-500" />

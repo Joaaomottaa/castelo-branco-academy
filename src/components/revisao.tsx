@@ -42,10 +42,10 @@ export function CartaoRevisao({ className }: { className?: string }) {
 
   return (
     <Link href="/app/questoes/revisar" className={cn("block", className)}>
-      <Card hover className="flex items-center gap-4 !py-4">
+      <Card hover className="flex items-center gap-3 !py-4 sm:gap-4">
         <span
           className={cn(
-            "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+            "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11",
             vazio ? "bg-emerald-50 text-emerald-600" : "bg-gold-50 text-gold-500"
           )}
         >
@@ -73,11 +73,14 @@ export function FaixaRevisao() {
   if (!total) return null;
 
   return (
+    /* No celular o "Revisar" da direita não aparece e a faixa vira um bloco de
+       três linhas de texto: com o ícone centralizado ele ficava solto no meio
+       delas, longe da frase que anuncia. */
     <Link
       href="/app/questoes/revisar"
-      className="flex items-center gap-3 rounded-xl border border-gold-200 bg-gold-50 px-4 py-3 transition hover:border-gold-400"
+      className="flex items-start gap-2.5 rounded-xl border border-gold-200 bg-gold-50 px-3.5 py-3 transition hover:border-gold-400 sm:items-center sm:gap-3 sm:px-4"
     >
-      <RotateCcw size={17} className="shrink-0 text-gold-500" />
+      <RotateCcw size={17} className="mt-0.5 shrink-0 text-gold-500 sm:mt-0" />
       <p className="min-w-0 flex-1 text-sm text-gold-700">
         <strong className="font-bold">
           {total} {total === 1 ? "questão espera" : "questões esperam"} revisão hoje.

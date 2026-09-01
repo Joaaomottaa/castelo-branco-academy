@@ -278,7 +278,11 @@ export default function CatalogoPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+        // Duas colunas em 360px deixam 102px de miolo, e a palavra
+        // "Contabilidade" precisa quebrar no meio para caber — o catálogo é de
+        // uma coluna no celular, onde o nome do curso cabe inteiro. Duas
+        // colunas voltam no `sm`, onde há largura para elas.
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
           {lista.map((c) => {
             const { feitas, total, pct } = progressoDe(c);
             return (
@@ -321,7 +325,9 @@ export default function CatalogoPage() {
                     <p className="text-[11px] font-bold uppercase tracking-wider text-gold-500">
                       {c.categoria}
                     </p>
-                    <h3 className="mt-1.5 text-base font-bold leading-snug text-navy-700">{c.titulo}</h3>
+                    <h3 className="mt-1.5 break-words text-base font-bold leading-snug text-navy-700">
+                      {c.titulo}
+                    </h3>
                     <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{c.subtitulo}</p>
 
                     <div className="mt-4 flex flex-wrap gap-1.5">

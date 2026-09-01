@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Search, Sparkles, X } from "lucide-react";
-import { Badge, Card, EmptyState, cn, inputCls } from "@/components/ui";
+import { ArrowRight, MoveHorizontal, Search, Sparkles, X } from "lucide-react";
+import {
+  Badge, Card, EmptyState, cn, fileiraCls, fileiraItemCls, inputCls,
+} from "@/components/ui";
 import { IconeFerramenta } from "@/components/ferramenta-form";
 import { CATEGORIAS_FERRAMENTAS, FERRAMENTAS } from "@/lib/ferramentas/catalogo";
 import { VIGENCIA } from "@/lib/ferramentas/tabelas";
@@ -52,9 +54,17 @@ export default function FerramentasPage() {
           <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy-600">
             <Sparkles size={13} className="text-gold-500" /> Mais usadas
           </p>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {/* Sete atalhos empilhados empurravam a busca e o catálogo para fora
+              da primeira tela do celular. Deitados na fileira eles ocupam uma
+              faixa só, e nenhum se perde: todos voltam na lista por categoria
+              logo abaixo. */}
+          <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+            <MoveHorizontal size={13} className="text-gold-500" />
+            Arraste para o lado para ver as outras
+          </p>
+          <div className={cn(fileiraCls, "sm:grid-cols-2 sm:gap-x-3 sm:gap-y-3 xl:grid-cols-3")}>
             {destaques.map((f) => (
-              <Link key={f.slug} href={`/app/ferramentas/${f.slug}`}>
+              <Link key={f.slug} href={`/app/ferramentas/${f.slug}`} className={fileiraItemCls}>
                 <Card hover className="!border-gold-200 !bg-gold-50/40 h-full">
                   <div className="flex items-start gap-3">
                     <span className="gold-gradient inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-navy-800">

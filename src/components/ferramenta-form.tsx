@@ -78,7 +78,7 @@ export function FerramentaForm({ ferramenta }: { ferramenta: Ferramenta }) {
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr] xl:grid-cols-[1fr_1.05fr]">
       {/* -------------------------------------------------------- entrada -- */}
       <Card className="!p-0 overflow-hidden">
-        <div className="flex items-center justify-between border-b border-navy-100 bg-cream/50 px-6 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy-100 bg-cream/50 px-4 py-3.5 sm:px-6 sm:py-4">
           <p className="text-xs font-bold uppercase tracking-wider text-navy-600">Dados</p>
           <button
             onClick={limpar}
@@ -88,7 +88,7 @@ export function FerramentaForm({ ferramenta }: { ferramenta: Ferramenta }) {
           </button>
         </div>
 
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-4 sm:p-6">
           {grupos.map(([grupo, campos]) => (
             <div key={grupo}>
               {grupo && (
@@ -162,7 +162,7 @@ export function FerramentaForm({ ferramenta }: { ferramenta: Ferramenta }) {
                 <p className="text-[11px] font-bold uppercase tracking-wider text-gold-300">
                   {resultado.destaque.rotulo}
                 </p>
-                <p className="mt-1.5 text-3xl font-bold tracking-tight text-white">
+                <p className="mt-1.5 text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {resultado.destaque.valor}
                 </p>
                 {resultado.destaque.detalhe && (
@@ -172,7 +172,7 @@ export function FerramentaForm({ ferramenta }: { ferramenta: Ferramenta }) {
             )}
 
             <Card className="!p-0 overflow-hidden">
-              <div className="border-b border-navy-100 bg-cream/50 px-6 py-4">
+              <div className="border-b border-navy-100 bg-cream/50 px-4 py-3.5 sm:px-6 sm:py-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-navy-600">
                   Memória de cálculo
                 </p>
@@ -182,7 +182,7 @@ export function FerramentaForm({ ferramenta }: { ferramenta: Ferramenta }) {
                   <li
                     key={`${l.rotulo}-${i}`}
                     className={cn(
-                      "flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-6 py-3",
+                      "flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3 sm:px-6",
                       l.estilo === "total" && "bg-gold-50",
                       l.estilo === "subtotal" && "bg-cream/60",
                       l.estilo === "info" && "bg-navy-50/40"
@@ -245,7 +245,7 @@ export function FerramentaForm({ ferramenta }: { ferramenta: Ferramenta }) {
         )}
 
         {ferramenta.vigencia && (
-          <p className="flex items-center gap-2 px-1 text-xs text-muted">
+          <p className="flex flex-wrap items-center gap-2 px-1 text-xs text-muted">
             <Badge tone="muted">Tabela</Badge> {ferramenta.vigencia}
           </p>
         )}

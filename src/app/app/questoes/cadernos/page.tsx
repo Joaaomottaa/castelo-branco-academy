@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft, ArrowRight, BookMarked, Lock, NotebookPen, Plus, TrendingUp, X,
+  ArrowLeft, ArrowRight, BookMarked, Lock, MoveHorizontal, NotebookPen, Plus,
+  TrendingUp, X,
 } from "lucide-react";
-import { Badge, Button, Card, Carregando, EmptyState, inputCls } from "@/components/ui";
+import {
+  Badge, Button, Card, Carregando, EmptyState, cn, fileiraCls, fileiraItemCls,
+  inputCls,
+} from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { ehPago, limitesDoPlano } from "@/lib/planos";
 import { carregarCadernos, carregarSimulados, criarCaderno } from "@/lib/repo-questoes";
@@ -61,8 +65,8 @@ export default function CadernosPage() {
         <ArrowLeft size={15} /> Banco de questões
       </Link>
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:items-end sm:gap-4">
+        <div className="min-w-0">
           <p className="eyebrow text-gold-500">Organização</p>
           <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-navy-700 sm:text-3xl">Meus cadernos</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted">
@@ -70,7 +74,12 @@ export default function CadernosPage() {
             simplesmente pelas que você errou.
           </p>
         </div>
-        <Button variant="gold" onClick={() => setModal(true)} disabled={!podeeCriar}>
+        <Button
+          variant="gold"
+          onClick={() => setModal(true)}
+          disabled={!podeeCriar}
+          className="w-full sm:w-auto"
+        >
           <Plus size={15} /> Novo caderno
         </Button>
       </div>
@@ -78,9 +87,9 @@ export default function CadernosPage() {
       {!pago && (
         <Card className="!border-gold-200 !bg-gold-50">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
+            <div className="flex min-w-0 items-start gap-3">
               <Lock size={18} className="mt-0.5 shrink-0 text-gold-500" />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-navy-700">
                   Plano gratuito: {limite} caderno
                 </p>
@@ -89,7 +98,9 @@ export default function CadernosPage() {
                 </p>
               </div>
             </div>
-            <Button href="/app/planos" variant="gold" size="sm">Ver planos</Button>
+            <Button href="/app/planos" variant="gold" size="sm" className="w-full sm:w-auto">
+              Ver planos
+            </Button>
           </div>
         </Card>
       )}
@@ -102,9 +113,17 @@ export default function CadernosPage() {
           action={<Button variant="gold" onClick={() => setModal(true)}>Criar o primeiro caderno</Button>}
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          {/* Empilhados, os cadernos ficavam a uma tela de distância um do
+              outro — e quem separou “Reforma Tributária” de “Revisar antes da
+              prova” escolhe olhando os dois. Deitados, o vizinho aparece. */}
+          <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-muted sm:hidden">
+            <MoveHorizontal size={13} className="text-gold-500" />
+            Arraste para o lado para ver os outros cadernos
+          </p>
+          <div className={cn(fileiraCls, "sm:grid-cols-2 lg:grid-cols-3")}>
           {cadernos.map((c) => (
-            <Link key={c.id} href={`/app/questoes?caderno=${c.id}`}>
+            <Link key={c.id} href={`/app/questoes?caderno=${c.id}`} className={fileiraItemCls}>
               <Card hover className="flex h-full flex-col">
                 <div className="flex items-start justify-between">
                   <span
@@ -115,7 +134,7 @@ export default function CadernosPage() {
                   </span>
                   <Badge tone="muted">{c.total} questõe{c.total === 1 ? "m" : "s"}</Badge>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-navy-700">{c.nome}</h3>
+                <h3 className="mt-4 break-words text-base font-bold text-navy-700">{c.nome}</h3>
                 {c.descricao && <p className="mt-1 text-sm text-muted">{c.descricao}</p>}
                 <p className="mt-auto pt-4 text-xs text-muted">
                   Criado em {new Date(c.criadoEm).toLocaleDateString("pt-BR")}
@@ -123,6 +142,7 @@ export default function CadernosPage() {
               </Card>
             </Link>
           ))}
+          </div>
         </div>
       )}
 
@@ -139,7 +159,12 @@ export default function CadernosPage() {
                 : `${simulados.length} ${simulados.length === 1 ? "simulado guardado" : "simulados guardados"}, com as questões que você errou e a análise do Tino.`}
             </p>
           </div>
-          <Button href="/app/questoes/simulados" variant="outline" size="sm">
+          <Button
+            href="/app/questoes/simulados"
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+          >
             Abrir <ArrowRight size={13} />
           </Button>
         </div>
