@@ -7,7 +7,7 @@ import {
   Award, BarChart3, Briefcase, Building2, Calculator, ChevronDown, ClipboardList,
   CreditCard, FileBarChart, GraduationCap, LayoutDashboard, ListChecks, LogOut,
   Megaphone, Menu, MessagesSquare, Route, Search, Settings, ShieldCheck,
-  Sparkles, Ticket, Trophy, UserCog, Users, X,
+  Sparkles, Ticket, Trophy, UserCog, Users, UsersRound, X,
 } from "lucide-react";
 import { useSession } from "@/lib/session";
 import { useDados } from "@/lib/dados";
@@ -33,6 +33,10 @@ const navAluno = [
     secao: "Comunidade",
     itens: [
       { href: "/app/comunidade", label: "Feed", icon: MessagesSquare },
+      // Feed e colegas viraram itens separados. Numa aba só, a busca de gente
+      // e a conversa viviam na lateral do feed — e no celular a lateral é o
+      // fim da página, onde ninguém chega.
+      { href: "/app/colegas", label: "Colegas e mensagens", icon: UsersRound },
       { href: "/app/talentos", label: "Banco de talentos", icon: Users },
       { href: "/app/vagas", label: "Vagas", icon: Briefcase },
     ],

@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Award, Briefcase, Building2, Check, Heart, Loader2, MessageCircle,
-  Megaphone, Send, Sparkles, UserPlus, Users, X,
+  AlertCircle, Award, Briefcase, Building2, Check, Heart, ImagePlus, Loader2,
+  MessageCircle, Megaphone, Paperclip, Send, Sparkles, UserPlus, Users, X,
 } from "lucide-react";
 import { Avatar, Badge, Button, Card, Carregando, cn } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { useDados } from "@/lib/dados";
 import {
   alternarCurtida, carregarConexoes, carregarFeed, comentar, conectar,
-  publicarPost, responderConexao,
+  enviarAnexo, publicarPost, responderConexao,
 } from "@/lib/repo-comunidade";
 import { avancarMissao } from "@/lib/repo-gamificacao";
-import type { Conexao, Post } from "@/lib/types";
+import type { Conexao, MidiaDoPost, Post } from "@/lib/types";
+import { AgendaDeObrigacoes } from "@/components/agenda-obrigacoes";
 
 const TIPOS: Record<string, { rotulo: string; tom: "gold" | "navy" | "green" | "teal" | "muted"; icone: React.ReactNode }> = {
   anuncio:     { rotulo: "Comunicado", tom: "gold",  icone: <Megaphone size={11} /> },
@@ -35,6 +36,10 @@ export default function ComunidadePage() {
   const [enviando, setEnviando] = useState(false);
   const [comentando, setComentando] = useState<string | null>(null);
   const [rascunho, setRascunho] = useState("");
+  const [anexos, setAnexos] = useState<MidiaDoPost[]>([]);
+  const [anexando, setAnexando] = useState(false);
+  const [erroPublicar, setErroPublicar] = useState("");
+  const arquivoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let ativo = true;
@@ -59,14 +64,30 @@ export default function ComunidadePage() {
     return talentos.filter((t) => t.id !== user?.id && !jaConectado.has(t.id)).slice(0, 4);
   }, [talentos, conexoes, user?.id]);
 
+  async function anexar(arquivo?: File | null) {
+    if (!arquivo || !user) return;
+    setErroPublicar("");
+    setAnexando(true);
+    const r = await enviarAnexo(arquivo, user.id);
+    setAnexando(false);
+    if (r.erro) return setErroPublicar(r.erro);
+    if (r.midia) setAnexos((a) => [...a, r.midia!]);
+  }
+
   async function publicar() {
     const conteudo = texto.trim();
-    if (!conteudo || !user) return;
+    // Publicação só de foto é publicação: exigir texto obrigaria a escrever
+    // "segue print" antes de uma imagem que fala por si.
+    if ((!conteudo && anexos.length === 0) || !user) return;
+    setErroPublicar("");
     setEnviando(true);
 
-    const id = await publicarPost(user.id, conteudo);
+    const r = await publicarPost(user.id, conteudo, "texto", anexos);
+    setEnviando(false);
+    if (r.erro) return setErroPublicar(r.erro);
+
     const novo: Post = {
-      id: id ?? `local-${Date.now()}`,
+      id: r.id ?? `local-${Date.now()}`,
       autorId: user.id,
       autorNome: user.nome,
       autorCargo: user.cargo,
@@ -77,10 +98,11 @@ export default function ComunidadePage() {
       curtidas: 0,
       curtiu: false,
       comentarios: [],
+      midias: anexos,
     };
     setPosts((p) => [novo, ...(p ?? [])]);
     setTexto("");
-    setEnviando(false);
+    setAnexos([]);
 
     if (user.id) void avancarMissao(user.id, "semanal-comunidade");
   }
@@ -157,15 +179,73 @@ export default function ComunidadePage() {
                   placeholder="Compartilhe uma conquista, uma dúvida técnica ou algo que você aprendeu esta semana…"
                   className="w-full resize-none rounded-xl border border-navy-200 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-gold-400 focus:ring-4 focus:ring-gold-400/15"
                 />
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-xs text-muted">
-                    {texto.length > 0 ? `${texto.length} caracteres` : "Publicar conta para a missão da semana"}
+                {/* Anexos escolhidos, antes de publicar. */}
+                {anexos.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {anexos.map((m, i) => (
+                      <span
+                        key={m.url}
+                        className="flex items-center gap-2 rounded-lg border border-navy-100 bg-cream/60 py-1.5 pl-1.5 pr-2.5"
+                      >
+                        {m.tipo === "imagem" ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={m.url} alt="" className="h-8 w-8 rounded object-cover" />
+                        ) : (
+                          <span className="flex h-8 w-8 items-center justify-center rounded bg-navy-50 text-navy-600">
+                            <Paperclip size={13} />
+                          </span>
+                        )}
+                        <span className="max-w-[9rem] truncate text-xs font-medium text-navy-700">
+                          {m.nome}
+                        </span>
+                        <button
+                          onClick={() => setAnexos((a) => a.filter((_, j) => j !== i))}
+                          className="text-muted transition hover:text-red-600"
+                          aria-label={`Remover ${m.nome}`}
+                        >
+                          <X size={13} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {erroPublicar && (
+                  <p className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-600">
+                    <AlertCircle size={14} className="mt-0.5 shrink-0" /> {erroPublicar}
                   </p>
+                )}
+
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => arquivoRef.current?.click()}
+                      disabled={anexando}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted transition hover:bg-cream hover:text-navy-700 disabled:opacity-60"
+                    >
+                      {anexando ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <ImagePlus size={14} className="text-gold-500" />
+                      )}
+                      {anexando ? "Enviando…" : "Foto ou arquivo"}
+                    </button>
+                    <input
+                      ref={arquivoRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        void anexar(e.target.files?.[0]);
+                        e.target.value = "";
+                      }}
+                    />
+                  </div>
                   <Button
                     variant="gold"
                     size="sm"
                     onClick={publicar}
-                    disabled={!texto.trim() || enviando}
+                    disabled={(!texto.trim() && anexos.length === 0) || enviando}
                   >
                     {enviando ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                     Publicar
@@ -214,9 +294,48 @@ export default function ComunidadePage() {
                     </div>
                   </div>
 
-                  <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink">
-                    {p.conteudo}
-                  </p>
+                  {p.conteudo && (
+                    <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-ink">
+                      {p.conteudo}
+                    </p>
+                  )}
+
+                  {(p.midias ?? []).length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {(p.midias ?? []).map((m) =>
+                        m.tipo === "imagem" ? (
+                          <a key={m.url} href={m.url} target="_blank" rel="noopener noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={m.url}
+                              alt={m.nome}
+                              className="max-h-96 w-full rounded-xl border border-navy-100 object-cover"
+                            />
+                          </a>
+                        ) : (
+                          <a
+                            key={m.url}
+                            href={m.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2.5 rounded-xl border border-navy-100 bg-cream/50 p-3 transition hover:border-gold-400"
+                          >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-600">
+                              <Paperclip size={15} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-semibold leading-snug text-navy-700">
+                                {m.nome}
+                              </span>
+                              <span className="text-[11px] text-muted">
+                                {m.bytes ? `${(m.bytes / 1024).toFixed(0)} KB · ` : ""}abrir
+                              </span>
+                            </span>
+                          </a>
+                        )
+                      )}
+                    </div>
+                  )}
 
                   <div className="mt-4 flex items-center gap-1 border-t border-navy-100 pt-3">
                     <button
@@ -295,6 +414,10 @@ export default function ComunidadePage() {
 
         {/* ---------------------------------------------------------- lateral */}
         <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          {/* A agenda vem antes das conexões de propósito: é o que faz alguém
+              abrir a comunidade num dia em que não tem nada para publicar. */}
+          <AgendaDeObrigacoes />
+
           {pendentes.length > 0 && (
             <Card>
               <h3 className="flex items-center gap-2 text-sm font-bold text-navy-700">
@@ -362,8 +485,19 @@ export default function ComunidadePage() {
           </Card>
 
           <Card>
-            <h3 className="text-sm font-bold text-navy-700">Pessoas para conhecer</h3>
-            <p className="mt-1 text-xs text-muted">Profissionais do banco de talentos</p>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-navy-700">Pessoas para conhecer</h3>
+                <p className="mt-1 text-xs text-muted">Profissionais da plataforma</p>
+              </div>
+              {/* A busca de gente mora em /app/colegas: aqui é só a amostra. */}
+              <Link
+                href="/app/colegas"
+                className="text-xs font-semibold text-gold-600 transition hover:text-gold-500"
+              >
+                Buscar colegas
+              </Link>
+            </div>
             <div className="mt-4 space-y-3">
               {sugestoes.map((t) => (
                 <div key={t.id} className="flex items-center gap-3">

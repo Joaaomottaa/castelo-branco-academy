@@ -259,6 +259,15 @@ export interface Post {
   curtidas: number;
   curtiu: boolean;
   comentarios: Comentario[];
+  /** Fotos e arquivos anexados à publicação. */
+  midias?: MidiaDoPost[];
+}
+
+export interface MidiaDoPost {
+  tipo: "imagem" | "arquivo";
+  url: string;
+  nome: string;
+  bytes?: number;
 }
 
 export interface Comentario {
@@ -279,6 +288,44 @@ export interface Conexao {
   uf?: string;
   status: "pendente" | "aceita" | "recusada";
   souSolicitante: boolean;
+}
+
+/* --------------------------------------------------- colegas e conversas -- */
+
+/** Uma pessoa devolvida pela busca, já com o pé em que está a conexão. */
+export interface Colega {
+  id: string;
+  nome: string;
+  cargo?: string;
+  cidade?: string;
+  uf?: string;
+  senioridade?: string;
+  nivel?: number;
+  avatarUrl?: string;
+  crc?: string;
+  habilidades: string[];
+  conexao?: {
+    id: string;
+    status: "pendente" | "aceita" | "recusada";
+    souSolicitante: boolean;
+  } | null;
+}
+
+export interface Conversa {
+  id: string;
+  atualizadoEm: string;
+  outro: { id: string; nome: string; cargo?: string; avatarUrl?: string };
+  ultima?: { conteudo: string; criadoEm: string; minha: boolean };
+  naoLidas: number;
+}
+
+export interface Mensagem {
+  id: string;
+  conversaId: string;
+  remetenteId: string;
+  conteudo: string;
+  criadoEm: string;
+  lida: boolean;
 }
 
 /* ==========================================================================

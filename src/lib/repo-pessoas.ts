@@ -384,3 +384,84 @@ export async function atualizarPerfilComoAdmin(
   const { error } = await sb.from("perfis").update(linha).eq("id", perfilId);
   return error ? { ok: false, erro: msgErro(error) } : { ok: true };
 }
+
+/* ==========================================================================
+   AUTODECLARAÇÃO DE DIVERSIDADE (opcional)
+
+   Mora em tabela separada (`perfil_diversidade`), e não em `perfis`, por um
+   motivo concreto: perfil público é legível por qualquer pessoa logada, e
+   demografia por indivíduo é exatamente o que não pode circular. Ali só o
+   dono lê a própria linha; a empresa vê contagem, e só a partir de cinco
+   declarações na vaga.
+
+   Responder é opcional — a LGPD não admite pergunta pessoal obrigatória em
+   processo seletivo — e o dado nunca entra em ordenação de candidato.
+   ========================================================================== */
+
+export interface Diversidade {
+  pcd?: boolean | null;
+  pcdTipo?: string | null;
+  genero?: string | null;
+  racaCor?: string | null;
+}
+
+export const OPCOES_GENERO = [
+  "Mulher cisgênero",
+  "Homem cisgênero",
+  "Mulher transgênero",
+  "Homem transgênero",
+  "Pessoa não binária",
+  "Prefiro não responder",
+];
+
+export const OPCOES_RACA_COR = [
+  "Branca",
+  "Preta",
+  "Parda",
+  "Amarela",
+  "Indígena",
+  "Prefiro não responder",
+];
+
+export const OPCOES_PCD = [
+  "Física",
+  "Auditiva",
+  "Visual",
+  "Intelectual",
+  "Psicossocial",
+  "Múltipla",
+  "Reabilitado(a) pelo INSS",
+];
+
+export async function minhaDiversidade(): Promise<Diversidade | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc("minha_diversidade");
+  if (error) {
+    console.error("[diversidade] ler:", msgErro(error));
+    return null;
+  }
+  const d = (data ?? {}) as Record<string, unknown>;
+  return {
+    pcd: (d.pcd as boolean) ?? null,
+    pcdTipo: (d.pcd_tipo as string) ?? null,
+    genero: (d.genero as string) ?? null,
+    racaCor: (d.raca_cor as string) ?? null,
+  };
+}
+
+export async function salvarMinhaDiversidade(
+  d: Diversidade
+): Promise<{ ok: boolean; erro?: string }> {
+  const sb = getSupabase();
+  if (!sb) {
+    return { ok: false, erro: "Esta preferência é gravada no banco. Conecte o Supabase." };
+  }
+  const { error } = await sb.rpc("salvar_minha_diversidade", {
+    p_pcd: d.pcd ?? null,
+    p_pcd_tipo: d.pcdTipo ?? null,
+    p_genero: d.genero ?? null,
+    p_raca_cor: d.racaCor ?? null,
+  });
+  return error ? { ok: false, erro: msgErro(error) } : { ok: true };
+}

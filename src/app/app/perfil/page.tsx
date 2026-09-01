@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Award, CheckCircle2, Eye, Medal, Save, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { Avatar, Badge, Button, Card, Field, cn, inputCls } from "@/components/ui";
+import { BlocoAutodeclaracao } from "@/components/autodeclaracao";
 import {
   CamposEndereco, enderecoVazio, mascararCep, type Endereco,
 } from "@/components/campos-endereco";
@@ -347,6 +348,11 @@ export default function PerfilPage() {
               <Eye size={14} /> Ver no banco de talentos
             </Button>
           </Card>
+
+          {/* A autodeclaração vem antes do bloco de privacidade porque é a
+              única coisa nesta coluna que a pessoa preenche — e ela precisa ler
+              a regra do uso agregado antes de decidir. */}
+          <BlocoAutodeclaracao />
 
           <Card>
             <h3 className="flex items-center gap-2 text-sm font-bold text-navy-700">
