@@ -79,8 +79,15 @@ export interface Curso {
   descricao: string;
   categoria: string;
   nivel: "Iniciante" | "Intermediário" | "Avançado";
+  /** O docente que ministrou o curso. É ele que assina o certificado, por isso
+      é obrigatório para publicar — ver `ModalCurso`. */
   instrutor: string;
   instrutorCargo: string;
+  /** CRC ou registro profissional, impresso sob a assinatura. */
+  instrutorRegistro?: string;
+  /** Imagem da assinatura (bucket `capas`). Sem ela, o certificado assina em
+      tipografia — o nome sobre a linha, que é o que vale num documento. */
+  instrutorAssinaturaUrl?: string;
   cargaHoraria: number;
   pontosPEPC: number;
   alunos: number;
@@ -114,6 +121,19 @@ export interface Vaga {
   descricao: string;
   candidatos: number;
   match?: number;
+  /* Recrutamento — ver 20_docente_recrutamento_comunidade.sql.
+     Não existe filtro de idade nem de cor sobre candidato: a Lei 9.029/1995
+     proíbe. O que existe é vaga afirmativa, cota de PCD e requisito objetivo. */
+  beneficios?: string[];
+  jornada?: string;
+  escolaridade?: string;
+  experienciaMinAnos?: number | null;
+  /** Vaga reservada a PCD — cota da Lei 8.213/1991, art. 93. */
+  pcd?: boolean;
+  afirmativaPara?: string[];
+  acessibilidade?: string;
+  /** Vaga confidencial: o mural não identifica a empresa. */
+  sigilosa?: boolean;
 }
 
 export interface Certificado {
@@ -125,6 +145,13 @@ export interface Certificado {
   emitidoEm: string;
   codigo: string;
   pontosPEPC: number;
+  /** Quem assina. Vem do curso no momento em que o certificado é montado; no
+      banco também fica gravado na emissão, para o documento não mudar de
+      assinatura se o curso trocar de docente depois. */
+  docente?: string;
+  docenteCargo?: string;
+  docenteRegistro?: string;
+  docenteAssinaturaUrl?: string;
 }
 
 export interface Progresso {
@@ -465,6 +492,12 @@ export interface CertificadoValidado {
   emitidoEm?: string;
   codigo?: string;
   habilidades?: string[];
+  /** Quem ministrou e assina. O RH que confere o código vê a mesma assinatura
+      que está no PDF que recebeu. */
+  docente?: string;
+  docenteCargo?: string;
+  docenteRegistro?: string;
+  docenteAssinaturaUrl?: string;
 }
 
 /* ==========================================================================

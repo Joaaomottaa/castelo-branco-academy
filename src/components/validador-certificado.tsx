@@ -180,6 +180,10 @@ function CertificadoAutentico({ dados }: { dados: CertificadoValidado }) {
             codigo: dados.codigo ?? "",
             nivel: dados.nivel,
             habilidades: dados.habilidades,
+            docente: dados.docente,
+            docenteCargo: dados.docenteCargo,
+            docenteRegistro: dados.docenteRegistro,
+            docenteAssinaturaUrl: dados.docenteAssinaturaUrl,
           }}
         />
       </div>

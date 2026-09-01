@@ -14,6 +14,7 @@ import {
   SUPABASE_ANON_KEY, SUPABASE_URL, getSupabase, supabaseConfigurado,
 } from "./supabase";
 import { DEMO_TRAVADO, definirModo, type Modo } from "./modo";
+import { esquecerEmpresaEmCache } from "./empresa-cache";
 
 // Chave de versões anteriores. Nunca mais é usada para autenticar: mantê-la
 // apenas aqui permite remover uma sessão demo antiga do navegador.
@@ -104,7 +105,7 @@ interface SessionValue {
   favoritos: string[];
   alternarFavorito: (id: string) => void;
   candidaturas: string[];
-  candidatar: (vagaId: string) => void;
+  candidatar: (vagaId: string, mensagem?: string) => Promise<ResultadoCandidatura>;
 }
 
 /**
@@ -125,6 +126,14 @@ const avisoProvedorDesligado = (nome: string) =>
   `O login com ${nome} ainda não foi habilitado neste projeto `
   + `(Supabase › Authentication › Sign In / Providers › ${nome}). `
   + "Entre com e-mail e senha por enquanto.";
+
+/** O que a tela precisa saber depois de tentar se candidatar. */
+export interface ResultadoCandidatura {
+  ok: boolean;
+  erro?: string;
+  /** true quando gravou só na sessão (modo demonstração, sem banco). */
+  apenasLocal?: boolean;
+}
 
 const SessionContext = createContext<SessionValue | null>(null);
 
@@ -652,6 +661,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setFavoritos([]);
     setCandidaturas([]);
     limparDadosDemoDoNavegador();
+    // O vínculo com a empresa vive num cache de módulo, que sobrevive ao
+    // logout: sem isto, quem entra depois herda o painel de quem saiu.
+    esquecerEmpresaEmCache();
   }, []);
 
   /* ------------------------------------------------------ atualizarPerfil -- */
@@ -749,23 +761,45 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     [user, modoDemo]
   );
 
+  /**
+   * Candidatar-se.
+   *
+   * Era `void sb.from(...).upsert(...)`: a tela marcava "candidatura enviada"
+   * na mesma hora e o erro do banco morria no console. Quando a gravação
+   * falhava — sessão expirada, RLS, modo demonstração — o aluno achava que
+   * tinha se candidatado e a empresa nunca via ninguém. Agora a promessa é
+   * esperada, o erro volta para quem chamou e o estado local só muda se
+   * gravou de verdade.
+   */
   const candidatar = useCallback(
-    (vagaId: string) => {
-      setCandidaturas((atual) => {
-        if (atual.includes(vagaId)) return atual;
-        const novo = [...atual, vagaId];
-        return novo;
-      });
+    async (vagaId: string, mensagem?: string): Promise<ResultadoCandidatura> => {
+      if (!user) return { ok: false, erro: "Entre na sua conta para se candidatar." };
 
       const sb = getSupabase();
-      if (sb && user) {
-        void sb
-          .from("candidaturas")
-          .upsert(
-            { vaga_id: vagaId, perfil_id: user.id, status: "enviada" },
-            { onConflict: "vaga_id,perfil_id" }
-          );
+      if (!sb || modoDemo) {
+        // No modo demonstração não há banco: a candidatura vale para a sessão,
+        // e dizer isso é mais honesto que fingir que a empresa recebeu.
+        setCandidaturas((atual) => (atual.includes(vagaId) ? atual : [...atual, vagaId]));
+        return { ok: true, apenasLocal: true };
       }
+
+      const { error } = await sb.from("candidaturas").upsert(
+        {
+          vaga_id: vagaId,
+          perfil_id: user.id,
+          status: "enviada",
+          ...(mensagem?.trim() ? { mensagem: mensagem.trim() } : {}),
+        },
+        { onConflict: "vaga_id,perfil_id" }
+      );
+
+      if (error) {
+        console.error("[candidatura] falhou:", error.message);
+        return { ok: false, erro: traduzErro(error.message) };
+      }
+
+      setCandidaturas((atual) => (atual.includes(vagaId) ? atual : [...atual, vagaId]));
+      return { ok: true };
     },
     [user, modoDemo]
   );
@@ -871,6 +905,12 @@ function progressoInicialDemo(): Progresso[] {
 }
 
 function traduzErro(msg: string) {
+  if (/row-level security|violates row-level/i.test(msg)) {
+    return "A plataforma recusou a gravação por permissão. Saia e entre de novo.";
+  }
+  if (/jwt|expired|not authenticated/i.test(msg)) {
+    return "Sua sessão expirou. Entre de novo e tente outra vez.";
+  }
   if (/invalid login/i.test(msg)) return "E-mail ou senha inválidos.";
   if (/email not confirmed/i.test(msg)) return "Confirme seu e-mail antes de entrar.";
   if (/already registered|already been registered/i.test(msg)) return "Este e-mail já está cadastrado.";

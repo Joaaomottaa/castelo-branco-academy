@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Briefcase, Building2, CheckCircle2, Clock, MapPin, Search, Sparkles, Wallet,
+  AlertCircle, Accessibility, Briefcase, Building2, CheckCircle2, Clock, MapPin,
+  Search, ShieldCheck, Sparkles, Wallet,
 } from "lucide-react";
 import { Badge, Button, Card, EmptyState, cn, inputCls } from "@/components/ui";
 import {
@@ -10,7 +11,7 @@ import {
 } from "@/components/filtros-vagas";
 import { useDados } from "@/lib/dados";
 import type { Vaga } from "@/lib/types";
-import { useSession } from "@/lib/session";
+import { useSession, type ResultadoCandidatura } from "@/lib/session";
 
 export default function VagasPage() {
   const { candidaturas, candidatar } = useSession();
@@ -169,6 +170,16 @@ export default function VagasPage() {
                     {v.area && <Badge tone="navy">{v.area}</Badge>}
                     <Badge tone="muted">{v.modelo}</Badge>
                     <Badge tone="muted">{v.contrato}</Badge>
+                    {/* Cota e ação afirmativa aparecem na lista, não só no
+                        detalhe: é informação que muda a decisão de abrir. */}
+                    {v.pcd && (
+                      <Badge tone="teal">
+                        <Accessibility size={11} /> Vaga PCD
+                      </Badge>
+                    )}
+                    {(v.afirmativaPara ?? []).map((g) => (
+                      <Badge key={g} tone="gold">{g}</Badge>
+                    ))}
                     {aplicada && <Badge tone="green">Candidatura enviada</Badge>}
                   </div>
                 </button>
@@ -177,7 +188,13 @@ export default function VagasPage() {
           </div>
 
           {/* Detalhe */}
-          {vaga && <DetalheVaga vaga={vaga} aplicada={candidaturas.includes(vaga.id)} onCandidatar={() => candidatar(vaga.id)} />}
+          {vaga && (
+            <DetalheVaga
+              vaga={vaga}
+              aplicada={candidaturas.includes(vaga.id)}
+              onCandidatar={(mensagem) => candidatar(vaga.id, mensagem)}
+            />
+          )}
         </div>
       )}
     </div>
@@ -187,9 +204,31 @@ export default function VagasPage() {
 function DetalheVaga({
   vaga, aplicada, onCandidatar,
 }: {
-  vaga: Vaga; aplicada: boolean; onCandidatar: () => void;
+  vaga: Vaga;
+  aplicada: boolean;
+  onCandidatar: (mensagem?: string) => Promise<ResultadoCandidatura>;
 }) {
   const { cursos } = useDados();
+  const [enviando, setEnviando] = useState(false);
+  const [resultado, setResultado] = useState<ResultadoCandidatura | null>(null);
+  const [carta, setCarta] = useState("");
+  const [escrevendo, setEscrevendo] = useState(false);
+
+  // A vaga muda quando a pessoa clica em outra na lista; o aviso da anterior
+  // não pode ficar pendurado.
+  useEffect(() => {
+    setResultado(null);
+    setCarta("");
+    setEscrevendo(false);
+  }, [vaga.id]);
+
+  async function enviar() {
+    setEnviando(true);
+    const r = await onCandidatar(carta);
+    setEnviando(false);
+    setResultado(r);
+    if (r.ok) setEscrevendo(false);
+  }
   const dias = Math.max(
     0,
     Math.round((Date.now() - new Date(vaga.publicadaEm).getTime()) / 86400000)
@@ -252,6 +291,54 @@ function DetalheVaga({
           </ul>
         </div>
 
+        {(vaga.jornada || vaga.escolaridade || vaga.experienciaMinAnos || vaga.beneficios?.length) && (
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wide text-navy-700">
+              Condições e benefícios
+            </h3>
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {vaga.jornada && <Badge tone="muted">Jornada {vaga.jornada.toLowerCase()}</Badge>}
+              {vaga.escolaridade && <Badge tone="muted">{vaga.escolaridade}</Badge>}
+              {typeof vaga.experienciaMinAnos === "number" && vaga.experienciaMinAnos > 0 && (
+                <Badge tone="muted">
+                  {vaga.experienciaMinAnos}+ ano(s) de experiência
+                </Badge>
+              )}
+              {(vaga.beneficios ?? []).map((b) => (
+                <Badge key={b} tone="navy">{b}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(vaga.pcd || (vaga.afirmativaPara ?? []).length > 0 || vaga.acessibilidade) && (
+          <div className="rounded-xl border border-teal/25 bg-teal/5 p-4">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal">
+              <ShieldCheck size={13} />
+              {vaga.pcd ? "Vaga afirmativa · reserva para PCD" : "Vaga afirmativa"}
+            </p>
+            {(vaga.afirmativaPara ?? []).length > 0 && (
+              <p className="mt-2 text-sm leading-relaxed text-ink">
+                A empresa declarou preferência para{" "}
+                <strong>{(vaga.afirmativaPara ?? []).join(", ").toLowerCase()}</strong>. A
+                candidatura segue aberta a todo mundo; a preferência vale no critério de
+                desempate.
+              </p>
+            )}
+            {vaga.pcd && (
+              <p className="mt-2 text-sm leading-relaxed text-ink">
+                Reserva prevista na Lei 8.213/1991, art. 93.
+              </p>
+            )}
+            {vaga.acessibilidade && (
+              <p className="mt-2 flex items-start gap-2 text-sm leading-relaxed text-ink">
+                <Accessibility size={15} className="mt-0.5 shrink-0 text-teal" />
+                {vaga.acessibilidade}
+              </p>
+            )}
+          </div>
+        )}
+
         {vaga.certificacoesDesejadas.length > 0 && (
           <div className="rounded-xl border border-gold-200 bg-gold-50 p-4">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold-600">
@@ -270,17 +357,77 @@ function DetalheVaga({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2 border-t border-navy-100 pt-5 sm:gap-3">
-          {aplicada ? (
-            <span className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 sm:w-auto">
-              <CheckCircle2 size={16} /> Candidatura enviada
-            </span>
-          ) : (
-            <Button variant="gold" size="lg" onClick={onCandidatar} className="w-full sm:w-auto">
-              Candidatar-se em 1 clique
-            </Button>
+        <div className="border-t border-navy-100 pt-5">
+          {/* A carta é opcional e some depois do envio: quem quer só se
+              candidatar clica uma vez, quem quer se apresentar tem onde. */}
+          {escrevendo && !aplicada && (
+            <div className="mb-3">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-navy-600">
+                Uma linha sobre você (opcional)
+              </label>
+              <textarea
+                value={carta}
+                onChange={(e) => setCarta(e.target.value)}
+                rows={3}
+                maxLength={600}
+                placeholder="Ex.: trabalho com CT-e há 4 anos e acabei de concluir a trilha de Analista Fiscal aqui."
+                className={cn(inputCls, "resize-none")}
+              />
+            </div>
           )}
-          <Button variant="outline" size="lg" className="w-full sm:w-auto">Salvar vaga</Button>
+
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {aplicada ? (
+              <span className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 sm:w-auto">
+                <CheckCircle2 size={16} /> Candidatura enviada
+              </span>
+            ) : (
+              <>
+                <Button
+                  variant="gold"
+                  size="lg"
+                  onClick={() => void enviar()}
+                  disabled={enviando}
+                  className="w-full sm:w-auto"
+                >
+                  {enviando ? "Enviando…" : "Candidatar-se"}
+                </Button>
+                {!escrevendo && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setEscrevendo(true)}
+                    className="w-full sm:w-auto"
+                  >
+                    Escrever uma linha antes
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* O aviso vem do banco, não de otimismo: antes a tela dizia
+              "enviada" mesmo quando a gravação falhava. */}
+          {resultado && !resultado.ok && (
+            <p className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              <AlertCircle size={16} className="mt-0.5 shrink-0" />
+              {resultado.erro ?? "Não consegui enviar a sua candidatura."}
+            </p>
+          )}
+          {resultado?.ok && resultado.apenasLocal && (
+            <p className="mt-3 flex items-start gap-2 rounded-xl border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-gold-600">
+              <AlertCircle size={16} className="mt-0.5 shrink-0" />
+              Você está no modo demonstração: a candidatura vale para esta sessão e
+              não chega à empresa. Troque para o Supabase no seletor do topo.
+            </p>
+          )}
+          {resultado?.ok && !resultado.apenasLocal && (
+            <p className="mt-3 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
+              Candidatura enviada. A empresa vê seu perfil com os certificados
+              emitidos aqui e você acompanha o andamento nesta tela.
+            </p>
+          )}
         </div>
         <p className="text-xs text-muted">
           Ao se candidatar, seu perfil e certificações verificadas são enviados à empresa.

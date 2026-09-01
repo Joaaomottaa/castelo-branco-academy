@@ -55,12 +55,56 @@ export interface VagaAdmin {
   ativa: boolean;
   publicadaEm: string;
   candidatos: number;
+  /* Campos de recrutamento — ver 20_docente_recrutamento_comunidade.sql. */
+  beneficios: string[];
+  jornada: string;
+  escolaridade: string;
+  experienciaMinAnos: number | null;
+  pcd: boolean;
+  afirmativaPara: string[];
+  acessibilidade: string;
+  sigilosa: boolean;
+}
+
+/** Uma etapa do funil. Mesmos valores do enum `status_candidatura`. */
+export const ETAPAS = [
+  { v: "enviada", rotulo: "Enviada" },
+  { v: "em_analise", rotulo: "Em análise" },
+  { v: "entrevista", rotulo: "Entrevista" },
+  { v: "aprovada", rotulo: "Aprovada" },
+  { v: "recusada", rotulo: "Recusada" },
+] as const;
+
+export interface ResumoDaVaga {
+  vagaId: string;
+  titulo: string;
+  ativa: boolean;
+  publicadaEm: string;
+  total: number;
+  novas7d: number;
+  naoVistas: number;
+  porStatus: Record<string, number>;
+  ultima?: string;
+}
+
+export interface DiversidadeDaVaga {
+  disponivel: boolean;
+  declaradas: number;
+  minimo?: number;
+  pcd?: number;
+  genero?: Record<string, number>;
+  racaCor?: Record<string, number>;
 }
 
 export interface Candidato {
   candidaturaId: string;
   status: string;
   criadaEm: string;
+  atualizadaEm?: string;
+  /** Quando a empresa abriu a ficha pela primeira vez. */
+  vistaEm?: string;
+  /** Anotação privada da empresa. O candidato nunca vê. */
+  notaInterna?: string;
   mensagem?: string;
   perfil: Perfil;
   certificados: Certificado[];
@@ -75,9 +119,51 @@ type LinhaVaga = {
   requisitos: string[] | null;
   cursos_desejados: string[] | null; trilhas_desejadas: string[] | null;
   ativa: boolean; publicada_em: string;
+  beneficios: string[] | null; jornada: string | null; escolaridade: string | null;
+  experiencia_min_anos: number | null; pcd: boolean | null;
+  afirmativa_para: string[] | null; acessibilidade: string | null;
+  sigilosa: boolean | null;
   empresas: { nome: string; cor: string | null } | null;
   candidaturas: Array<{ count: number }>;
 };
+
+const COLUNAS_VAGA = `id, empresa_id, titulo, descricao, cidade, uf, modelo, contrato,
+   faixa, senioridade, area, requisitos, cursos_desejados, trilhas_desejadas, ativa,
+   publicada_em, beneficios, jornada, escolaridade, experiencia_min_anos, pcd,
+   afirmativa_para, acessibilidade, sigilosa,
+   empresas ( nome, cor ), candidaturas ( count )`;
+
+function mapVagaAdmin(v: LinhaVaga): VagaAdmin {
+  return {
+    id: v.id,
+    empresaId: v.empresa_id,
+    empresa: v.empresas?.nome ?? "Empresa",
+    logoCor: v.empresas?.cor ?? "#00204D",
+    titulo: v.titulo,
+    descricao: v.descricao ?? "",
+    cidade: v.cidade ?? "",
+    uf: v.uf ?? "",
+    modelo: v.modelo,
+    contrato: v.contrato,
+    faixa: v.faixa ?? "",
+    senioridade: v.senioridade ?? "",
+    area: v.area ?? "",
+    requisitos: v.requisitos ?? [],
+    cursosDesejados: v.cursos_desejados ?? [],
+    trilhasDesejadas: v.trilhas_desejadas ?? [],
+    ativa: v.ativa,
+    publicadaEm: v.publicada_em,
+    candidatos: v.candidaturas?.[0]?.count ?? 0,
+    beneficios: v.beneficios ?? [],
+    jornada: v.jornada ?? "",
+    escolaridade: v.escolaridade ?? "",
+    experienciaMinAnos: v.experiencia_min_anos,
+    pcd: Boolean(v.pcd),
+    afirmativaPara: v.afirmativa_para ?? [],
+    acessibilidade: v.acessibilidade ?? "",
+    sigilosa: Boolean(v.sigilosa),
+  };
+}
 
 export async function carregarVagasAdmin(): Promise<{ vagas: VagaAdmin[]; erro?: string }> {
   const sb = getSupabase();
@@ -85,38 +171,112 @@ export async function carregarVagasAdmin(): Promise<{ vagas: VagaAdmin[]; erro?:
 
   const { data, error } = await sb
     .from("vagas")
-    .select(
-      `id, empresa_id, titulo, descricao, cidade, uf, modelo, contrato, faixa,
-       senioridade, area, requisitos, cursos_desejados, trilhas_desejadas, ativa,
-       publicada_em, empresas ( nome, cor ), candidaturas ( count )`
-    )
+    .select(COLUNAS_VAGA)
     .order("publicada_em", { ascending: false });
 
   if (error) return { vagas: [], erro: msgErro(error) };
+  return { vagas: ((data ?? []) as unknown as LinhaVaga[]).map(mapVagaAdmin) };
+}
 
-  return {
-    vagas: ((data ?? []) as unknown as LinhaVaga[]).map((v) => ({
-      id: v.id,
-      empresaId: v.empresa_id,
-      empresa: v.empresas?.nome ?? "Empresa",
-      logoCor: v.empresas?.cor ?? "#00204D",
-      titulo: v.titulo,
-      descricao: v.descricao ?? "",
-      cidade: v.cidade ?? "",
-      uf: v.uf ?? "",
-      modelo: v.modelo,
-      contrato: v.contrato,
-      faixa: v.faixa ?? "",
-      senioridade: v.senioridade ?? "",
-      area: v.area ?? "",
-      requisitos: v.requisitos ?? [],
-      cursosDesejados: v.cursos_desejados ?? [],
-      trilhasDesejadas: v.trilhas_desejadas ?? [],
-      ativa: v.ativa,
-      publicadaEm: v.publicada_em,
-      candidatos: v.candidaturas?.[0]?.count ?? 0,
-    })),
+/**
+ * As vagas de uma empresa — inclusive as pausadas.
+ *
+ * A tela da empresa filtrava no cliente o resultado de `carregarVagasAdmin`,
+ * que depende da policy "vagas ativas são públicas". Funcionava para vaga
+ * aberta e escondia a pausada: a empresa perdia de vista exatamente a vaga que
+ * ela precisava reabrir. Perguntar pela empresa resolve na origem.
+ */
+export async function carregarVagasDaEmpresa(
+  empresaId: string
+): Promise<{ vagas: VagaAdmin[]; erro?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { vagas: [], erro: SEM_BANCO };
+  if (!empresaId) return { vagas: [] };
+
+  const { data, error } = await sb
+    .from("vagas")
+    .select(COLUNAS_VAGA)
+    .eq("empresa_id", empresaId)
+    .order("publicada_em", { ascending: false });
+
+  if (error) return { vagas: [], erro: msgErro(error) };
+  return { vagas: ((data ?? []) as unknown as LinhaVaga[]).map(mapVagaAdmin) };
+}
+
+/** Contagem por etapa de cada vaga, numa chamada. */
+export async function resumoDasVagas(): Promise<ResumoDaVaga[]> {
+  const sb = getSupabase();
+  if (!sb) return [];
+  const { data, error } = await sb.rpc("empresa_vagas_resumo");
+  if (error) {
+    console.error("[vagas] resumo:", msgErro(error));
+    return [];
+  }
+  type L = {
+    vaga_id: string; titulo: string; ativa: boolean; publicada_em: string;
+    total: number; novas_7d: number; nao_vistas: number;
+    por_status: Record<string, number>; ultima: string | null;
   };
+  return ((data ?? []) as L[]).map((r) => ({
+    vagaId: r.vaga_id,
+    titulo: r.titulo,
+    ativa: r.ativa,
+    publicadaEm: r.publicada_em,
+    total: Number(r.total ?? 0),
+    novas7d: Number(r.novas_7d ?? 0),
+    naoVistas: Number(r.nao_vistas ?? 0),
+    porStatus: r.por_status ?? {},
+    ultima: r.ultima ?? undefined,
+  }));
+}
+
+/**
+ * Todas as candidaturas das vagas da empresa, cruas.
+ *
+ * É o insumo das estatísticas: a série por dia, o tempo até a primeira resposta
+ * e a taxa de conversão saem daqui, calculados no cliente. Uma consulta é mais
+ * honesta que cinco agregações no banco que ninguém consegue conferir.
+ */
+export async function candidaturasDaEmpresa(
+  empresaId: string
+): Promise<Array<{ id: string; vagaId: string; status: string; criadaEm: string; atualizadaEm?: string; vistaEm?: string }>> {
+  const sb = getSupabase();
+  if (!sb || !empresaId) return [];
+
+  const { data, error } = await sb
+    .from("candidaturas")
+    .select("id, vaga_id, status, criada_em, atualizada_em, visualizada_em, vagas!inner ( empresa_id )")
+    .eq("vagas.empresa_id", empresaId)
+    .order("criada_em", { ascending: false });
+
+  if (error) {
+    console.error("[vagas] candidaturas da empresa:", msgErro(error));
+    return [];
+  }
+  type L = {
+    id: string; vaga_id: string; status: string; criada_em: string;
+    atualizada_em: string | null; visualizada_em: string | null;
+  };
+  return ((data ?? []) as unknown as L[]).map((c) => ({
+    id: c.id,
+    vagaId: c.vaga_id,
+    status: c.status,
+    criadaEm: c.criada_em,
+    atualizadaEm: c.atualizada_em ?? undefined,
+    vistaEm: c.visualizada_em ?? undefined,
+  }));
+}
+
+/** Representatividade agregada. Nunca por pessoa — ver a função no SQL. */
+export async function diversidadeDaVaga(vagaId: string): Promise<DiversidadeDaVaga | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+  const { data, error } = await sb.rpc("empresa_diversidade_da_vaga", { p_vaga: vagaId });
+  if (error) {
+    console.error("[vagas] diversidade:", msgErro(error));
+    return null;
+  }
+  return (data ?? null) as DiversidadeDaVaga | null;
 }
 
 export interface DadosVaga {
@@ -136,7 +296,37 @@ export interface DadosVaga {
   cursosDesejados: string[];
   trilhasDesejadas: string[];
   ativa: boolean;
+  beneficios?: string[];
+  jornada?: string;
+  escolaridade?: string;
+  experienciaMinAnos?: number | null;
+  /** Vaga reservada a PCD (cota da Lei 8.213/1991, art. 93). */
+  pcd?: boolean;
+  /** Grupos a que a vaga é afirmativa. Ação afirmativa é lícita. */
+  afirmativaPara?: string[];
+  acessibilidade?: string;
+  sigilosa?: boolean;
 }
+
+/** Grupos aceitos em ação afirmativa. */
+export const GRUPOS_AFIRMATIVOS = [
+  "Pessoas com deficiência",
+  "Mulheres",
+  "Pessoas negras",
+  "Pessoas 50+",
+  "Pessoas trans",
+  "Pessoas indígenas",
+  "Refugiados",
+] as const;
+
+export const JORNADAS = ["Integral", "Meio período", "Escala 6x1", "Turno", "Flexível"];
+export const ESCOLARIDADES = [
+  "Ensino médio",
+  "Técnico",
+  "Superior cursando",
+  "Superior completo",
+  "Pós-graduação",
+];
 
 export async function salvarVaga(d: DadosVaga): Promise<{ ok: boolean; erro?: string }> {
   const sb = getSupabase();
@@ -160,6 +350,17 @@ export async function salvarVaga(d: DadosVaga): Promise<{ ok: boolean; erro?: st
     cursos_desejados: d.cursosDesejados,
     trilhas_desejadas: d.trilhasDesejadas,
     ativa: d.ativa,
+    beneficios: d.beneficios ?? [],
+    jornada: d.jornada?.trim() || null,
+    escolaridade: d.escolaridade?.trim() || null,
+    experiencia_min_anos:
+      d.experienciaMinAnos === null || d.experienciaMinAnos === undefined
+        ? null
+        : Math.max(0, Math.min(40, d.experienciaMinAnos)),
+    pcd: Boolean(d.pcd),
+    afirmativa_para: d.afirmativaPara ?? [],
+    acessibilidade: d.acessibilidade?.trim() || null,
+    sigilosa: Boolean(d.sigilosa),
   };
 
   const { error } = d.id
@@ -294,6 +495,7 @@ export async function carregarCandidatos(vagaId: string): Promise<Candidato[]> {
 
   type L = {
     candidatura_id: string; status: string; criada_em: string; mensagem: string | null;
+    atualizada_em: string | null; visualizada_em: string | null; nota_interna: string | null;
     perfil: Record<string, unknown>;
     certificados: Array<{ cursoSlug: string; cursoTitulo: string }>;
     trilhas: Array<{ trilhaSlug: string; trilhaNome: string }>;
@@ -305,6 +507,9 @@ export async function carregarCandidatos(vagaId: string): Promise<Candidato[]> {
       candidaturaId: c.candidatura_id,
       status: c.status,
       criadaEm: c.criada_em,
+      atualizadaEm: c.atualizada_em ?? undefined,
+      vistaEm: c.visualizada_em ?? undefined,
+      notaInterna: c.nota_interna ?? undefined,
       mensagem: c.mensagem ?? undefined,
       perfil: {
         id: String(p.id),
@@ -317,6 +522,9 @@ export async function carregarCandidatos(vagaId: string): Promise<Candidato[]> {
         bio: (p.bio as string) ?? undefined,
         senioridade: (p.senioridade ?? undefined) as Perfil["senioridade"],
         pretensao: (p.pretensao as string) ?? undefined,
+        telefone: (p.telefone as string) ?? undefined,
+        linkedin: (p.linkedin as string) ?? undefined,
+        crc: (p.crc as string) ?? undefined,
         disponivel: Boolean(p.disponivel),
         plano: (p.plano ?? "Free") as Perfil["plano"],
         nivel: Number(p.nivel ?? 1),
@@ -334,6 +542,37 @@ export async function carregarCandidatos(vagaId: string): Promise<Candidato[]> {
       })),
     };
   });
+}
+
+/** Anotação interna da empresa sobre o candidato. */
+export async function definirNotaInterna(
+  candidaturaId: string,
+  nota: string
+): Promise<{ ok: boolean; erro?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { ok: false, erro: SEM_BANCO };
+  const { error } = await sb
+    .from("candidaturas")
+    .update({ nota_interna: nota.trim() || null })
+    .eq("id", candidaturaId);
+  return error ? { ok: false, erro: msgErro(error) } : { ok: true };
+}
+
+/**
+ * Marca a ficha como vista.
+ *
+ * Serve para o contador de "novas" da tela e, mais adiante, para responder ao
+ * candidato quanto tempo a empresa leva para olhar — a métrica que ele mais
+ * quer e que ninguém publica.
+ */
+export async function marcarCandidaturaVista(candidaturaId: string): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) return;
+  await sb
+    .from("candidaturas")
+    .update({ visualizada_em: new Date().toISOString() })
+    .eq("id", candidaturaId)
+    .is("visualizada_em", null);
 }
 
 export async function definirStatusCandidatura(

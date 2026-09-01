@@ -57,6 +57,7 @@ type LinhaCurso = {
   id: string; slug: string; titulo: string; subtitulo: string | null;
   descricao: string | null; categoria: string; nivel: string; cor: string;
   instrutor: string | null; instrutor_cargo: string | null;
+  instrutor_registro: string | null; instrutor_assinatura_url: string | null;
   carga_horaria: number; pontos_pepc: number; alunos: number; nota: number;
   tags: string[]; destaque: boolean; novo: boolean; modulos: LinhaModulo[];
 };
@@ -72,6 +73,8 @@ function mapCurso(r: LinhaCurso): Curso {
     nivel: r.nivel as Curso["nivel"],
     instrutor: r.instrutor ?? "Equipe Castelo Branco",
     instrutorCargo: r.instrutor_cargo ?? "",
+    instrutorRegistro: r.instrutor_registro ?? undefined,
+    instrutorAssinaturaUrl: r.instrutor_assinatura_url ?? undefined,
     cargaHoraria: r.carga_horaria,
     pontosPEPC: r.pontos_pepc,
     alunos: r.alunos,
@@ -209,6 +212,10 @@ type LinhaVaga = {
   senioridade: string | null; area: string | null;
   requisitos: string[]; cursos_desejados: string[];
   trilhas_desejadas: string[]; publicada_em: string;
+  beneficios: string[] | null; jornada: string | null; escolaridade: string | null;
+  experiencia_min_anos: number | null; pcd: boolean | null;
+  afirmativa_para: string[] | null; acessibilidade: string | null;
+  sigilosa: boolean | null;
   empresas: { nome: string; cor: string | null } | null;
   candidaturas: Array<{ count: number }>;
 };
@@ -221,7 +228,9 @@ function mapVaga(
   return {
     id: r.id,
     titulo: r.titulo,
-    empresa: r.empresas?.nome ?? "Empresa",
+    // Vaga sigilosa não identifica a empresa no mural. Quem se candidata
+    // descobre com quem está falando quando a empresa responde.
+    empresa: r.sigilosa ? "Empresa confidencial" : (r.empresas?.nome ?? "Empresa"),
     logoCor: r.empresas?.cor ?? "#00204D",
     cidade: r.cidade ?? "",
     uf: r.uf ?? "",
@@ -240,6 +249,14 @@ function mapVaga(
       .filter((s): s is string => Boolean(s)),
     descricao: r.descricao ?? "",
     candidatos: r.candidaturas?.[0]?.count ?? 0,
+    beneficios: r.beneficios ?? [],
+    jornada: r.jornada ?? undefined,
+    escolaridade: r.escolaridade ?? undefined,
+    experienciaMinAnos: r.experiencia_min_anos,
+    pcd: Boolean(r.pcd),
+    afirmativaPara: r.afirmativa_para ?? [],
+    acessibilidade: r.acessibilidade ?? undefined,
+    sigilosa: Boolean(r.sigilosa),
   };
 }
 
@@ -284,7 +301,8 @@ async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
         .from("cursos")
         .select(
           `id, slug, titulo, subtitulo, descricao, categoria, nivel, cor,
-           instrutor, instrutor_cargo, carga_horaria, pontos_pepc, alunos, nota,
+           instrutor, instrutor_cargo, instrutor_registro, instrutor_assinatura_url,
+           carga_horaria, pontos_pepc, alunos, nota,
            tags, destaque, novo,
            modulos ( id, titulo, resumo, ordem,
              aulas ( id, titulo, descricao, tipo, duracao_min, ordem, gratuita,
@@ -310,6 +328,8 @@ async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
         .select(
           `id, titulo, descricao, cidade, uf, modelo, contrato, faixa, senioridade,
            area, requisitos, cursos_desejados, trilhas_desejadas, publicada_em,
+           beneficios, jornada, escolaridade, experiencia_min_anos, pcd,
+           afirmativa_para, acessibilidade, sigilosa,
            empresas ( nome, cor ),
            candidaturas ( count )`
         )

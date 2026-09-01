@@ -58,6 +58,7 @@ type LinhaCursoAdmin = {
   id: string; slug: string; titulo: string; subtitulo: string | null;
   descricao: string | null; categoria: string; nivel: string; cor: string;
   instrutor: string | null; instrutor_cargo: string | null;
+  instrutor_registro: string | null; instrutor_assinatura_url: string | null;
   carga_horaria: number; pontos_pepc: number; alunos: number; nota: number;
   tags: string[] | null; destaque: boolean; novo: boolean; publicado: boolean;
   criado_em: string;
@@ -97,7 +98,8 @@ export interface CursoAdmin extends Curso {
 
 const SELECT_CURSO_ADMIN = `
   id, slug, titulo, subtitulo, descricao, categoria, nivel, cor,
-  instrutor, instrutor_cargo, carga_horaria, pontos_pepc, alunos, nota,
+  instrutor, instrutor_cargo, instrutor_registro, instrutor_assinatura_url,
+  carga_horaria, pontos_pepc, alunos, nota,
   tags, destaque, novo, publicado, criado_em,
   modulos ( id, titulo, resumo, ordem,
     aulas ( id, titulo, descricao, tipo, duracao_min, ordem, gratuita,
@@ -117,6 +119,8 @@ function mapCursoAdmin(r: LinhaCursoAdmin): CursoAdmin {
     nivel: r.nivel as Curso["nivel"],
     instrutor: r.instrutor ?? "",
     instrutorCargo: r.instrutor_cargo ?? "",
+    instrutorRegistro: r.instrutor_registro ?? "",
+    instrutorAssinaturaUrl: r.instrutor_assinatura_url ?? "",
     cargaHoraria: r.carga_horaria,
     pontosPEPC: r.pontos_pepc,
     alunos: r.alunos,
@@ -184,8 +188,11 @@ export interface DadosCurso {
   categoria: string;
   nivel: string;
   cor: string;
+  /** Obrigatório: é quem assina o certificado de quem concluir. */
   instrutor: string;
   instrutorCargo: string;
+  instrutorRegistro?: string;
+  instrutorAssinaturaUrl?: string;
   cargaHoraria: number;
   pontosPEPC: number;
   tags: string[];
@@ -193,9 +200,51 @@ export interface DadosCurso {
   publicado: boolean;
 }
 
+/**
+ * Sobe a imagem da assinatura do docente.
+ *
+ * Vai para o bucket `capas`, que já é público e só aceita imagem — assinatura
+ * é peça de arte do certificado, não arquivo restrito, e o certificado é
+ * exibido para quem confere o código sem ter conta.
+ */
+export async function enviarAssinaturaDocente(
+  arquivo: File,
+  cursoSlug: string
+): Promise<{ url?: string; erro?: string }> {
+  const sb = getSupabase();
+  if (!sb) return { erro: SEM_BANCO };
+  if (!arquivo.type.startsWith("image/")) {
+    return { erro: "A assinatura precisa ser uma imagem (PNG com fundo transparente é o ideal)." };
+  }
+  if (arquivo.size > 2 * 1024 * 1024) {
+    return { erro: "A imagem tem mais de 2 MB. Reduza antes de enviar." };
+  }
+
+  const ext = (arquivo.name.split(".").pop() ?? "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = `assinaturas/${cursoSlug || "curso"}-${Date.now()}.${ext}`;
+
+  const { error } = await sb.storage
+    .from("capas")
+    .upload(path, arquivo, { upsert: true, contentType: arquivo.type });
+  if (error) return { erro: msgErro(error) };
+
+  const { data } = sb.storage.from("capas").getPublicUrl(path);
+  return { url: data.publicUrl };
+}
+
 export async function salvarCurso(d: DadosCurso): Promise<Resultado<string>> {
   const sb = getSupabase();
   if (!sb) return { ok: false, erro: SEM_BANCO };
+
+  // O docente não é um adorno do catálogo: é quem assina o certificado de quem
+  // concluir. Curso sem docente emitiria diploma sem assinatura, então a
+  // recusa vem antes do banco (que também tem a própria trava).
+  if (!d.instrutor.trim()) {
+    return {
+      ok: false,
+      erro: "Informe o docente que ministra o curso — é a assinatura do certificado.",
+    };
+  }
 
   const linha = {
     slug: d.slug,
@@ -205,8 +254,10 @@ export async function salvarCurso(d: DadosCurso): Promise<Resultado<string>> {
     categoria: d.categoria,
     nivel: d.nivel,
     cor: d.cor,
-    instrutor: d.instrutor || null,
-    instrutor_cargo: d.instrutorCargo || null,
+    instrutor: d.instrutor.trim() || null,
+    instrutor_cargo: d.instrutorCargo.trim() || null,
+    instrutor_registro: d.instrutorRegistro?.trim() || null,
+    instrutor_assinatura_url: d.instrutorAssinaturaUrl?.trim() || null,
     carga_horaria: d.cargaHoraria,
     pontos_pepc: d.pontosPEPC,
     tags: d.tags,

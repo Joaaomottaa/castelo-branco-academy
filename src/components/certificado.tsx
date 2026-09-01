@@ -31,6 +31,18 @@ export interface DadosDiploma {
   nivel?: string;
   /** Só na trilha: o que aquele percurso comprova. */
   habilidades?: string[];
+  /**
+   * Quem ministrou o curso e assina o documento.
+   *
+   * Um certificado sem assinatura é um comprovante de presença. A assinatura é
+   * o que responde "quem está afirmando isso?" — e é a primeira coisa que o RH
+   * procura. Na trilha não há um docente único (ela cobre vários cursos), então
+   * lá quem assina é a coordenação da Academy.
+   */
+  docente?: string;
+  docenteCargo?: string;
+  docenteRegistro?: string;
+  docenteAssinaturaUrl?: string;
 }
 
 function dataPorExtenso(iso: string) {
@@ -104,6 +116,7 @@ function DiplomaCurso({
         </p>
 
         <Numeros dados={dados} grande={grande} />
+        <Assinatura dados={dados} grande={grande} />
         <CodigoValidacao codigo={dados.codigo} grande={grande} />
       </div>
     </div>
@@ -196,6 +209,7 @@ function DiplomaTrilha({
         )}
 
         <Numeros dados={dados} grande={grande} trilha />
+        <Assinatura dados={dados} grande={grande} trilha />
         <CodigoValidacao codigo={dados.codigo} grande={grande} />
       </div>
     </div>
@@ -222,6 +236,70 @@ function Numeros({
       <span>{dados.pontosPEPC} pontos PEPC</span>
       {trilha && dados.nivel && <span>Nível {dados.nivel}</span>}
       <span>Emitido em {dataPorExtenso(dados.emitidoEm)}</span>
+    </div>
+  );
+}
+
+/**
+ * O bloco de assinatura.
+ *
+ * A linha existe mesmo sem imagem: é ela que diz que aquele nome está ali como
+ * assinatura, e não como uma informação a mais. Quando o docente tem imagem
+ * cadastrada, ela entra *acima* da linha, como numa via impressa.
+ */
+function Assinatura({
+  dados, grande, trilha,
+}: {
+  dados: DadosDiploma; grande?: boolean; trilha?: boolean;
+}) {
+  const nome = dados.docente?.trim();
+  // Na trilha, e em curso antigo que não guardou o docente, assina a casa —
+  // deixar o espaço em branco faria o documento parecer inacabado.
+  const assinante = nome || "Coordenação Acadêmica";
+  const cargo = nome ? dados.docenteCargo?.trim() : "Castelo Branco Academy";
+  const papel = trilha ? "Coordenação da trilha" : "Docente responsável";
+
+  return (
+    <div className={cn("mx-auto", grande ? "mt-9 max-w-xs" : "mt-6 max-w-[15rem]")}>
+      {dados.docenteAssinaturaUrl && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={dados.docenteAssinaturaUrl}
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            "mx-auto w-auto object-contain opacity-90",
+            grande ? "h-14" : "h-9"
+          )}
+          style={{ filter: "brightness(0) invert(1)" }}
+        />
+      )}
+      <div
+        className={cn("border-t", grande ? "mt-1.5 pt-2.5" : "mt-1 pt-2")}
+        style={{ borderColor: "rgba(200,159,80,0.45)" }}
+      >
+        <p className={cn("font-semibold text-white", grande ? "text-sm" : "text-[11px]")}>
+          {assinante}
+        </p>
+        {cargo && (
+          <p className={cn("text-navy-100/55", grande ? "text-[11px]" : "text-[9px]")}>
+            {cargo}
+          </p>
+        )}
+        {dados.docenteRegistro && (
+          <p className={cn("text-navy-100/55", grande ? "text-[11px]" : "text-[9px]")}>
+            {dados.docenteRegistro}
+          </p>
+        )}
+        <p
+          className={cn(
+            "uppercase tracking-[0.16em] text-gold-300/70",
+            grande ? "mt-1.5 text-[9px]" : "mt-1 text-[8px]"
+          )}
+        >
+          {papel}
+        </p>
+      </div>
     </div>
   );
 }

@@ -13,7 +13,7 @@ import { useSession } from "@/lib/session";
 export default function CertificadosPage() {
   const { user } = useSession();
   const {
-    meusCertificados: certificados, minhasTrilhas, trilhas, recarregar,
+    meusCertificados: certificados, minhasTrilhas, trilhas, cursos, recarregar,
   } = useDados();
   const [aberto, setAberto] = useState<{ dados: DadosDiploma; tipo: "curso" | "trilha" } | null>(null);
 
@@ -27,14 +27,24 @@ export default function CertificadosPage() {
 
   const nome = user?.nome ?? "Aluno";
 
-  const deCurso: DadosDiploma[] = certificados.map((c) => ({
-    aluno: nome,
-    titulo: c.cursoTitulo,
-    cargaHoraria: c.cargaHoraria,
-    pontosPEPC: c.pontosPEPC,
-    emitidoEm: c.emitidoEm,
-    codigo: c.codigo,
-  }));
+  // Quem assina vem do curso. O banco também grava o docente na emissão (é o
+  // que a validação pública lê), mas aqui o catálogo já está em memória e
+  // dispensa uma consulta a mais.
+  const deCurso: DadosDiploma[] = certificados.map((c) => {
+    const curso = cursos.find((x) => x.slug === c.cursoSlug);
+    return {
+      aluno: nome,
+      titulo: c.cursoTitulo,
+      cargaHoraria: c.cargaHoraria,
+      pontosPEPC: c.pontosPEPC,
+      emitidoEm: c.emitidoEm,
+      codigo: c.codigo,
+      docente: c.docente ?? curso?.instrutor,
+      docenteCargo: c.docenteCargo ?? curso?.instrutorCargo,
+      docenteRegistro: c.docenteRegistro ?? curso?.instrutorRegistro,
+      docenteAssinaturaUrl: c.docenteAssinaturaUrl ?? curso?.instrutorAssinaturaUrl,
+    };
+  });
 
   // Junta o certificado da trilha com o que ela cobre: o certificado guarda o
   // código, o catálogo guarda as habilidades e o nível de saída.

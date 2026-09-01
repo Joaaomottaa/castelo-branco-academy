@@ -9,6 +9,7 @@ import { Button, Card, Carregando } from "@/components/ui";
 import { useSession } from "@/lib/session";
 import { carregarEmpresa, type Empresa } from "@/lib/repo-empresa";
 import { EmpresaContext } from "./contexto";
+import { brand } from "@/lib/brand";
 
 /* ==========================================================================
    ÁREA DA EMPRESA
@@ -49,10 +50,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [loading, user, modoDemo]);
 
   // Membro sem cargo de gestão não tem o que fazer aqui: o que interessa a ele
-  // (as formações atribuídas) aparece no painel do aluno.
+  // (as formações atribuídas) aparece no painel do aluno. Conta cujo papel é
+  // `empresa` fica de fora dessa regra — ela não tem painel de aluno para onde
+  // ir (o AppShell a manda de volta para cá), e mandar uma para a outra é um
+  // ping-pong de redirecionamento.
+  const contaEmpresa = user?.role === "empresa";
   useEffect(() => {
-    if (!buscando && empresa && !empresa.gestor) router.replace("/app");
-  }, [buscando, empresa, router]);
+    if (!buscando && empresa && !empresa.gestor && !contaEmpresa) router.replace("/app");
+  }, [buscando, empresa, router, contaEmpresa]);
 
   if (buscando || loading) {
     return (
@@ -81,8 +86,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           texto="Se a sua empresa contratou a Academy, peça ao gestor o link do convite. Se você é o gestor e ainda não tem contrato, fale com a gente."
           acao={
             <div className="flex flex-wrap justify-center gap-3">
-              <Button href="/app">Voltar ao meu painel</Button>
-              <Button href="/app/planos" variant="ghost">Ver o plano Empresarial</Button>
+              {/* Conta de empresa não tem painel de aluno para onde voltar. */}
+              {!contaEmpresa && <Button href="/app">Voltar ao meu painel</Button>}
+              <Button href={brand.whatsapp} variant={contaEmpresa ? "gold" : "ghost"}>
+                Falar com a equipe
+              </Button>
             </div>
           }
         />
@@ -90,7 +98,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!empresa.gestor) return null;
+  // Membro sem gestão numa conta `empresa`: sem painel de aluno para onde ir,
+  // a tela precisa dizer o que aconteceu em vez de ficar em branco.
+  if (!empresa.gestor) {
+    if (!contaEmpresa) return null;
+    return (
+      <AppShell area="empresa">
+        <Aviso
+          titulo="Sua conta não administra esta empresa"
+          texto={`Você está vinculado a ${empresa.nome}, mas sem cargo de gestão. Peça a quem administra a conta para promover o seu acesso.`}
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell area="empresa">

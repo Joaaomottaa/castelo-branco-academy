@@ -68,7 +68,7 @@ const navEmpresa = [
     secao: "Contratar",
     itens: [
       { href: "/empresa/vagas", label: "Minhas vagas", icon: Briefcase },
-      { href: "/app/talentos", label: "Banco de talentos", icon: Users },
+      { href: "/empresa/talentos", label: "Banco de talentos", icon: Users },
     ],
   },
   {
@@ -138,6 +138,12 @@ export function AppShell({
     // para quem não é admin: só entregaria telas com erro e a falsa impressão
     // de que existe algo ali para ver.
     if (area === "admin" && user.role !== "admin") router.replace("/app");
+
+    // Conta de empresa não é aluno: a área do aluno mostraria trilha, ofensiva
+    // e conquistas para um CNPJ, e era por aí que o gestor se perdia ao clicar
+    // em "banco de talentos". Quem estuda *e* gerencia continua entrando: essa
+    // pessoa tem papel `aluno` e o vínculo de gestor à parte.
+    if (area === "aluno" && user.role === "empresa") router.replace("/empresa");
   }, [loading, user, router, area, pathname]);
 
   useEffect(() => setMenuAberto(false), [pathname]);
@@ -147,6 +153,7 @@ export function AppShell({
     || !user
     || (user.cadastroCompleto === false && user.role !== "admin")
     || (area === "admin" && user.role !== "admin")
+    || (area === "aluno" && user.role === "empresa")
   ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-cream">

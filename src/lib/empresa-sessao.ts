@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "./session";
-import { carregarEmpresa, type Empresa } from "./repo-empresa";
+import { type Empresa } from "./repo-empresa";
+import { aindaEhOCacheDe, empresaDoPerfil } from "./empresa-cache";
 
 /* ==========================================================================
    A EMPRESA DA SESSÃO, EM CACHE
@@ -16,11 +17,10 @@ import { carregarEmpresa, type Empresa } from "./repo-empresa";
    muda o vínculo: aceitar convite, sair da empresa, virar gestor.
    ========================================================================== */
 
-let cache: Promise<Empresa | null> | null = null;
-
-export function esquecerEmpresaEmCache() {
-  cache = null;
-}
+// O cache mora em `empresa-cache` porque a sessão precisa invalidá-lo no
+// logout, e importar este hook de lá fecharia um ciclo entre os módulos.
+// Reexportado para as telas que já chamavam por aqui.
+export { esquecerEmpresaEmCache } from "./empresa-cache";
 
 export interface EmpresaDaSessao {
   empresa: Empresa | null;
@@ -48,10 +48,14 @@ export function useEmpresaDaSessao(): EmpresaDaSessao {
       setCarregando(false);
       return;
     }
-    if (!cache) cache = carregarEmpresa();
+    const perfilId = user.id;
+    const promessa = empresaDoPerfil(perfilId);
     let ativo = true;
-    void cache.then((e) => {
-      if (!ativo) return;
+    setCarregando(true);
+    void promessa.then((e) => {
+      // Se a conta trocou no meio do caminho, esta resposta é da sessão
+      // anterior e não pode pintar a tela desta.
+      if (!ativo || !aindaEhOCacheDe(perfilId, promessa)) return;
       setEmpresa(e);
       setCarregando(false);
     });

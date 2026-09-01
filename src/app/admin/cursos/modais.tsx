@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  Bot, Check, FileVideo, Link2, Loader2, Plus, Sparkles, Trash2, Upload, Youtube,
+  Bot, Check, FileVideo, Link2, Loader2, PenLine, Plus, Sparkles, Trash2, Upload,
+  Youtube,
 } from "lucide-react";
 import { Badge, Button, Field, cn, inputCls } from "@/components/ui";
 import { AvisoErro, Modal } from "@/components/modal";
 import {
-  definirHabilidadesDoCurso, gerarSlug, habilidadesDoCurso, listarHabilidades,
-  questoesDaAula, salvarAula, salvarCurso, salvarModulo, salvarQuestoesDaAula,
+  definirHabilidadesDoCurso, enviarAssinaturaDocente, gerarSlug, habilidadesDoCurso,
+  listarHabilidades, questoesDaAula, salvarAula, salvarCurso, salvarModulo,
+  salvarQuestoesDaAula,
   type CursoAdmin, type DadosAula, type DadosCurso,
 } from "@/lib/repo-admin";
 import {
@@ -64,6 +66,8 @@ export function ModalCurso({
     cor: curso?.cor ?? CORES[0],
     instrutor: curso?.instrutor ?? "",
     instrutorCargo: curso?.instrutorCargo ?? "",
+    instrutorRegistro: curso?.instrutorRegistro ?? "",
+    instrutorAssinaturaUrl: curso?.instrutorAssinaturaUrl ?? "",
     cargaHoraria: curso?.cargaHoraria ?? 0,
     pontosPEPC: curso?.pontosPEPC ?? 0,
     tags: curso?.tags ?? [],
@@ -102,6 +106,13 @@ export function ModalCurso({
   async function submeter() {
     if (!f.titulo.trim()) return setErro("O título é obrigatório.");
     if (!f.slug.trim()) return setErro("O endereço (slug) é obrigatório.");
+    // Quem concluir este curso recebe um certificado assinado por este nome.
+    // Sem docente o documento sairia sem assinatura, então o campo é barreira.
+    if (!f.instrutor.trim()) {
+      return setErro(
+        "Informe o docente que ministra o curso — é quem assina o certificado de conclusão."
+      );
+    }
 
     setSalvando(true);
     setErro("");
@@ -202,30 +213,21 @@ export function ModalCurso({
           </Field>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-3">
-          <Field label="Instrutor">
-            <input
-              value={f.instrutor}
-              onChange={(e) => setF((v) => ({ ...v, instrutor: e.target.value }))}
-              className={inputCls}
-            />
-          </Field>
-          <Field label="Cargo do instrutor">
-            <input
-              value={f.instrutorCargo}
-              onChange={(e) => setF((v) => ({ ...v, instrutorCargo: e.target.value }))}
-              className={inputCls}
-            />
-          </Field>
-          <Field label="Pontos PEPC" hint="Educação continuada do CFC">
-            <input
-              type="number" min={0}
-              value={f.pontosPEPC}
-              onChange={(e) => setF((v) => ({ ...v, pontosPEPC: Number(e.target.value) }))}
-              className={inputCls}
-            />
-          </Field>
-        </div>
+        <Field label="Pontos PEPC" hint="Educação continuada do CFC" className="sm:max-w-[12rem]">
+          <input
+            type="number" min={0}
+            value={f.pontosPEPC}
+            onChange={(e) => setF((v) => ({ ...v, pontosPEPC: Number(e.target.value) }))}
+            className={inputCls}
+          />
+        </Field>
+
+        <BlocoDocente
+          f={f}
+          setF={setF}
+          slug={f.slug}
+          faltando={Boolean(erro) && !f.instrutor.trim()}
+        />
 
         <div>
           <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-navy-600">
@@ -329,6 +331,128 @@ export function ModalCurso({
         </div>
       </div>
     </Modal>
+  );
+}
+
+/**
+ * O DOCENTE
+ *
+ * Ficava como dois campos soltos entre carga horária e pontos PEPC, com cara de
+ * metadado opcional. Ele é a assinatura do certificado: quem concluir o curso
+ * recebe um documento com este nome embaixo da linha. Por isso virou um bloco
+ * com nome próprio, obrigatório, e com a prévia da assinatura ao lado — quem
+ * cadastra vê o que vai sair impresso.
+ */
+function BlocoDocente({
+  f, setF, slug, faltando,
+}: {
+  f: DadosCurso;
+  setF: React.Dispatch<React.SetStateAction<DadosCurso>>;
+  slug: string;
+  faltando: boolean;
+}) {
+  const [enviando, setEnviando] = useState(false);
+  const [erroEnvio, setErroEnvio] = useState("");
+  const arquivoRef = useRef<HTMLInputElement>(null);
+
+  async function escolher(arquivo?: File | null) {
+    if (!arquivo) return;
+    setErroEnvio("");
+    setEnviando(true);
+    const r = await enviarAssinaturaDocente(arquivo, slug);
+    setEnviando(false);
+    if (r.erro) return setErroEnvio(r.erro);
+    setF((v) => ({ ...v, instrutorAssinaturaUrl: r.url ?? "" }));
+  }
+
+  return (
+    <div className="rounded-xl border border-navy-100 bg-cream/40 p-4">
+      <p className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy-600">
+        <PenLine size={13} className="text-gold-500" /> Docente do curso
+        <Badge tone="red">Obrigatório</Badge>
+      </p>
+      <p className="mt-1.5 text-xs leading-relaxed text-muted">
+        É quem assina o certificado de quem concluir — e o nome que o RH vê ao
+        validar o código. O registro (CRC) sai impresso sob a assinatura.
+      </p>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <Field label="Nome do docente" error={faltando ? "Preencha para salvar" : undefined}>
+          <input
+            value={f.instrutor}
+            onChange={(e) => setF((v) => ({ ...v, instrutor: e.target.value }))}
+            placeholder="Ex.: Joaquim Castelo Branco"
+            className={cn(inputCls, faltando && "!border-red-300")}
+          />
+        </Field>
+        <Field label="Cargo / titulação">
+          <input
+            value={f.instrutorCargo}
+            onChange={(e) => setF((v) => ({ ...v, instrutorCargo: e.target.value }))}
+            placeholder="Ex.: Contador · Especialista em Tributário"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Registro profissional" hint="Aparece no certificado, sob o nome.">
+          <input
+            value={f.instrutorRegistro ?? ""}
+            onChange={(e) => setF((v) => ({ ...v, instrutorRegistro: e.target.value }))}
+            placeholder="CRC BA-123456/O-1"
+            className={inputCls}
+          />
+        </Field>
+
+        <div>
+          <p className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-navy-600">
+            Imagem da assinatura
+          </p>
+          {f.instrutorAssinaturaUrl ? (
+            <div className="flex items-center gap-3 rounded-xl border border-navy-100 bg-navy-700 p-2.5">
+              {/* Fundo navy porque é o fundo do certificado: assinatura escura
+                  em cartão branco parece certa aqui e desaparece lá. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={f.instrutorAssinaturaUrl}
+                alt="Assinatura do docente"
+                className="h-10 w-auto object-contain"
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
+              <button
+                onClick={() => setF((v) => ({ ...v, instrutorAssinaturaUrl: "" }))}
+                className="ml-auto rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
+                title="Remover a assinatura"
+                type="button"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => arquivoRef.current?.click()}
+              disabled={enviando}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-navy-200 bg-white px-4 py-3 text-xs font-semibold text-navy-600 transition hover:border-gold-400 disabled:opacity-60"
+            >
+              {enviando ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              {enviando ? "Enviando…" : "Enviar PNG da assinatura (opcional)"}
+            </button>
+          )}
+          <input
+            ref={arquivoRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => void escolher(e.target.files?.[0])}
+          />
+          {erroEnvio && <p className="mt-1.5 text-xs text-red-600">{erroEnvio}</p>}
+          {!f.instrutorAssinaturaUrl && !erroEnvio && (
+            <p className="mt-1.5 text-xs text-muted">
+              Sem imagem, o certificado assina em tipografia: o nome sobre a linha.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
