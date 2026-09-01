@@ -292,25 +292,62 @@ export async function carregarPublico(): Promise<Snapshot> {
   return carregar(getSupabaseAnon());
 }
 
+/**
+ * Consulta que tolera coluna que ainda não existe.
+ *
+ * O código sobe pelo deploy e a migração roda à mão no SQL Editor — as duas
+ * coisas não acontecem no mesmo segundo. Sem isto, no intervalo entre uma e
+ * outra o Postgres responde "column ... does not exist", a carga inteira falha
+ * e o app mostra o seed de demonstração para todo mundo: um catálogo falso é
+ * pior que uma coluna faltando. Aqui a consulta cai para a lista de colunas
+ * antiga e o produto segue com o que já existe.
+ */
+async function selecionarTolerante<T>(
+  consulta: (colunas: string) => PromiseLike<{ data: unknown; error: { message: string } | null }>,
+  colunasNovas: string,
+  colunasAntigas: string
+): Promise<{ data: T[]; error: { message: string } | null }> {
+  const r = await consulta(colunasNovas);
+  if (r.error && /does not exist|could not find/i.test(r.error.message)) {
+    console.warn(
+      "[repo] coluna nova ainda não existe no banco; rode supabase/20_*.sql. Seguindo sem ela."
+    );
+    const r2 = await consulta(colunasAntigas);
+    return { data: (r2.data ?? []) as T[], error: r2.error };
+  }
+  return { data: (r.data ?? []) as T[], error: r.error };
+}
+
 async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
   if (!sb) return snapshotDemo();
 
   try {
-    const [rCursos, rTalentos, rVagas, rCerts, rHabs] = await Promise.all([
-      sb
-        .from("cursos")
-        .select(
-          `id, slug, titulo, subtitulo, descricao, categoria, nivel, cor,
-           instrutor, instrutor_cargo, instrutor_registro, instrutor_assinatura_url,
-           carga_horaria, pontos_pepc, alunos, nota,
+    // Colunas que a migração 20 acrescenta. Ficam separadas para a consulta
+    // poder cair para a lista antiga enquanto o SQL não roda.
+    const RESTO_CURSO = `carga_horaria, pontos_pepc, alunos, nota,
            tags, destaque, novo,
            modulos ( id, titulo, resumo, ordem,
              aulas ( id, titulo, descricao, tipo, duracao_min, ordem, gratuita,
                      video_origem, video_path, video_url, video_nome,
-                     quiz_ativo, quiz_qtd, quiz_minimo, quiz_tentativas ) )`
-        )
-        .eq("publicado", true)
-        .order("destaque", { ascending: false }),
+                     quiz_ativo, quiz_qtd, quiz_minimo, quiz_tentativas ) )`;
+    const CURSO_BASE = `id, slug, titulo, subtitulo, descricao, categoria, nivel, cor,
+           instrutor, instrutor_cargo`;
+    const RESTO_VAGA = `empresas ( nome, cor ), candidaturas ( count )`;
+    const VAGA_BASE = `id, titulo, descricao, cidade, uf, modelo, contrato, faixa,
+           senioridade, area, requisitos, cursos_desejados, trilhas_desejadas,
+           publicada_em`;
+
+    const [rCursos, rTalentos, rVagas, rCerts, rHabs] = await Promise.all([
+      selecionarTolerante<LinhaCurso>(
+        (colunas) =>
+          sb
+            .from("cursos")
+            .select(colunas)
+            .eq("publicado", true)
+            .order("destaque", { ascending: false }),
+        `${CURSO_BASE}, instrutor_registro, instrutor_assinatura_url, ${RESTO_CURSO}`,
+        `${CURSO_BASE}, ${RESTO_CURSO}`
+      ),
 
       sb
         .from("perfis")
@@ -323,18 +360,17 @@ async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
         .eq("perfil_publico", true)
         .order("pontos", { ascending: false }),
 
-      sb
-        .from("vagas")
-        .select(
-          `id, titulo, descricao, cidade, uf, modelo, contrato, faixa, senioridade,
-           area, requisitos, cursos_desejados, trilhas_desejadas, publicada_em,
-           beneficios, jornada, escolaridade, experiencia_min_anos, pcd,
-           afirmativa_para, acessibilidade, sigilosa,
-           empresas ( nome, cor ),
-           candidaturas ( count )`
-        )
-        .eq("ativa", true)
-        .order("publicada_em", { ascending: false }),
+      selecionarTolerante<LinhaVaga>(
+        (colunas) =>
+          sb
+            .from("vagas")
+            .select(colunas)
+            .eq("ativa", true)
+            .order("publicada_em", { ascending: false }),
+        `${VAGA_BASE}, beneficios, jornada, escolaridade, experiencia_min_anos,
+           pcd, afirmativa_para, acessibilidade, sigilosa, ${RESTO_VAGA}`,
+        `${VAGA_BASE}, ${RESTO_VAGA}`
+      ),
 
       sb
         .from("certificados")
@@ -355,7 +391,7 @@ async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
       rCursos.error ?? rTalentos.error ?? rVagas.error ?? rCerts.error ?? rHabs.error;
     if (erro) throw erro;
 
-    const cursos = ((rCursos.data ?? []) as unknown as LinhaCurso[]).map(mapCurso);
+    const cursos = rCursos.data.map(mapCurso);
     const slugPorId = new Map(cursos.map((c) => [c.id!, c.slug]));
     const trilhaSlugPorId = new Map(trilhas.map((t) => [t.id, t.slug]));
 
@@ -364,9 +400,7 @@ async function carregar(sb: SupabaseClient | null): Promise<Snapshot> {
       trilhas,
       certificadosTrilha,
       talentos: ((rTalentos.data ?? []) as unknown as LinhaPerfil[]).map(mapPerfil),
-      vagas: ((rVagas.data ?? []) as unknown as LinhaVaga[]).map((v) =>
-        mapVaga(v, slugPorId, trilhaSlugPorId)
-      ),
+      vagas: rVagas.data.map((v) => mapVaga(v, slugPorId, trilhaSlugPorId)),
       certificados: ((rCerts.data ?? []) as unknown as LinhaCert[]).map(mapCertificado),
       habilidades: ((rHabs.data ?? []) as Array<{ nome: string }>).map((h) => h.nome),
       origem: "supabase",

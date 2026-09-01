@@ -127,11 +127,34 @@ type LinhaVaga = {
   candidaturas: Array<{ count: number }>;
 };
 
+const COLUNAS_VAGA_BASE = `id, empresa_id, titulo, descricao, cidade, uf, modelo,
+   contrato, faixa, senioridade, area, requisitos, cursos_desejados,
+   trilhas_desejadas, ativa, publicada_em,
+   empresas ( nome, cor ), candidaturas ( count )`;
+
+/** Colunas que a migração 20 acrescenta. */
 const COLUNAS_VAGA = `id, empresa_id, titulo, descricao, cidade, uf, modelo, contrato,
    faixa, senioridade, area, requisitos, cursos_desejados, trilhas_desejadas, ativa,
    publicada_em, beneficios, jornada, escolaridade, experiencia_min_anos, pcd,
    afirmativa_para, acessibilidade, sigilosa,
    empresas ( nome, cor ), candidaturas ( count )`;
+
+/**
+ * Consulta as vagas caindo para as colunas antigas se a migração ainda não
+ * rodou. Entre o deploy e o SQL no painel existe um intervalo, e nele a tela
+ * de vagas não pode virar uma mensagem de erro de banco.
+ */
+async function consultarVagas(
+  montar: (colunas: string) => PromiseLike<{ data: unknown; error: { message: string } | null }>
+): Promise<{ vagas: VagaAdmin[]; erro?: string }> {
+  let r = await montar(COLUNAS_VAGA);
+  if (r.error && /does not exist|could not find/i.test(r.error.message)) {
+    console.warn("[vagas] colunas novas ainda não existem; rode supabase/20_*.sql.");
+    r = await montar(COLUNAS_VAGA_BASE);
+  }
+  if (r.error) return { vagas: [], erro: msgErro(r.error) };
+  return { vagas: ((r.data ?? []) as unknown as LinhaVaga[]).map(mapVagaAdmin) };
+}
 
 function mapVagaAdmin(v: LinhaVaga): VagaAdmin {
   return {
@@ -169,13 +192,9 @@ export async function carregarVagasAdmin(): Promise<{ vagas: VagaAdmin[]; erro?:
   const sb = getSupabase();
   if (!sb) return { vagas: [], erro: SEM_BANCO };
 
-  const { data, error } = await sb
-    .from("vagas")
-    .select(COLUNAS_VAGA)
-    .order("publicada_em", { ascending: false });
-
-  if (error) return { vagas: [], erro: msgErro(error) };
-  return { vagas: ((data ?? []) as unknown as LinhaVaga[]).map(mapVagaAdmin) };
+  return consultarVagas((colunas) =>
+    sb.from("vagas").select(colunas).order("publicada_em", { ascending: false })
+  );
 }
 
 /**
@@ -193,14 +212,13 @@ export async function carregarVagasDaEmpresa(
   if (!sb) return { vagas: [], erro: SEM_BANCO };
   if (!empresaId) return { vagas: [] };
 
-  const { data, error } = await sb
-    .from("vagas")
-    .select(COLUNAS_VAGA)
-    .eq("empresa_id", empresaId)
-    .order("publicada_em", { ascending: false });
-
-  if (error) return { vagas: [], erro: msgErro(error) };
-  return { vagas: ((data ?? []) as unknown as LinhaVaga[]).map(mapVagaAdmin) };
+  return consultarVagas((colunas) =>
+    sb
+      .from("vagas")
+      .select(colunas)
+      .eq("empresa_id", empresaId)
+      .order("publicada_em", { ascending: false })
+  );
 }
 
 /** Contagem por etapa de cada vaga, numa chamada. */

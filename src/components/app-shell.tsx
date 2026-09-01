@@ -147,8 +147,12 @@ export function AppShell({
     // e conquistas para um CNPJ, e era por aí que o gestor se perdia ao clicar
     // em "banco de talentos". Quem estuda *e* gerencia continua entrando: essa
     // pessoa tem papel `aluno` e o vínculo de gestor à parte.
-    if (area === "aluno" && user.role === "empresa") router.replace("/empresa");
-  }, [loading, user, router, area, pathname]);
+    //
+    // A exceção é o modo demonstração: lá a área da empresa não abre (não há
+    // contrato nem equipe para mostrar), então bloquear /app também deixaria a
+    // conta sem tela nenhuma no meio de uma apresentação.
+    if (area === "aluno" && user.role === "empresa" && !modoDemo) router.replace("/empresa");
+  }, [loading, user, router, area, pathname, modoDemo]);
 
   useEffect(() => setMenuAberto(false), [pathname]);
 
@@ -157,7 +161,7 @@ export function AppShell({
     || !user
     || (user.cadastroCompleto === false && user.role !== "admin")
     || (area === "admin" && user.role !== "admin")
-    || (area === "aluno" && user.role === "empresa")
+    || (area === "aluno" && user.role === "empresa" && !modoDemo)
   ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-cream">
