@@ -64,7 +64,7 @@ export default function VagasDaEmpresa() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
         <div>
           <p className="eyebrow text-gold-500">Contratar</p>
           <h1 className="text-2xl font-bold tracking-tight text-navy-700">Minhas vagas</h1>
@@ -74,7 +74,7 @@ export default function VagasDaEmpresa() {
               : `${abertas} vaga(s) aberta(s) e ${candidatos} candidatura(s) recebida(s).`}
           </p>
         </div>
-        <Button variant="gold" onClick={() => setEditando("nova")}>
+        <Button variant="gold" onClick={() => setEditando("nova")} className="w-full sm:w-auto">
           <Plus size={16} /> Publicar vaga
         </Button>
       </div>

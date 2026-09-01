@@ -64,17 +64,17 @@ export default function PainelEmpresa() {
   return (
     <div className="space-y-7">
       {/* Cabeçalho */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
           <span
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white sm:h-14 sm:w-14"
             style={{ background: `linear-gradient(135deg, ${empresa.cor ?? "#00204D"}, #0d3563)` }}
           >
             <Building2 size={26} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="eyebrow text-gold-500">Painel da empresa</p>
-            <h1 className="text-2xl font-bold tracking-tight text-navy-700">{empresa.nome}</h1>
+            <h1 className="text-xl font-bold leading-snug tracking-tight text-navy-700 sm:text-2xl">{empresa.nome}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               {empresa.segmento && <span>{empresa.segmento}</span>}
               {empresa.cidade && <span>· {empresa.cidade}/{empresa.uf}</span>}
@@ -182,8 +182,8 @@ export default function PainelEmpresa() {
           </Button>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-6">
-          <div className="min-w-[220px] flex-1">
+        <div className="mt-5 flex flex-wrap items-center gap-4 sm:gap-6">
+          <div className="min-w-[200px] flex-1">
             <div className="flex items-baseline justify-between text-sm">
               <span className="font-semibold text-navy-700">
                 {resumo?.pontosPepcAno ?? 0} de {resumo?.metaPepc ?? 0} pontos
@@ -206,7 +206,7 @@ export default function PainelEmpresa() {
 
       {/* Formações em andamento */}
       <div>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-bold text-navy-700">Formações atribuídas</h2>
           <Link
             href="/empresa/formacoes"
@@ -246,7 +246,7 @@ export default function PainelEmpresa() {
       {/* Quem precisa de atenção */}
       {!carregando && equipe.length > 0 && (
         <div>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-navy-700">Ritmo da equipe</h2>
             <Link
               href="/empresa/equipe"
@@ -261,7 +261,7 @@ export default function PainelEmpresa() {
                 .sort((a, b) => diasSem(b.ultimoEstudo) - diasSem(a.ultimoEstudo))
                 .slice(0, 5)
                 .map((m) => (
-                  <div key={m.perfilId} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+                  <div key={m.perfilId} className="flex flex-wrap items-center gap-3 px-4 py-3.5 sm:px-5">
                     <Avatar nome={m.nome} size={36} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-navy-700">{m.nome}</p>
@@ -308,10 +308,10 @@ function Metrica({
   return (
     <Card>
       <div className="flex items-center gap-2 text-gold-500">{icone}</div>
-      <p className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-navy-700">
+      <p className="mt-3 text-xl font-bold tabular-nums tracking-tight text-navy-700 sm:text-2xl">
         {valor}{sufixo}
       </p>
-      <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-navy-600">{rotulo}</p>
+      <p className="mt-0.5 text-xs font-semibold uppercase leading-snug tracking-wide text-navy-600">{rotulo}</p>
       {nota && <p className="mt-1.5 text-xs text-muted">{nota}</p>}
     </Card>
   );

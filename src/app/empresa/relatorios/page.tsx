@@ -167,7 +167,7 @@ function Kpi({
   return (
     <Card>
       <div className="text-gold-500">{icone}</div>
-      <p className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-navy-700">{valor}</p>
+      <p className="mt-3 text-xl font-bold tabular-nums tracking-tight text-navy-700 sm:text-2xl">{valor}</p>
       <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-navy-600">{rotulo}</p>
       <p className="mt-1.5 text-xs text-muted">{nota}</p>
     </Card>
@@ -212,13 +212,13 @@ function LinhaPessoa({ m }: { m: LinhaRelatorio }) {
       {aberto && (
         <div className="border-t border-navy-100 bg-cream/40">
           {m.itens.length === 0 ? (
-            <p className="px-5 py-4 text-xs text-muted">
+            <p className="px-4 py-4 text-xs text-muted sm:px-5">
               Nenhum certificado emitido neste ano-base.
             </p>
           ) : (
             <div className="divide-y divide-navy-100">
               {m.itens.map((i) => (
-                <div key={i.codigo} className="flex flex-wrap items-center gap-3 px-5 py-3">
+                <div key={i.codigo} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
                   <Badge tone={i.tipo === "trilha" ? "teal" : "navy"}>
                     {i.tipo === "trilha" ? "Trilha" : "Curso"}
                   </Badge>

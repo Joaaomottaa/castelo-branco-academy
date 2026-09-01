@@ -57,7 +57,7 @@ export default function EquipePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
         <div>
           <p className="eyebrow text-gold-500">Equipe</p>
           <h1 className="text-2xl font-bold tracking-tight text-navy-700">Pessoas e licenças</h1>
@@ -76,7 +76,7 @@ export default function EquipePage() {
             )}
           </p>
         </div>
-        <Button variant="gold" onClick={() => setConvidando(true)}>
+        <Button variant="gold" onClick={() => setConvidando(true)} className="w-full sm:w-auto">
           <UserPlus size={16} /> Convidar
         </Button>
       </div>
@@ -165,7 +165,7 @@ function ListaPessoas({
       <Card className="!p-0 overflow-hidden">
         <div className="divide-y divide-navy-100">
           {equipe.map((m) => (
-            <div key={m.perfilId} className="flex flex-wrap items-center gap-3 px-5 py-4">
+            <div key={m.perfilId} className="flex flex-wrap items-center gap-3 px-4 py-4 sm:px-5">
               <Avatar nome={m.nome} size={40} />
 
               <div className="min-w-[180px] flex-1">
@@ -362,7 +362,7 @@ function ListaConvites({
           const expirado = new Date(c.expiraEm) < new Date();
           const vivo = c.status === "pendente" && !expirado;
           return (
-            <div key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+            <div key={c.id} className="flex flex-wrap items-center gap-3 px-4 py-3.5 sm:px-5">
               <div className="min-w-[200px] flex-1">
                 <p className="flex flex-wrap items-center gap-2 font-mono text-sm font-bold text-navy-700">
                   {c.codigo}

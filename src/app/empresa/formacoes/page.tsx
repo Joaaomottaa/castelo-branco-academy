@@ -58,7 +58,7 @@ export default function FormacoesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
         <div>
           <p className="eyebrow text-gold-500">Desenvolvimento</p>
           <h1 className="text-2xl font-bold tracking-tight text-navy-700">Formações da equipe</h1>
@@ -70,7 +70,7 @@ export default function FormacoesPage() {
             )}
           </p>
         </div>
-        <Button variant="gold" onClick={() => setAbrindo(true)}>
+        <Button variant="gold" onClick={() => setAbrindo(true)} className="w-full sm:w-auto">
           <Plus size={16} /> Atribuir formação
         </Button>
       </div>
@@ -199,7 +199,7 @@ function CartaoFormacao({ f, aoRemover }: { f: Formacao; aoRemover: () => void }
       {aberto && (
         <div className="divide-y divide-navy-100 border-t border-navy-100 bg-cream/40">
           {f.pessoas.map((p) => (
-            <div key={p.perfilId} className="flex flex-wrap items-center gap-3 px-5 py-3">
+            <div key={p.perfilId} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
               <Avatar nome={p.nome} size={30} />
               <div className="min-w-[140px] flex-1">
                 <p className="text-sm font-semibold text-navy-700">{p.nome}</p>
