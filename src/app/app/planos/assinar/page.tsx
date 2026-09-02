@@ -4,9 +4,9 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  AlertCircle, ArrowLeft, ArrowRight, Barcode, Building2, Check, CheckCircle2,
-  Copy, CreditCard, Landmark, Loader2, Lock, QrCode, ShieldCheck, Sparkles,
-  Tag, Ticket, X,
+  AlertCircle, ArrowLeft, ArrowRight, Barcode, Building2, CalendarDays, Check,
+  CheckCircle2, Copy, CreditCard, Landmark, Loader2, Lock, QrCode, ShieldCheck,
+  Sparkles, Tag, Ticket, UserRound, X,
 } from "lucide-react";
 import { Badge, Button, Card, Carregando, Field, cn, inputCls } from "@/components/ui";
 import { useSession } from "@/lib/session";
@@ -83,6 +83,12 @@ function Checkout() {
   const [etapa, setEtapa] = useState<"metodo" | "dados" | "pronto">("metodo");
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
+
+  // A validade do cartão sobe do formulário porque quem libera o botão é o
+  // resumo, do outro lado da tela. Antes dava para confirmar em branco.
+  const [cartaoValido, setCartaoValido] = useState(false);
+  const pagandoComCartao = metodo.startsWith("cartao");
+  const faltaCartao = pagandoComCartao && !cartaoValido;
 
   /* ------------------------------------------------------------- cupom */
   const [codigo, setCodigo] = useState("");
@@ -166,8 +172,9 @@ function Checkout() {
   if (etapa === "pronto") {
     return (
       <div className="mx-auto max-w-lg py-8 text-center">
-        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white">
-          <CheckCircle2 size={32} />
+        <Passos atual={3} />
+        <span className="mx-auto mt-8 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500 text-white ring-8 ring-emerald-500/15">
+          <CheckCircle2 size={38} />
         </span>
         <h1 className="mt-5 text-2xl font-bold tracking-tight text-navy-700">
           Plano {plano} ativado
@@ -222,6 +229,8 @@ function Checkout() {
       >
         <ArrowLeft size={15} /> Planos
       </Link>
+
+      <Passos atual={etapa === "dados" ? 2 : 1} />
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-navy-700">
@@ -320,7 +329,13 @@ function Checkout() {
           {etapa === "dados" && (
             <Card className="!p-4">
               {metodo.startsWith("cartao") && (
-                <FormularioCartao credito={metodo === "cartao-credito"} total={total} ciclo={ciclo} />
+                <FormularioCartao
+                  credito={metodo === "cartao-credito"}
+                  total={total}
+                  ciclo={ciclo}
+                  processando={processando}
+                  onValido={setCartaoValido}
+                />
               )}
               {metodo === "pix" && <PainelPix payload={pixPayload} total={total} />}
               {metodo === "boleto" && <PainelBoleto boleto={boleto} />}
@@ -447,12 +462,14 @@ function Checkout() {
               full
               className="mt-4"
               onClick={confirmar}
-              disabled={processando || etapa !== "dados"}
+              disabled={processando || etapa !== "dados" || faltaCartao}
             >
               {processando ? (
                 <><Loader2 size={15} className="animate-spin" /> Confirmando…</>
               ) : etapa !== "dados" ? (
                 "Escolha a forma de pagamento"
+              ) : faltaCartao ? (
+                "Complete os dados do cartão"
               ) : metodo === "pix" ? (
                 <>Já paguei o Pix</>
               ) : metodo === "boleto" ? (
@@ -477,10 +494,169 @@ function Checkout() {
 /* ======================================================================
    Cartão
    ====================================================================== */
-function FormularioCartao({
-  credito, total, ciclo,
+/* ======================================================================
+   Passos
+
+   Três passos, não os cinco que a tela tem por dentro: o que a pessoa precisa
+   saber é quanto falta, e passo demais faz o checkout parecer mais longo do
+   que é. No celular só o número do passo atual leva rótulo, senão não cabe.
+   ====================================================================== */
+function Passos({ atual }: { atual: 1 | 2 | 3 }) {
+  const passos = ["Plano e forma", "Dados do pagamento", "Plano ativo"];
+  return (
+    <ol className="flex items-center gap-1.5">
+      {passos.map((rotulo, i) => {
+        const n = i + 1;
+        const feito = n < atual;
+        const aqui = n === atual;
+        return (
+          <li
+            key={rotulo}
+            className={cn(
+              "flex min-w-0 items-center gap-1.5",
+              // O esticão existe só para o rótulo do passo atual caber no
+              // celular; no desktop todos caem lado a lado.
+              aqui && "flex-1 sm:flex-none"
+            )}
+          >
+            <span
+              className={cn(
+                "grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold tabular-nums transition",
+                feito && "bg-emerald-500 text-white",
+                aqui && "gold-gradient text-navy-800",
+                !feito && !aqui && "bg-navy-50 text-navy-300"
+              )}
+            >
+              {feito ? <Check size={13} /> : String(n).padStart(2, "0")}
+            </span>
+            <span
+              className={cn(
+                "truncate text-[11px] font-semibold",
+                aqui ? "text-navy-700" : "hidden text-muted sm:inline"
+              )}
+            >
+              {rotulo}
+            </span>
+            {n < passos.length && (
+              <span
+                className={cn(
+                  "h-px w-3 shrink-0 sm:w-6",
+                  feito ? "bg-emerald-300" : "bg-navy-100"
+                )}
+              />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/**
+ * Campo com ícone à esquerda.
+ *
+ * O `Field` do sistema não tem essa variante, e criar uma lá mudaria formulário
+ * de todo o produto por causa de uma tela. Fica local até um segundo lugar
+ * precisar — aí sobe para ui.tsx.
+ */
+function CampoComIcone({
+  rotulo, icone: Icone, sufixo, className, ...props
 }: {
-  credito: boolean; total: number; ciclo: string;
+  rotulo: string;
+  icone: typeof CreditCard;
+  sufixo?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold text-navy-600">{rotulo}</span>
+      <span className="relative block">
+        <Icone
+          size={16}
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-navy-300"
+        />
+        <input
+          {...props}
+          className={cn(
+            inputCls,
+            "h-12 pl-10",
+            sufixo && "pr-16",
+            className
+          )}
+        />
+        {sufixo && (
+          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-bold uppercase tracking-wider text-navy-400">
+            {sufixo}
+          </span>
+        )}
+      </span>
+    </label>
+  );
+}
+
+/* ======================================================================
+   Cartão
+
+   O cartão desenhado usa a proporção real (85,6 × 53,98 mm ≈ 1,586) porque
+   qualquer outra proporção faz o desenho parecer um retângulo genérico. Ele
+   preenche em tempo real conforme a pessoa digita: é o que transforma quatro
+   campos numa conferência do que ela tem na mão.
+
+   A validação é de FORMA, não de autenticidade: dígitos, tamanho e mês
+   plausível. Quem valida cartão de verdade é o emissor, e não é aqui.
+   ====================================================================== */
+
+/** Luhn: o dígito verificador que todo cartão tem. Pega erro de digitação. */
+function luhnValido(numero: string): boolean {
+  const d = numero.replace(/\D/g, "");
+  if (d.length < 13) return false;
+  let soma = 0;
+  let dobra = false;
+  for (let i = d.length - 1; i >= 0; i--) {
+    let n = Number(d[i]);
+    if (dobra) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    soma += n;
+    dobra = !dobra;
+  }
+  return soma % 10 === 0;
+}
+
+/** Mês entre 01 e 12 e data não vencida. */
+function validadeOk(v: string): boolean {
+  const d = v.replace(/\D/g, "");
+  if (d.length !== 4) return false;
+  const mes = Number(d.slice(0, 2));
+  const ano = 2000 + Number(d.slice(2));
+  if (mes < 1 || mes > 12) return false;
+  const agora = new Date();
+  const fim = new Date(ano, mes, 0, 23, 59, 59);
+  return fim >= agora;
+}
+
+/** CPF pelos dois dígitos verificadores — não só pelo tamanho. */
+function cpfValido(v: string): boolean {
+  const d = v.replace(/\D/g, "");
+  if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+  for (const corte of [9, 10]) {
+    let soma = 0;
+    for (let i = 0; i < corte; i++) soma += Number(d[i]) * (corte + 1 - i);
+    const resto = (soma * 10) % 11 % 10;
+    if (resto !== Number(d[corte])) return false;
+  }
+  return true;
+}
+
+function FormularioCartao({
+  credito, total, ciclo, processando, onValido,
+}: {
+  credito: boolean;
+  total: number;
+  ciclo: string;
+  processando: boolean;
+  /** Sobe a validade para o resumo, que é quem libera o botão de pagar. */
+  onValido: (v: boolean) => void;
 }) {
   const [numero, setNumero] = useState("");
   const [nome, setNome] = useState("");
@@ -488,9 +664,28 @@ function FormularioCartao({
   const [cvv, setCvv] = useState("");
   const [cpf, setCpf] = useState("");
   const [parcelas, setParcelas] = useState(1);
+  const [tocado, setTocado] = useState<Record<string, boolean>>({});
 
   const bandeira = bandeiraDoCartao(numero);
   const maxParcelas = credito && ciclo === "anual" ? 12 : 1;
+
+  // AMEX tem CVV de 4 dígitos; o resto, 3.
+  const cvvEsperado = bandeira === "AMEX" ? 4 : 3;
+
+  const checagem = {
+    numero: luhnValido(numero),
+    nome: nome.trim().split(/\s+/).filter(Boolean).length >= 2,
+    validade: validadeOk(validade),
+    cvv: cvv.replace(/\D/g, "").length === cvvEsperado,
+    cpf: cpfValido(cpf),
+  };
+  const valido = Object.values(checagem).every(Boolean);
+
+  useEffect(() => { onValido(valido); }, [valido, onValido]);
+
+  const marcar = (campo: string) => () => setTocado((t) => ({ ...t, [campo]: true }));
+  const erroDe = (campo: keyof typeof checagem, texto: string) =>
+    tocado[campo] && !checagem[campo] ? texto : undefined;
 
   return (
     <div className="space-y-4">
@@ -499,81 +694,139 @@ function FormularioCartao({
         Dados do cartão de {credito ? "crédito" : "débito"}
       </p>
 
-      {/* cartão visual */}
-      <div className="relative overflow-hidden rounded-2xl bg-navy-700 p-5 text-white">
-        <div className="grid-lines absolute inset-0 opacity-30" />
-        <div className="relative">
+      {/* ---------------------------------------------------- cartão desenhado */}
+      <div
+        className={cn(
+          "relative mx-auto aspect-[1.586/1] w-full max-w-[22rem] overflow-hidden rounded-2xl",
+          "bg-gradient-to-br from-navy-600 via-navy-700 to-navy-900 p-5 text-white",
+          "shadow-xl shadow-navy-900/25 ring-1 ring-inset ring-white/10 transition-all duration-500",
+          processando && "scale-[0.97] animate-pulse",
+          valido && !processando && "ring-2 ring-gold-400/50"
+        )}
+      >
+        <div className="grid-lines pointer-events-none absolute inset-0 opacity-25" />
+        <div
+          className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-gold-400/10 blur-2xl"
+          aria-hidden
+        />
+
+        <div className="relative flex h-full flex-col justify-between">
           <div className="flex items-start justify-between">
-            <span className="h-8 w-11 rounded-md bg-gold-400/80" />
-            <span className="text-xs font-bold uppercase tracking-wider text-gold-300">
+            {/* chip */}
+            <span className="h-7 w-10 overflow-hidden rounded-md bg-gradient-to-br from-gold-200 via-gold-400 to-gold-600 shadow-inner">
+              <span className="mt-2 block h-px w-full bg-navy-900/20" />
+              <span className="mt-1.5 block h-px w-full bg-navy-900/20" />
+              <span className="mx-auto -mt-3 block h-4 w-4 rounded-full border border-navy-900/25" />
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-gold-300">
               {bandeira || "•••"}
             </span>
           </div>
-          <p className="mt-5 font-mono text-lg tracking-widest text-white/90">
+
+          <p className="font-mono text-[clamp(0.95rem,4.2vw,1.3rem)] tracking-[0.1em] text-white/95">
             {numero || "•••• •••• •••• ••••"}
           </p>
-          <div className="mt-4 flex items-end justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[9px] uppercase tracking-wider text-navy-100/50">Titular</p>
-              <p className="truncate text-xs font-semibold uppercase">
+
+          <div className="flex items-end justify-between gap-3">
+            <span className="min-w-0">
+              <span className="block text-[8px] uppercase tracking-[0.16em] text-navy-100/50">
+                Titular
+              </span>
+              <span className="mt-0.5 block truncate text-[11px] font-semibold uppercase tracking-wide">
                 {nome || "NOME COMO NO CARTÃO"}
-              </p>
-            </div>
-            <div>
-              <p className="text-[9px] uppercase tracking-wider text-navy-100/50">Validade</p>
-              <p className="text-xs font-semibold">{validade || "MM/AA"}</p>
-            </div>
+              </span>
+            </span>
+            <span className="shrink-0 text-right">
+              <span className="block text-[8px] uppercase tracking-[0.16em] text-navy-100/50">
+                Validade
+              </span>
+              <span className="mt-0.5 block text-[11px] font-semibold tabular-nums">
+                {validade || "MM/AA"}
+              </span>
+            </span>
           </div>
         </div>
       </div>
 
-      <Field label="Número do cartão">
-        <input
-          value={numero}
-          onChange={(e) => setNumero(formatarCartao(e.target.value))}
-          placeholder="0000 0000 0000 0000"
-          inputMode="numeric"
-          className={inputCls + " font-mono"}
-        />
-      </Field>
+      {/* -------------------------------------------------------------- campos */}
+      <CampoComIcone
+        rotulo="Número do cartão"
+        icone={CreditCard}
+        sufixo={bandeira || undefined}
+        value={numero}
+        onChange={(e) => setNumero(formatarCartao(e.target.value))}
+        onBlur={marcar("numero")}
+        placeholder="0000 0000 0000 0000"
+        inputMode="numeric"
+        autoComplete="cc-number"
+        className="font-mono tracking-wider"
+      />
+      {erroDe("numero", "Confira o número — algum dígito não fecha.") && (
+        <p className="-mt-2 text-[11px] text-red-600">
+          Confira o número — algum dígito não fecha.
+        </p>
+      )}
 
-      <Field label="Nome como está no cartão">
-        <input
-          value={nome}
-          onChange={(e) => setNome(e.target.value.toUpperCase())}
-          placeholder="MARIA A SILVA"
-          className={inputCls}
-        />
-      </Field>
+      <CampoComIcone
+        rotulo="Nome como está no cartão"
+        icone={UserRound}
+        value={nome}
+        onChange={(e) => setNome(e.target.value.toUpperCase())}
+        onBlur={marcar("nome")}
+        placeholder="MARIA A SILVA"
+        autoComplete="cc-name"
+      />
+      {erroDe("nome", "Nome e sobrenome, como está impresso.") && (
+        <p className="-mt-2 text-[11px] text-red-600">Nome e sobrenome, como está impresso.</p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Validade">
-          <input
+        <div>
+          <CampoComIcone
+            rotulo="Validade"
+            icone={CalendarDays}
             value={validade}
             onChange={(e) => setValidade(formatarValidade(e.target.value))}
+            onBlur={marcar("validade")}
             placeholder="MM/AA"
             inputMode="numeric"
-            className={inputCls}
+            autoComplete="cc-exp"
+            maxLength={5}
           />
-        </Field>
-        <Field label="CVV">
-          <input
+          {erroDe("validade", "Mês de 01 a 12, e não vencido.") && (
+            <p className="mt-1 text-[11px] text-red-600">Mês de 01 a 12, e não vencido.</p>
+          )}
+        </div>
+        <div>
+          <CampoComIcone
+            rotulo="CVV"
+            icone={Lock}
             value={cvv}
             onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-            placeholder="000"
+            onBlur={marcar("cvv")}
+            placeholder={"0".repeat(cvvEsperado)}
             inputMode="numeric"
-            className={inputCls}
+            autoComplete="cc-csc"
+            maxLength={4}
           />
-        </Field>
-        <Field label="CPF do titular">
-          <input
+          {erroDe("cvv", `${cvvEsperado} dígitos.`) && (
+            <p className="mt-1 text-[11px] text-red-600">{cvvEsperado} dígitos.</p>
+          )}
+        </div>
+        <div>
+          <CampoComIcone
+            rotulo="CPF do titular"
+            icone={UserRound}
             value={cpf}
             onChange={(e) => setCpf(formatarCPF(e.target.value))}
+            onBlur={marcar("cpf")}
             placeholder="000.000.000-00"
             inputMode="numeric"
-            className={inputCls}
           />
-        </Field>
+          {erroDe("cpf", "CPF inválido.") && (
+            <p className="mt-1 text-[11px] text-red-600">CPF inválido.</p>
+          )}
+        </div>
       </div>
 
       {maxParcelas > 1 && (
@@ -593,11 +846,14 @@ function FormularioCartao({
         </Field>
       )}
 
-      <p className="flex items-start gap-2 rounded-lg bg-cream px-3 py-2.5 text-[11px] leading-relaxed text-muted">
-        <Lock size={12} className="mt-0.5 shrink-0 text-navy-400" />
-        Os campos estão aqui para a tela ficar completa, mas nada é validado nem
-        enviado — pode confirmar em branco. Quando o gateway entrar, os dados vão
-        direto para ele e nunca passam pelo nosso servidor.
+      <p className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] leading-relaxed text-amber-800">
+        <AlertCircle size={13} className="mt-0.5 shrink-0" />
+        <span>
+          <strong>Simulação.</strong> A conferência acima é só de formato — nada é
+          cobrado, e o número digitado não sai deste navegador. Não use um cartão
+          real: quando o gateway entrar, estes campos passam a ser os dele, e o
+          número vai direto para o gateway sem passar pelo nosso servidor.
+        </span>
       </p>
     </div>
   );
