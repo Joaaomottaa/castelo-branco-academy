@@ -85,3 +85,24 @@ export function msgErro(e: unknown): string {
   }
   return String(e);
 }
+
+/**
+ * O erro é "essa coluna/função ainda não existe no banco"?
+ *
+ * O código sobe pelo deploy e a migração roda à mão no SQL Editor: as duas
+ * coisas não acontecem no mesmo segundo. Nesse intervalo o Postgres responde
+ * `42703 column ... does not exist` e o PostgREST `PGRST204 Could not find the
+ * ... column`, e é isso que este teste reconhece — para a tela cair para a
+ * versão sem a coluna nova em vez de virar uma mensagem de erro de banco.
+ *
+ * Fica aqui, e não em cada repositório, porque o teste estava repetido em dois
+ * arquivos e faltando em três — e é justamente onde faltava que a tela quebrou.
+ */
+export function colunaAusente(e: unknown): boolean {
+  if (!e) return false;
+  const o = e as { message?: string; code?: string };
+  if (o.code === "42703" || o.code === "42883" || o.code === "PGRST204" || o.code === "PGRST202") {
+    return true;
+  }
+  return /does not exist|could not find/i.test(o.message ?? "");
+}

@@ -918,7 +918,15 @@ function Estatisticas({
           </p>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <Grupo titulo="PCD" dados={{ "Declararam PCD": div.pcd ?? 0 }} />
+            <Grupo
+              titulo="PCD"
+              dados={div.pcd === null || div.pcd === undefined ? {} : { "Declararam PCD": div.pcd }}
+              vazio={
+                div.pcdOcultoPorPiso
+                  ? "Menos de 3 declarações — a contagem exata identificaria a pessoa."
+                  : undefined
+              }
+            />
             <Grupo titulo="Gênero" dados={div.genero ?? {}} />
             <Grupo titulo="Raça/cor" dados={div.racaCor ?? {}} />
           </div>
@@ -928,14 +936,21 @@ function Estatisticas({
   );
 }
 
-function Grupo({ titulo, dados }: { titulo: string; dados: Record<string, number> }) {
+function Grupo({
+  titulo, dados, vazio,
+}: {
+  titulo: string;
+  dados: Record<string, number>;
+  /** Texto de quando não há o que mostrar — diz o motivo, não só "sem dado". */
+  vazio?: string;
+}) {
   const itens = Object.entries(dados);
   const total = itens.reduce((a, [, n]) => a + n, 0) || 1;
   return (
     <div className="rounded-xl border border-navy-100 bg-cream/40 p-3.5">
       <p className="text-[11px] font-bold uppercase tracking-wider text-navy-600">{titulo}</p>
       {itens.length === 0 ? (
-        <p className="mt-2 text-xs text-muted">Sem declaração</p>
+        <p className="mt-2 text-xs leading-snug text-muted">{vazio ?? "Sem declaração"}</p>
       ) : (
         <div className="mt-2 space-y-1.5">
           {itens.map(([k, n]) => (

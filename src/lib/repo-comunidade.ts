@@ -1,5 +1,5 @@
 import { getSupabase } from "./supabase";
-import { msgErro } from "./modo";
+import { colunaAusente, msgErro } from "./modo";
 import type {
   Colega, Comentario, Conexao, Conversa, Mensagem, MidiaDoPost, Post,
 } from "./types";
@@ -27,13 +27,18 @@ type LPost = {
 // autor_nome/cargo/nivel são desnormalizados no insert por trigger: o RLS de
 // `perfis` não deixa ler o perfil de quem não é público, e o feed precisa
 // exibir o nome de quem publicou.
-const SELECT_POST = `
-  id, autor_id, tipo, conteudo, link_url, criado_em, midias,
+const POST_SEM_MIDIAS = `
+  id, autor_id, tipo, conteudo, link_url, criado_em,
   autor_nome, autor_cargo, autor_nivel,
   empresas ( nome, cor ),
   post_curtidas ( perfil_id ),
   post_comentarios ( id, perfil_id, conteudo, criado_em, autor_nome, autor_cargo )
 `;
+
+// `midias` nasce na migração 20 e fica separada de propósito: o código sobe
+// pelo deploy e o SQL roda à mão no painel, e nesse intervalo o feed tem de
+// continuar de pé sem o anexo em vez de responder erro de coluna.
+const POST_COM_MIDIAS = `midias, ${POST_SEM_MIDIAS}`;
 
 function mapPost(r: LPost, meuId?: string): Post {
   return {
@@ -68,17 +73,28 @@ export async function carregarFeed(meuId?: string): Promise<Post[]> {
   const sb = getSupabase();
   if (!sb) return postsDemo(meuId);
 
-  const { data, error } = await sb
-    .from("posts")
-    .select(SELECT_POST)
-    .order("criado_em", { ascending: false })
-    .limit(50);
+  const buscar = (colunas: string) =>
+    sb
+      .from("posts")
+      .select(colunas)
+      .order("criado_em", { ascending: false })
+      .limit(50);
 
-  if (error) {
-    console.error("[feed] falha:", msgErro(error));
-    return postsDemo(meuId);
+  let r = await buscar(POST_COM_MIDIAS);
+  if (colunaAusente(r.error)) {
+    console.warn("[feed] coluna `midias` ainda não existe; rode supabase/20_*.sql.");
+    r = await buscar(POST_SEM_MIDIAS);
   }
-  return ((data ?? []) as unknown as LPost[]).map((p) => mapPost(p, meuId));
+
+  // Banco respondendo e recusando: o feed volta VAZIO, não volta a semente de
+  // demonstração. Publicação inventada com nome de gente que existe, curtida
+  // que ninguém deu e comentário que ninguém escreveu é pior que feed vazio —
+  // e o caso real (coluna nova faltando) o retry acima já resolveu.
+  if (r.error) {
+    console.error("[feed] falha:", msgErro(r.error));
+    return [];
+  }
+  return ((r.data ?? []) as unknown as LPost[]).map((p) => mapPost(p, meuId));
 }
 
 export const BUCKET_COMUNIDADE = "comunidade";
@@ -141,17 +157,24 @@ export async function publicarPost(
   // na lista, e dizer que gravou seria mentira.
   if (!sb) return {};
 
-  const { data, error } = await sb
-    .from("posts")
-    .insert({ autor_id: autorId, conteudo, tipo, midias })
-    .select("id")
-    .single();
+  // `midias` só entra na linha quando existe anexo: publicar texto continua
+  // funcionando antes de a migração 20 rodar. Com anexo e sem a coluna, a
+  // publicação vai sem os arquivos — melhor que não publicar nada.
+  const linha = { autor_id: autorId, conteudo, tipo };
+  const inserir = (l: Record<string, unknown>) =>
+    sb.from("posts").insert(l).select("id").single();
 
-  if (error) {
-    console.error("[feed] publicar:", msgErro(error));
-    return { erro: msgErro(error) };
+  let r = midias.length ? await inserir({ ...linha, midias }) : await inserir(linha);
+  if (colunaAusente(r.error) && midias.length) {
+    console.warn("[feed] coluna `midias` ainda não existe; publicando sem os anexos.");
+    r = await inserir(linha);
   }
-  return { id: (data as { id: string }).id };
+
+  if (r.error) {
+    console.error("[feed] publicar:", msgErro(r.error));
+    return { erro: msgErro(r.error) };
+  }
+  return { id: (r.data as { id: string }).id };
 }
 
 export async function alternarCurtida(postId: string, perfilId: string, curtir: boolean) {

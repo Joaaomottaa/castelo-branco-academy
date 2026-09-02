@@ -1,5 +1,5 @@
 import { getSupabase } from "./supabase";
-import { msgErro } from "./modo";
+import { colunaAusente, msgErro } from "./modo";
 import type { Certificado, CertificadoTrilha, Perfil } from "./types";
 
 /* ==========================================================================
@@ -91,7 +91,19 @@ export interface DiversidadeDaVaga {
   disponivel: boolean;
   declaradas: number;
   minimo?: number;
-  pcd?: number;
+  /**
+   * Quantas pessoas declararam PCD — `null` quando são uma ou duas e a vaga
+   * não é de cota: contagem de 1 numa lista curta identifica a pessoa, e a
+   * empresa já vê quem se candidatou. Na vaga de cota volta exata, porque é o
+   * número da conta da cota (Lei 8.213/1991, art. 93).
+   */
+  pcd?: number | null;
+  /** `true` quando havia declaração de PCD mas o piso a escondeu. */
+  pcdOcultoPorPiso?: boolean;
+  /**
+   * Contagem por grupo. Grupos com menos de três declarações vêm somados na
+   * chave "menos de 3 por grupo", pelo mesmo motivo.
+   */
   genero?: Record<string, number>;
   racaCor?: Record<string, number>;
 }
@@ -148,7 +160,7 @@ async function consultarVagas(
   montar: (colunas: string) => PromiseLike<{ data: unknown; error: { message: string } | null }>
 ): Promise<{ vagas: VagaAdmin[]; erro?: string }> {
   let r = await montar(COLUNAS_VAGA);
-  if (r.error && /does not exist|could not find/i.test(r.error.message)) {
+  if (colunaAusente(r.error)) {
     console.warn("[vagas] colunas novas ainda não existem; rode supabase/20_*.sql.");
     r = await montar(COLUNAS_VAGA_BASE);
   }
@@ -261,11 +273,25 @@ export async function candidaturasDaEmpresa(
   const sb = getSupabase();
   if (!sb || !empresaId) return [];
 
-  const { data, error } = await sb
-    .from("candidaturas")
-    .select("id, vaga_id, status, criada_em, atualizada_em, visualizada_em, vagas!inner ( empresa_id )")
-    .eq("vagas.empresa_id", empresaId)
-    .order("criada_em", { ascending: false });
+  // As duas colunas de acompanhamento são da migração 20. Sem tolerância aqui
+  // a empresa via "nenhuma candidatura" tendo candidatos — o pior tipo de
+  // falha, porque parece dado e não parece erro.
+  const buscar = (colunas: string) =>
+    sb
+      .from("candidaturas")
+      .select(colunas)
+      .eq("vagas.empresa_id", empresaId)
+      .order("criada_em", { ascending: false });
+
+  const COM = "id, vaga_id, status, criada_em, atualizada_em, visualizada_em, vagas!inner ( empresa_id )";
+  const SEM = "id, vaga_id, status, criada_em, vagas!inner ( empresa_id )";
+
+  let r = await buscar(COM);
+  if (colunaAusente(r.error)) {
+    console.warn("[vagas] colunas de acompanhamento ainda não existem; rode supabase/20_*.sql.");
+    r = await buscar(SEM);
+  }
+  const { data, error } = r;
 
   if (error) {
     console.error("[vagas] candidaturas da empresa:", msgErro(error));
@@ -368,6 +394,12 @@ export async function salvarVaga(d: DadosVaga): Promise<{ ok: boolean; erro?: st
     cursos_desejados: d.cursosDesejados,
     trilhas_desejadas: d.trilhasDesejadas,
     ativa: d.ativa,
+  };
+
+  // Campos de recrutamento que a migração 20 acrescenta. Ficam separados
+  // porque publicar e editar vaga é o caminho mais usado da área da empresa:
+  // ele não pode depender de o SQL já ter rodado no painel.
+  const recrutamento = {
     beneficios: d.beneficios ?? [],
     jornada: d.jornada?.trim() || null,
     escolaridade: d.escolaridade?.trim() || null,
@@ -381,11 +413,18 @@ export async function salvarVaga(d: DadosVaga): Promise<{ ok: boolean; erro?: st
     sigilosa: Boolean(d.sigilosa),
   };
 
-  const { error } = d.id
-    ? await sb.from("vagas").update(linha).eq("id", d.id)
-    : await sb.from("vagas").insert(linha);
+  const gravar = (l: Record<string, unknown>) =>
+    d.id ? sb.from("vagas").update(l).eq("id", d.id) : sb.from("vagas").insert(l);
 
-  return error ? { ok: false, erro: msgErro(error) } : { ok: true };
+  let r = await gravar({ ...linha, ...recrutamento });
+  if (colunaAusente(r.error)) {
+    console.warn(
+      "[vagas] colunas de recrutamento ainda não existem; gravando a vaga sem elas. Rode supabase/20_*.sql."
+    );
+    r = await gravar(linha);
+  }
+
+  return r.error ? { ok: false, erro: msgErro(r.error) } : { ok: true };
 }
 
 export async function apagarVaga(id: string): Promise<{ ok: boolean; erro?: string }> {
@@ -569,10 +608,16 @@ export async function definirNotaInterna(
 ): Promise<{ ok: boolean; erro?: string }> {
   const sb = getSupabase();
   if (!sb) return { ok: false, erro: SEM_BANCO };
-  const { error } = await sb
-    .from("candidaturas")
-    .update({ nota_interna: nota.trim() || null })
-    .eq("id", candidaturaId);
+  // A nota mora em `candidatura_notas`, tabela separada com RLS só da empresa
+  // da vaga — em `candidaturas` o próprio candidato leria a anotação sobre
+  // ele, porque RLS é por linha e não por coluna.
+  const { error } = await sb.rpc("definir_nota_interna", {
+    p_candidatura: candidaturaId,
+    p_nota: nota.trim() || null,
+  });
+  if (colunaAusente(error)) {
+    return { ok: false, erro: "Rode supabase/20_*.sql no Supabase para ativar a anotação interna." };
+  }
   return error ? { ok: false, erro: msgErro(error) } : { ok: true };
 }
 

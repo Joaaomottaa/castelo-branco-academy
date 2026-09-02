@@ -1,5 +1,5 @@
 import { getSupabase } from "./supabase";
-import { msgErro } from "./modo";
+import { colunaAusente, msgErro } from "./modo";
 import type { Curso, QuestaoAula, Trilha } from "./types";
 
 /* ==========================================================================
@@ -98,7 +98,7 @@ export interface CursoAdmin extends Curso {
 
 const SELECT_CURSO_ADMIN = `
   id, slug, titulo, subtitulo, descricao, categoria, nivel, cor,
-  instrutor, instrutor_cargo, instrutor_registro, instrutor_assinatura_url,
+  instrutor, instrutor_cargo,
   carga_horaria, pontos_pepc, alunos, nota,
   tags, destaque, novo, publicado, criado_em,
   modulos ( id, titulo, resumo, ordem,
@@ -107,6 +107,12 @@ const SELECT_CURSO_ADMIN = `
             quiz_ativo, quiz_qtd, quiz_minimo, quiz_tentativas,
             questoes ( count ) ) )
 `;
+
+// `instrutor_registro` e `instrutor_assinatura_url` nascem na migração 20.
+// Ficam fora da lista base porque /admin/cursos é a tela que cadastra curso:
+// se ela zerar enquanto o SQL não roda, não há como consertar pelo produto.
+const SELECT_CURSO_ADMIN_DOCENTE =
+  `instrutor_registro, instrutor_assinatura_url, ${SELECT_CURSO_ADMIN}`;
 
 function mapCursoAdmin(r: LinhaCursoAdmin): CursoAdmin {
   return {
@@ -166,10 +172,17 @@ export async function carregarCursosAdmin(): Promise<Resultado<CursoAdmin[]>> {
   const sb = getSupabase();
   if (!sb) return { ok: false, erro: SEM_BANCO, dado: [] };
 
-  const { data, error } = await sb
-    .from("cursos")
-    .select(SELECT_CURSO_ADMIN)
-    .order("criado_em", { ascending: false });
+  const buscar = (colunas: string) =>
+    sb.from("cursos").select(colunas).order("criado_em", { ascending: false });
+
+  let r = await buscar(SELECT_CURSO_ADMIN_DOCENTE);
+  if (colunaAusente(r.error)) {
+    console.warn(
+      "[admin] colunas de assinatura do docente ainda não existem; rode supabase/20_*.sql."
+    );
+    r = await buscar(SELECT_CURSO_ADMIN);
+  }
+  const { data, error } = r;
 
   if (error) return { ok: false, erro: msgErro(error), dado: [] };
   return {
@@ -256,8 +269,6 @@ export async function salvarCurso(d: DadosCurso): Promise<Resultado<string>> {
     cor: d.cor,
     instrutor: d.instrutor.trim() || null,
     instrutor_cargo: d.instrutorCargo.trim() || null,
-    instrutor_registro: d.instrutorRegistro?.trim() || null,
-    instrutor_assinatura_url: d.instrutorAssinaturaUrl?.trim() || null,
     carga_horaria: d.cargaHoraria,
     pontos_pepc: d.pontosPEPC,
     tags: d.tags,
@@ -265,19 +276,36 @@ export async function salvarCurso(d: DadosCurso): Promise<Resultado<string>> {
     publicado: d.publicado,
   };
 
+  // Registro e assinatura do docente também são da migração 20: sem elas o
+  // curso ainda salva (e o certificado assina em tipografia).
+  const docente = {
+    instrutor_registro: d.instrutorRegistro?.trim() || null,
+    instrutor_assinatura_url: d.instrutorAssinaturaUrl?.trim() || null,
+  };
+
+  const gravar = (l: Record<string, unknown>) =>
+    d.id
+      ? sb.from("cursos").update(l).eq("id", d.id).select("id").maybeSingle()
+      : sb.from("cursos").insert(l).select("id").maybeSingle();
+
   try {
-    if (d.id) {
-      const { data, error } = await sb
-        .from("cursos").update(linha).eq("id", d.id).select("id").maybeSingle();
-      if (error) throw error;
-      if (!data) return { ok: false, erro: "Nada foi atualizado — confira se sua conta é admin." };
-      return { ok: true, dado: data.id as string };
+    let r = await gravar({ ...linha, ...docente });
+    if (colunaAusente(r.error)) {
+      console.warn(
+        "[admin] colunas de assinatura do docente ainda não existem; salvando sem elas. Rode supabase/20_*.sql."
+      );
+      r = await gravar(linha);
     }
-    const { data, error } = await sb
-      .from("cursos").insert(linha).select("id").maybeSingle();
-    if (error) throw error;
-    if (!data) return { ok: false, erro: "O curso não foi criado — confira se sua conta é admin." };
-    return { ok: true, dado: data.id as string };
+    if (r.error) throw r.error;
+    if (!r.data) {
+      return {
+        ok: false,
+        erro: d.id
+          ? "Nada foi atualizado — confira se sua conta é admin."
+          : "O curso não foi criado — confira se sua conta é admin.",
+      };
+    }
+    return { ok: true, dado: (r.data as { id: string }).id };
   } catch (e) {
     return falha(e);
   }

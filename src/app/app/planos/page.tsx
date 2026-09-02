@@ -104,7 +104,7 @@ export default function PlanosPage() {
           <MoveHorizontal size={13} className="text-gold-500" />
           Arraste para o lado para comparar os planos
         </p>
-        <div className={cn(fileiraCls, "pt-4 sm:grid-cols-2 sm:pt-0 lg:grid-cols-3")}>
+        <div className={cn(fileiraCls, "pt-4 sm:grid-cols-2 sm:gap-6 sm:pt-0 lg:grid-cols-3")}>
         {planos.map((p) => {
           const atual = ehMeuPlano(p.slug);
           return (

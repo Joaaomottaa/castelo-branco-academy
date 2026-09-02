@@ -31,10 +31,24 @@ comment on column public.cursos.instrutor_registro is
 comment on column public.cursos.instrutor_assinatura_url is
   'Imagem da assinatura (bucket capas). Sem ela o certificado assina em tipografia.';
 
--- Curso sem docente emitiria diploma sem assinatura. A trava entra como NOT
--- VALID de propósito: as linhas que já existem seguem como estão (não se
--- reescreve catálogo histórico à força), mas nenhuma inserção ou alteração
--- nova passa sem docente.
+/*
+  Curso sem docente emitiria diploma sem assinatura, então a trava é real.
+
+  O BACKFILL VEM ANTES DA TRAVA, e não é detalhe de estilo: uma restrição CHECK
+  vale para toda linha que sofre UPDATE, mesmo `not valid` e mesmo que o UPDATE
+  não toque a coluna travada. Com um curso antigo de docente vazio, publicar,
+  despublicar e até o contador de alunos passariam a falhar — testei, falha com
+  "violates check constraint" num `update cursos set publicado = false`.
+
+  O nome preenchido é o mesmo que o certificado já imprimia quando não havia
+  docente, então nada muda na tela: o banco passa a dizer o que o documento
+  mostrava. Depois de rodar, vale trocar pelos nomes reais em Admin › Cursos —
+  a consulta no fim deste arquivo lista quais foram marcados assim.
+*/
+update public.cursos
+   set instrutor = 'Coordenação Acadêmica'
+ where instrutor is null or btrim(instrutor) = '';
+
 do $$
 begin
   if not exists (
@@ -42,7 +56,7 @@ begin
   ) then
     alter table public.cursos
       add constraint cursos_docente_obrigatorio
-      check (instrutor is not null and btrim(instrutor) <> '') not valid;
+      check (instrutor is not null and btrim(instrutor) <> '');
   end if;
 end $$;
 
@@ -250,11 +264,7 @@ create index if not exists vagas_empresa_idx on public.vagas (empresa_id, public
 -- ------------------------------------------- acompanhamento da candidatura --
 alter table public.candidaturas
   add column if not exists atualizada_em   timestamptz not null default now(),
-  add column if not exists visualizada_em  timestamptz,
-  add column if not exists nota_interna    text;
-
-comment on column public.candidaturas.nota_interna is
-  'Anotação da empresa sobre o candidato. Nunca é exibida para o candidato.';
+  add column if not exists visualizada_em  timestamptz;
 
 create or replace function public.candidaturas_marca_atualizacao()
 returns trigger language plpgsql as $$
@@ -268,14 +278,7 @@ create trigger trg_candidatura_atualizada
   before update on public.candidaturas
   for each row execute function public.candidaturas_marca_atualizacao();
 
--- O aluno lê a própria candidatura (policy antiga) mas não deve ler a anotação
--- interna da empresa. Como RLS é por linha e não por coluna, a anotação sai da
--- resposta pela view que o app usa; o acesso direto continua restrito ao dono
--- da linha e à empresa da vaga.
-revoke update (nota_interna) on public.candidaturas from authenticated;
-grant  update (status, mensagem) on public.candidaturas to authenticated;
-
--- A empresa precisa gravar anotação e marcar como visualizada.
+-- A empresa precisa mover o status e marcar a ficha como vista.
 drop policy if exists "candidaturas: empresa move o status" on public.candidaturas;
 create policy "candidaturas: empresa move o status" on public.candidaturas
   for update using (
@@ -286,7 +289,70 @@ create policy "candidaturas: empresa move o status" on public.candidaturas
              where v.id = candidaturas.vaga_id and public.is_membro_empresa(v.empresa_id))
   );
 
-grant update (nota_interna, visualizada_em, status) on public.candidaturas to authenticated;
+/*
+  A ANOTAÇÃO INTERNA MORA FORA DE `candidaturas` — e isso não é organização,
+  é a única forma de ela não vazar.
+
+  RLS no Postgres é por LINHA, não por coluna: a policy que deixa o candidato
+  ler a própria candidatura deixa ele ler a linha INTEIRA. Com a anotação
+  dentro dessa linha, um `select nota_interna` direto na API devolveria para o
+  candidato o que a empresa escreveu sobre ele — mesmo que nenhuma tela mostre.
+  Privilégio por coluna também não resolve: derruba o privilégio de tabela e
+  quebra caminhos que já funcionam.
+
+  Em tabela separada a conta é simples: quem não é da empresa da vaga não
+  alcança a linha.
+*/
+create table if not exists public.candidatura_notas (
+  candidatura_id  uuid primary key references public.candidaturas(id) on delete cascade,
+  nota            text,
+  atualizada_em   timestamptz not null default now()
+);
+
+alter table public.candidatura_notas enable row level security;
+
+drop policy if exists "notas: só a empresa da vaga" on public.candidatura_notas;
+create policy "notas: só a empresa da vaga" on public.candidatura_notas
+  for all using (
+    exists (
+      select 1 from public.candidaturas c
+      join public.vagas v on v.id = c.vaga_id
+      where c.id = candidatura_notas.candidatura_id
+        and public.is_membro_empresa(v.empresa_id)
+    )
+  ) with check (
+    exists (
+      select 1 from public.candidaturas c
+      join public.vagas v on v.id = c.vaga_id
+      where c.id = candidatura_notas.candidatura_id
+        and public.is_membro_empresa(v.empresa_id)
+    )
+  );
+
+create or replace function public.definir_nota_interna(p_candidatura uuid, p_nota text)
+returns void language plpgsql security definer set search_path = public as $fn$
+declare v_empresa uuid;
+begin
+  select v.empresa_id into v_empresa
+  from public.candidaturas c
+  join public.vagas v on v.id = c.vaga_id
+  where c.id = p_candidatura;
+
+  if v_empresa is null then raise exception 'Candidatura não encontrada'; end if;
+  if not (public.is_admin() or public.is_membro_empresa(v_empresa)) then
+    raise exception 'Sem permissão para anotar nesta candidatura';
+  end if;
+
+  if p_nota is null or btrim(p_nota) = '' then
+    delete from public.candidatura_notas where candidatura_id = p_candidatura;
+    return;
+  end if;
+
+  insert into public.candidatura_notas (candidatura_id, nota, atualizada_em)
+  values (p_candidatura, btrim(p_nota), now())
+  on conflict (candidatura_id) do update
+    set nota = excluded.nota, atualizada_em = now();
+end $fn$;
 
 -- ------------------------------------------------ autodeclaração opcional --
 --
@@ -335,6 +401,42 @@ begin
 end $fn$;
 
 /*
+  Conta por grupo com piso de três.
+
+  Existe para a resposta agregada não virar identificação: numa vaga com cinco
+  candidaturas, "1 pessoa parda" mais a lista de candidatos que a empresa já vê
+  reduz muito o campo de quem é. Grupo com menos de três declarações some num
+  balde "menos de 3 por grupo".
+*/
+create or replace function public.agrupar_com_piso(p_vaga uuid, p_campo text)
+returns jsonb language plpgsql stable security definer set search_path = public as $fn$
+declare
+  v_piso constant integer := 3;
+  v      jsonb;
+  v_res  integer;
+begin
+  execute format($q$
+    select
+      coalesce(jsonb_object_agg(g.rotulo, g.n) filter (where g.n >= %1$s), '{}'::jsonb),
+      coalesce(sum(g.n) filter (where g.n < %1$s), 0)
+    from (
+      select coalesce(d.%2$I::text, 'Não informado') as rotulo, count(*) as n
+      from public.candidaturas c
+      join public.perfil_diversidade d on d.perfil_id = c.perfil_id
+      where c.vaga_id = $1
+      group by 1
+    ) g
+  $q$, v_piso, p_campo)
+  into v, v_res
+  using p_vaga;
+
+  if coalesce(v_res, 0) > 0 then
+    v := v || jsonb_build_object('menos de 3 por grupo', v_res);
+  end if;
+  return coalesce(v, '{}'::jsonb);
+end $fn$;
+
+/*
   Representatividade das candidaturas de uma vaga.
 
   Devolve contagem, nunca pessoa. E devolve só a partir de 5 candidaturas
@@ -368,29 +470,41 @@ begin
   return jsonb_build_object(
     'disponivel', true,
     'declaradas', v_total,
-    'pcd', (select count(*) from public.candidaturas c
-              join public.perfil_diversidade d on d.perfil_id = c.perfil_id
-             where c.vaga_id = p_vaga and d.pcd),
-    'genero', coalesce((
-      select jsonb_object_agg(coalesce(d.genero, 'Não informado'), n)
-      from (
-        select d.genero, count(*) as n
-        from public.candidaturas c
-        join public.perfil_diversidade d on d.perfil_id = c.perfil_id
-        where c.vaga_id = p_vaga
-        group by d.genero
-      ) d
-    ), '{}'::jsonb),
-    'racaCor', coalesce((
-      select jsonb_object_agg(coalesce(d.raca_cor, 'Não informado'), n)
-      from (
-        select d.raca_cor, count(*) as n
-        from public.candidaturas c
-        join public.perfil_diversidade d on d.perfil_id = c.perfil_id
-        where c.vaga_id = p_vaga
-        group by d.raca_cor
-      ) d
-    ), '{}'::jsonb)
+    -- O mesmo piso vale para PCD, com uma exceção: na vaga de cota a contagem
+    -- exata é o próprio motivo de a pessoa ter declarado, e é o número que a
+    -- empresa presta como conta da cota (Lei 8.213/1991, art. 93). Fora dela,
+    -- "1 candidato PCD" numa lista curta é identificação, não estatística.
+    'pcd', (
+      select case
+        when v.pcd then n
+        when n >= 3 then n
+        else null
+      end
+      from public.vagas v,
+        lateral (
+          select count(*) as n
+          from public.candidaturas c
+          join public.perfil_diversidade d on d.perfil_id = c.perfil_id
+          where c.vaga_id = p_vaga and d.pcd
+        ) t
+      where v.id = p_vaga
+    ),
+    'pcdOcultoPorPiso', (
+      select not v.pcd and t.n > 0 and t.n < 3
+      from public.vagas v,
+        lateral (
+          select count(*) as n
+          from public.candidaturas c
+          join public.perfil_diversidade d on d.perfil_id = c.perfil_id
+          where c.vaga_id = p_vaga and d.pcd
+        ) t
+      where v.id = p_vaga
+    ),
+    -- Grupo com uma ou duas pessoas é identificação disfarçada de estatística:
+    -- basta a empresa cruzar com a lista de candidatos, que ela vê. Grupos
+    -- abaixo de três somam num balde único, e a tela diz que isso acontece.
+    'genero',  public.agrupar_com_piso(p_vaga, 'genero'),
+    'racaCor', public.agrupar_com_piso(p_vaga, 'raca_cor')
   );
 end $fn$;
 
@@ -416,7 +530,8 @@ begin
       'criada_em',      c.criada_em,
       'atualizada_em',  c.atualizada_em,
       'visualizada_em', c.visualizada_em,
-      'nota_interna',   c.nota_interna,
+      'nota_interna',   (select n.nota from public.candidatura_notas n
+                         where n.candidatura_id = c.id),
       'mensagem',       c.mensagem,
       'perfil', jsonb_build_object(
         'id', p.id, 'nome', p.nome, 'email', p.email, 'cargo', p.cargo,
@@ -662,6 +777,32 @@ create trigger trg_conversa_atualizada
   after insert on public.mensagens
   for each row execute function public.conversa_toca_atualizacao();
 
+/*
+  Mandar mensagem exige conexão aceita AGORA, não no dia em que a conversa
+  abriu.
+
+  A policy de insert que vinha da migração 06 só checava quem está na conversa,
+  e `abrir_conversa` checa a conexão uma única vez. Somando as duas: quem
+  desconectava continuava conseguindo escrever para sempre, porque a conversa
+  já existia. Ler o histórico continua permitido — desconectar encerra a
+  conversa, não apaga o que foi dito.
+*/
+drop policy if exists "mensagens: participante envia" on public.mensagens;
+create policy "mensagens: participante envia" on public.mensagens
+  for insert with check (
+    remetente_id = auth.uid()
+    and exists (
+      select 1
+      from public.conversas cv
+      join public.conexoes cx
+        on cx.status = 'aceita'
+       and ((cx.solicitante_id = cv.a_id and cx.destinatario_id = cv.b_id)
+         or (cx.solicitante_id = cv.b_id and cx.destinatario_id = cv.a_id))
+      where cv.id = conversa_id
+        and (cv.a_id = auth.uid() or cv.b_id = auth.uid())
+    )
+  );
+
 -- Quem recebeu marca como lida. Faltava a policy de update: sem ela o
 -- contador de não lidas nunca zerava.
 drop policy if exists "mensagens: destinatário marca lida" on public.mensagens;
@@ -730,6 +871,7 @@ begin
   foreach f in array array[
     'salvar_minha_diversidade(boolean, text, text, text)',
     'minha_diversidade()',
+    'definir_nota_interna(uuid, text)',
     'empresa_diversidade_da_vaga(uuid)',
     'empresa_vagas_resumo()',
     'buscar_colegas(text, integer)',
@@ -743,6 +885,11 @@ begin
   end loop;
 end
 $g$;
+
+-- `agrupar_com_piso` é peça interna de `empresa_diversidade_da_vaga`: exposta
+-- direto ela devolveria a contagem sem o mínimo de cinco declarações.
+revoke all on function public.agrupar_com_piso(uuid, text) from public;
+revoke execute on function public.agrupar_com_piso(uuid, text) from anon, authenticated;
 
 -- Funções de gatilho não são endpoint.
 revoke all on function public.candidaturas_marca_atualizacao() from public;
@@ -767,13 +914,23 @@ select
                            'pcd','afirmativa_para','acessibilidade','sigilosa'))   as colunas_vaga,            -- 8
   (select count(*) from information_schema.columns
      where table_schema='public' and table_name='candidaturas'
-       and column_name in ('atualizada_em','visualizada_em','nota_interna'))       as colunas_candidatura,     -- 3
+       and column_name in ('atualizada_em','visualizada_em'))                       as colunas_candidatura,     -- 2
   (select count(*) from information_schema.tables
-     where table_schema='public' and table_name='perfil_diversidade')              as tabela_diversidade,      -- 1
+     where table_schema='public'
+       and table_name in ('perfil_diversidade','candidatura_notas'))               as tabelas_novas,           -- 2
   (select count(*) from information_schema.columns
      where table_schema='public' and table_name='posts' and column_name='midias')  as coluna_midias,           -- 1
   (select count(*) from storage.buckets where id='comunidade')                     as bucket_comunidade,       -- 1
   (select count(*) from pg_proc where pronamespace='public'::regnamespace
      and proname in ('buscar_colegas','abrir_conversa','minhas_conversas',
                      'empresa_vagas_resumo','empresa_diversidade_da_vaga',
-                     'salvar_minha_diversidade','minha_diversidade'))              as funcoes_novas;           -- 7
+                     'salvar_minha_diversidade','minha_diversidade',
+                     'definir_nota_interna','agrupar_com_piso'))                   as funcoes_novas;           -- 9
+
+-- Cursos que ficaram com o docente de reserva: troque pelo nome real de quem
+-- ministrou em Admin › Cursos › editar › Docente. Enquanto não trocar, é esse
+-- nome que assina o certificado.
+select slug, titulo
+  from public.cursos
+ where instrutor = 'Coordenação Acadêmica'
+ order by titulo;

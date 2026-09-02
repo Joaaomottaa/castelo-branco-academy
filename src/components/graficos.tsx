@@ -55,6 +55,10 @@ export function Barras({
   const passoEixo = valores.length > 24 ? 4 : valores.length > 14 ? 2 : 1;
 
   return (
+    // O balão do hover fica ancorado no topo da coluna, dentro desta caixa:
+    // `overflow-x: auto` faz o navegador calcular `overflow-y: auto` também, e
+    // qualquer coisa posicionada acima do gráfico sairia recortada.
+    //
     // O rótulo do eixo ("31/08") dá a cada coluna uma largura mínima de ~26px.
     // Quatorze colunas não cabem nos 280px de um celular: em vez de deixar as
     // últimas serem cortadas pela borda do cartão, o gráfico rola de lado com
@@ -65,13 +69,13 @@ export function Barras({
         {valores.map((v, i) => (
           <div
             key={i}
-            className="flex h-full min-w-[26px] flex-1 flex-col justify-end"
+            className="flex h-full min-w-[26px] flex-1 flex-col justify-end sm:min-w-0"
             onMouseEnter={() => setAtivo(i)}
             onMouseLeave={() => setAtivo(null)}
           >
             <div className="relative flex h-full flex-col justify-end">
               {!cabeNumero && ativo === i && (
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 w-max -translate-x-1/2 rounded-md bg-navy-900 px-2 py-1 text-[10px] font-bold tabular-nums text-white shadow-lg">
+                <span className="pointer-events-none absolute left-1/2 top-0 z-10 w-max -translate-x-1/2 rounded-md bg-navy-900 px-2 py-1 text-[10px] font-bold tabular-nums text-white shadow-lg">
                   {rotulos[i]}: {formatar(v)}
                 </span>
               )}
